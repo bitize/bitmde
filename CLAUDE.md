@@ -124,6 +124,8 @@ O que vai no pacote é decidido pelo campo **`files`** do `package.json` (`lib/`
 
 O workflow confere o conteúdo do tarball depois do build e reprova o release se algo proibido entrar ou algo essencial sumir. Conferir localmente com `npm pack --dry-run`. Detalhes em [ADR 0011](.docs/arquitetura/decisoes/0011-files-e-exports-como-contrato-de-empacotamento.md).
 
+Logo antes do `npm publish` há um guard que consulta o npm e **pula a publicação** se aquela versão já está no registro — é o que permite criar o release no GitHub para uma versão de bootstrap sem quebrar o workflow, e o que faz re-run de release terminar verde. Ele testa a **saída** do `npm view`, não o código de saída, porque isso mudou entre versões do npm. Ver [release.md](.docs/arquitetura/release.md).
+
 ### Registro e credencial
 
 Publicado no **npmjs.com** como pacote escopado público, sob a org `bitize`. `publishConfig.access: "public"` é obrigatório e não pode ser removido: pacote escopado nasce `restricted`, e sem essa flag o `npm publish` falha exigindo plano pago. Publicar públicos no npm é gratuito; só pacote privado é cobrado.

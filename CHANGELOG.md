@@ -1,5 +1,11 @@
 # Changelog
 
+## [Não publicado]
+
+### Adicionado
+
+- A CI de publicação passa a conferir se a versão já está no npm antes do `npm publish` e pula a publicação em vez de falhar com `EPUBLISHCONFLICT`. Com isso o release no GitHub deixa de ter exceção: versão publicada à mão — o bootstrap de um nome novo — e re-run de release terminam verdes
+
 ## [0.17.0] / 2026-09-10
 
 ### Modificado

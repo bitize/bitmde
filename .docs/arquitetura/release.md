@@ -27,9 +27,14 @@ Na ordem:
 | `npm run certs:teste` + `npm run test:ci` | Fecha a janela entre o último push na `main` e a criação da tag                                               |
 | `npm run build`                           | `lib/` e `dist/` são gitignored — sem isso o pacote sai vazio                                                 |
 | Conferir conteúdo do pacote               | Reprova se o tarball ganhar arquivo proibido ou perder arquivo essencial — ver abaixo                         |
+| Conferir se a versão já está no npm       | Pula o `npm publish` se aquela versão já existe no registro — ver abaixo                                      |
 | `npm publish`                             | Sem `--provenance` e sem `--access public`: os dois já vêm de outro lugar                                     |
 
 Como o workflow refaz o build, `lib/` e `dist/` saem sempre do fonte daquela tag.
+
+> **O workflow que roda é o do commit da tag, não o da `main`.** Cada run usa a versão do arquivo presente no ref do evento, e num `release` esse ref é `refs/tags/vx.y.z` ([docs](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)).
+>
+> Duas consequências que economizam tempo: mudança no `publicar.yml` só vale a partir da **próxima tag**, e release que falhou não se conserta corrigindo a `main` — a tag precisa ser refeita no commit corrigido.
 
 ### O guard de conteúdo do pacote
 
@@ -41,6 +46,20 @@ Roda `npm pack --dry-run --json` **depois** do build — antes dele `lib/` e `di
 A conferência é **por regra, não por snapshot** da lista de arquivos: `lib/` espelha `src/`, então uma lista congelada quebraria a cada arquivo novo do fonte e acabaria sendo atualizada no reflexo, sem ninguém ler o diff.
 
 Ele existe porque empacotamento errado é a falha que não dá sintoma: um tarball sem `lib/` é publicado sem erro em nenhum outro passo, e só aparece em quem instalar. Ver [ADR 0011](decisoes/0011-files-e-exports-como-contrato-de-empacotamento.md) e [build-e-versao.md](build-e-versao.md).
+
+### O guard de versão já publicada
+
+Antes do `npm publish`, o workflow consulta o registro e **pula a publicação** se aquela versão já existe. Versão no npm não se reescreve, então encontrá-la lá não é erro a corrigir — é trabalho já feito, e o release termina verde.
+
+Dois casos chegam ao workflow nessa situação:
+
+- **bootstrap de um nome novo**, que sai da máquina porque o trusted publisher exige o pacote já existindo — ver [A publicação de bootstrap](#a-publicação-de-bootstrap);
+- **re-run de um release**, por mão humana ou por reprocessamento do Actions.
+
+Dois detalhes do teste, que parecem preciosismo e não são:
+
+- ele olha a **saída** do `npm view`, não o código de saída. O npm 11 sai com `1` para versão inexistente; versões anteriores saem com `0` sem imprimir nada. A saída é o único sinal estável entre as duas;
+- se o registro ainda não propagou a leitura de um pacote recém-criado — o que acontece de verdade, por alguns minutos —, o guard não acha a versão e deixa o `npm publish` seguir. O npm então recusa com `EPUBLISHCONFLICT`, que é exatamente o comportamento anterior ao guard. O erro cai para o lado seguro: no máximo se perde o benefício, nunca se publica coisa errada.
 
 ## Registro e credencial
 
@@ -70,13 +89,7 @@ A tela de trusted publisher só existe para pacote **já publicado**. Por isso a
 
 > **Renomear o pacote refaz esse ciclo.** Para o npm, `@bitize/bitmde` é um pacote novo: nasce sem trusted publisher, e a tela para configurá-lo só aparece depois que existe uma versão publicada. A primeira versão sob o nome novo sai da máquina, como a 0.15.0 saiu. Ver [ADR 0012](decisoes/0012-renomeacao-para-bitize-bitmde.md).
 
-**Na versão de bootstrap, não criar o release no GitHub.** O passo 5 do [procedimento](#o-procedimento) vale para as versões publicadas pela CI. Na de bootstrap o pacote já foi para o npm pela máquina, e o release dispararia o `publicar.yml` para republicar a mesma versão — que falha com `EPUBLISHCONFLICT`, deixando um run vermelho sem nada a corrigir. Nessa versão, marcar o commit só com a tag:
-
-```sh
-git tag vx.y.z && git push origin vx.y.z
-```
-
-O release no GitHub volta a partir da versão seguinte, que é publicada pela CI normalmente.
+Na versão de bootstrap o `npm publish` já aconteceu na máquina, então o passo 5 do [procedimento](#o-procedimento) republicaria a mesma versão. Isso está resolvido pelo [guard de versão já publicada](#o-guard-de-versão-já-publicada): o release pode ser criado normalmente, o workflow roda inteiro e pula só a publicação. O procedimento é o mesmo de sempre — a versão de bootstrap não é exceção.
 
 `npm run release` fica mantido para esse caso e para emergência. Fora dele, publicar da máquina **fura o guard de tag e sai sem provenance** — não fazer.
 
