@@ -1,5 +1,11 @@
 # Changelog
 
+## [Não publicado]
+
+### Modificado
+
+- `actions/checkout` e `actions/setup-node` atualizadas da v4 para a v7 nos três workflows. A v4 roda em Node 20, deprecado nos runners do GitHub e já forçado a executar em Node 24 — o aviso aparecia em todo run. Nenhuma quebra das v5/v6/v7 se aplica a este repositório: o cache automático da v5 do `setup-node` depende do campo `packageManager` no `package.json`, que não existe aqui, e a remoção do `NODE_AUTH_TOKEN` fictício na v7 não afeta quem publica por OIDC
+
 ## [0.17.1] / 2026-09-10
 
 ### Adicionado
