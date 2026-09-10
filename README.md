@@ -12,7 +12,7 @@ Essa biblioteca permite consultar a relação das notas fiscais emitidas contra 
 Desenvolvida e mantida pela equipe do **[BitERP](https://www.biterp.ai)**, onde é usada em produção para a automação da manifestação do destinatário e do download de XML de NF-e de entrada.
 
 > Este projeto é um fork de [node-mde](https://github.com/lucashpmelo/node-mde), criado por [Lucas Melo](https://github.com/lucashpmelo), mantido pela [Bitize](https://www.biterp.ai) e publicado no npm como `@bitize/bitmde`. A API pública permanece a mesma — apenas o nome do pacote muda.
-
+>
 > **Vindo de `@bitize/bit-mde` ou de `node-mde`?** O pacote é o mesmo; só o nome mudou (`node-mde` até a 0.14.13, `@bitize/bit-mde` até a 0.16.0). Troque o nome na instalação e nos `require`/`import` — nenhuma outra alteração é necessária.
 
 ## Instalação
