@@ -143,7 +143,33 @@ jobs:
           console.log(`Pacote com ${caminhos.length} arquivos, dentro do esperado.`)
           JS
 
+      # Versão no npm não se reescreve, então republicar não é erro a corrigir:
+      # é trabalho já feito. Dois casos chegam aqui com a versão no registro —
+      # o bootstrap de um nome novo, publicado da máquina porque o trusted
+      # publisher exige o pacote existindo, e o re-run de um release. Nos dois,
+      # o certo é pular e terminar verde, não falhar com EPUBLISHCONFLICT.
+      #
+      # O teste é por saída não-vazia, e não pelo código de saída: o npm 11 sai
+      # com 1 para versão inexistente, versões anteriores saem com 0 e não
+      # imprimem nada. A saída é o único sinal estável entre as duas.
+      #
+      # Se o registro ainda não propagou a leitura de um pacote recém-criado, o
+      # guard erra para o lado seguro: não encontra, tenta publicar, e aí sim o
+      # npm recusa — mesmo comportamento de antes deste passo existir.
+      - name: Conferir se a versão já está no npm
+        id: publicada
+        run: |
+          PACOTE=$(node -p "require('./package.json').name")
+          VERSAO=$(node -p "require('./package.json').version")
+          if [ -n "$(npm view "$PACOTE@$VERSAO" version 2>/dev/null)" ]; then
+            echo "ja-publicada=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$PACOTE@$VERSAO já está no npm — publicação pulada."
+          else
+            echo "ja-publicada=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # Sem --provenance: com trusted publishing o npm gera a atestação sozinho.
       # Sem --access public: já está em publishConfig.access no package.json.
       - name: Publicar no npm
+        if: steps.publicada.outputs.ja-publicada == 'false'
         run: npm publish
