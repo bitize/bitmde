@@ -52,7 +52,8 @@
   ],
   "author": "Bitize",
   "contributors": [
-    "Lucas Melo <lucashpmelo94@gmail.com> (autor original do node-mde)"
+    "Lucas Melo <lucashpmelo94@gmail.com> (autor original do node-mde)",
+    "Carlos Tirabassi Jr. <carlos@bitize.com.br>"
   ],
   "license": "MIT",
   "bugs": {
