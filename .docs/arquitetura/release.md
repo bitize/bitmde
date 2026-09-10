@@ -32,6 +32,10 @@ Na ordem:
 
 Como o workflow refaz o build, `lib/` e `dist/` saem sempre do fonte daquela tag.
 
+> **O workflow que roda é o do commit da tag, não o da `main`.** Cada run usa a versão do arquivo presente no ref do evento, e num `release` esse ref é `refs/tags/vx.y.z` ([docs](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)).
+>
+> Duas consequências que economizam tempo: mudança no `publicar.yml` só vale a partir da **próxima tag**, e release que falhou não se conserta corrigindo a `main` — a tag precisa ser refeita no commit corrigido.
+
 ### O guard de conteúdo do pacote
 
 Roda `npm pack --dry-run --json` **depois** do build — antes dele `lib/` e `dist/` não existem — e reprova o release em dois casos:
