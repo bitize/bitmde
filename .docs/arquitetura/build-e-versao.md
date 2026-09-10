@@ -18,7 +18,7 @@ npm run types     # npx tsc → ./dist/index.d.ts
 const data = `module.exports = { VERSION: '${version}' }\r\n`
 ```
 
-A `version` vem do `package.json`. **Este arquivo é commitado** e alimenta o header `User-Agent: bit-mde/<version>` do [SefazService](camadas/services-sefaz.md).
+A `version` vem do `package.json`. **Este arquivo é commitado** e alimenta o header `User-Agent: bitmde/<version>` do [SefazService](camadas/services-sefaz.md).
 
 > Bumpar a versão no `package.json` **não basta**. Sem rodar o build, `src/env/version.js` fica na versão anterior e a lib se identifica errado na SEFAZ. A CI de publicação tem guard exatamente para isso — ver [release.md](release.md).
 >
@@ -77,7 +77,7 @@ Conferir com `npm pack --dry-run` antes de qualquer release. A CI de publicaçã
 }
 ```
 
-Consequência: `require('@bitize/bit-mde/lib/validators/nsu-validator')` e qualquer outro deep import falham com `ERR_PACKAGE_PATH_NOT_EXPORTED`. Só a raiz e o `package.json` resolvem. É o que permite mover arquivo dentro de `src/` sem quebrar consumidor.
+Consequência: `require('@bitize/bitmde/lib/validators/nsu-validator')` e qualquer outro deep import falham com `ERR_PACKAGE_PATH_NOT_EXPORTED`. Só a raiz e o `package.json` resolvem. É o que permite mover arquivo dentro de `src/` sem quebrar consumidor.
 
 Três detalhes que não devem ser "simplificados":
 

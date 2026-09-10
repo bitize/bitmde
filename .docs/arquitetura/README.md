@@ -1,4 +1,4 @@
-# Arquitetura — bit-mde
+# Arquitetura — bitmde
 
 Biblioteca Node.js (CommonJS, JavaScript puro com tipagem via JSDoc) que consome dois Web Services SOAP da SEFAZ:
 

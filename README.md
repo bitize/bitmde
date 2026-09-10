@@ -1,8 +1,8 @@
 # Bit MD-e
 
-[![npm version](https://img.shields.io/npm/v/@bitize/bit-mde.svg)](https://www.npmjs.com/package/@bitize/bit-mde)
-[![npm downloads](https://img.shields.io/npm/dt/@bitize/bit-mde.svg)](https://npm-stat.com/charts.html?package=@bitize/bit-mde)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/bitize/bit-mde/blob/main/LICENSE)
+[![npm version](https://img.shields.io/npm/v/@bitize/bitmde.svg)](https://www.npmjs.com/package/@bitize/bitmde)
+[![npm downloads](https://img.shields.io/npm/dt/@bitize/bitmde.svg)](https://npm-stat.com/charts.html?package=@bitize/bitmde)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/bitize/bitmde/blob/main/LICENSE)
 [![Mantido pelo BitERP](https://img.shields.io/badge/mantido%20por-BitERP-0b5fff.svg)](https://www.biterp.ai)
 
 Biblioteca para consumo dos Web Services da Sefaz de Distribuição de DF-e e Evento de Manifestação do Destinatário.
@@ -11,12 +11,14 @@ Essa biblioteca permite consultar a relação das notas fiscais emitidas contra 
 
 Desenvolvida e mantida pela equipe do **[BitERP](https://www.biterp.ai)**, onde é usada em produção para a automação da manifestação do destinatário e do download de XML de NF-e de entrada.
 
-> Este projeto é um fork de [node-mde](https://github.com/lucashpmelo/node-mde), criado por [Lucas Melo](https://github.com/lucashpmelo), mantido pela [Bitize](https://www.biterp.ai) e publicado no npm como `@bitize/bit-mde`. A API pública permanece a mesma — apenas o nome do pacote muda.
+> Este projeto é um fork de [node-mde](https://github.com/lucashpmelo/node-mde), criado por [Lucas Melo](https://github.com/lucashpmelo), mantido pela [Bitize](https://www.biterp.ai) e publicado no npm como `@bitize/bitmde`. A API pública permanece a mesma — apenas o nome do pacote muda.
+
+> **Vindo de `@bitize/bit-mde` ou de `node-mde`?** O pacote é o mesmo; só o nome mudou (`node-mde` até a 0.14.13, `@bitize/bit-mde` até a 0.16.0). Troque o nome na instalação e nos `require`/`import` — nenhuma outra alteração é necessária.
 
 ## Instalação
 
 ```sh
-npm i @bitize/bit-mde
+npm i @bitize/bitmde
 ```
 
 ## Pré-Requisitos
@@ -65,7 +67,7 @@ new DistribuicaoDFe(config)
 #### Exemplo
 
 ```js
-const { DistribuicaoDFe } = require('@bitize/bit-mde')
+const { DistribuicaoDFe } = require('@bitize/bitmde')
 const fs = require('fs')
 
 const distribuicao = new DistribuicaoDFe({
@@ -122,7 +124,7 @@ console.log(consulta)
 #### Exemplo
 
 ```js
-const { DistribuicaoDFe } = require('@bitize/bit-mde')
+const { DistribuicaoDFe } = require('@bitize/bitmde')
 const fs = require('fs')
 
 const distribuicao = new DistribuicaoDFe({
@@ -175,7 +177,7 @@ console.log(consulta)
 #### Exemplo
 
 ```js
-const { DistribuicaoDFe } = require('@bitize/bit-mde')
+const { DistribuicaoDFe } = require('@bitize/bitmde')
 const fs = require('fs')
 
 const distribuicao = new DistribuicaoDFe({
@@ -251,7 +253,7 @@ new RecepcaoEvento(config)
 #### Exemplo
 
 ```js
-const { RecepcaoEvento } = require('@bitize/bit-mde')
+const { RecepcaoEvento } = require('@bitize/bitmde')
 const fs = require('fs')
 
 const recepcao = new RecepcaoEvento({
@@ -330,7 +332,7 @@ console.log(manifestacao)
 
 ## Sobre o BitERP
 
-O `@bitize/bit-mde` é mantido pela equipe do **[BitERP](https://www.biterp.ai)**, um ERP online que automatiza a rotina fiscal, financeira e comercial de empresas brasileiras.
+O `@bitize/bitmde` é mantido pela equipe do **[BitERP](https://www.biterp.ai)**, um ERP online que automatiza a rotina fiscal, financeira e comercial de empresas brasileiras.
 
 Dentro do BitERP, esta biblioteca é o componente responsável por:
 

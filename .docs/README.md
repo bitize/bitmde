@@ -1,6 +1,6 @@
-# .docs — documentação interna do bit-mde
+# .docs — documentação interna do bitmde
 
-Documentação de desenvolvimento do repositório. **Não** vai no pacote publicado (o `files` do [package.json](../package.json) só lista `lib/`, `dist/` e `CHANGELOG.md`) e **não** substitui o [README.md](../README.md), que é a documentação pública da API, lida por quem instala `@bitize/bit-mde`.
+Documentação de desenvolvimento do repositório. **Não** vai no pacote publicado (o `files` do [package.json](../package.json) só lista `lib/`, `dist/` e `CHANGELOG.md`) e **não** substitui o [README.md](../README.md), que é a documentação pública da API, lida por quem instala `@bitize/bitmde`.
 
 ## Mapa
 

@@ -1,5 +1,30 @@
 # Changelog
 
+## [Não publicado]
+
+### Modificado
+
+- **Pacote renomeado de `@bitize/bit-mde` para `@bitize/bitmde`** — atualize a instalação e os `require`/`import`. A API pública permanece inalterada. Ver [ADR 0012](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0012-renomeacao-para-bitize-bitmde.md)
+- Repositório renomeado para [bitize/bitmde](https://github.com/bitize/bitmde). O GitHub redireciona as URLs antigas, mas atualize o remote: `git remote set-url origin https://github.com/bitize/bitmde.git`
+- `@bitize/bit-mde` passa a ser **deprecado no npm, não despublicado**: a 0.15.0 e a 0.16.0 continuam instaláveis, com aviso apontando para o nome novo
+- O header `User-Agent` enviado à SEFAZ passa de `bit-mde/<versão>` para `bitmde/<versão>`
+
+### Compatibilidade
+
+Nenhuma assinatura da API pública muda — mesma classe, mesmos métodos, mesmo formato de retorno. A migração é trocar o nome do pacote em dois lugares:
+
+```diff
+-npm i @bitize/bit-mde
++npm i @bitize/bitmde
+```
+
+```diff
+-const { DistribuicaoDFe } = require('@bitize/bit-mde')
++const { DistribuicaoDFe } = require('@bitize/bitmde')
+```
+
+> Esta versão sai de uma **publicação manual, sem provenance**. Para o npm, o nome novo é um pacote novo, e a tela que configura o trusted publisher só existe para pacote já publicado — a mesma situação da 0.15.0. Da versão seguinte em diante volta a ser publicada pela CI.
+
 ## [0.16.0] / 2026-08-16
 
 ### Adicionado

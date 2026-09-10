@@ -1,9 +1,9 @@
 ---
 name: criar-tarefa
-description: Cria e especifica uma tarefa em .docs/tasks/ do bit-mde — nome do arquivo, fontes da verdade a ler por camada tocada, preenchimento do template, abertura da issue no GitHub e promoção de drafts/ para specified/. USE WHEN o pedido for criar, especificar, planejar ou promover uma tarefa deste repositório. Trigger words - criar tarefa, nova tarefa, especificar tarefa, promover tarefa, abrir issue, task nova, create task, new task, spec a task, task workflow.
+description: Cria e especifica uma tarefa em .docs/tasks/ do bitmde — nome do arquivo, fontes da verdade a ler por camada tocada, preenchimento do template, abertura da issue no GitHub e promoção de drafts/ para specified/. USE WHEN o pedido for criar, especificar, planejar ou promover uma tarefa deste repositório. Trigger words - criar tarefa, nova tarefa, especificar tarefa, promover tarefa, abrir issue, task nova, create task, new task, spec a task, task workflow.
 ---
 
-# Criar tarefa — bit-mde
+# Criar tarefa — bitmde
 
 Procedimento executável. O **formato** da tarefa (ciclo de vida, nomenclatura, o que preencher ao concluir ou cancelar) é definido em [.docs/tasks/README.md](../../../.docs/tasks/README.md) e no [template](../../../.docs/tasks/_templates/task-template.md) — ler de lá, não reproduzir aqui. Esta skill cobre o que **fazer**, na ordem, e as decisões que costumam sair erradas.
 

@@ -1,4 +1,4 @@
-# Workflow de tarefas — bit-mde
+# Workflow de tarefas — bitmde
 
 Tarefas de desenvolvimento versionadas no repositório, com rastreabilidade por número de issue do GitHub.
 
@@ -46,7 +46,7 @@ Nome temporário, sem prefixo — a issue ainda não existe.
 
 ### Em `specified/`, `done/` e `canceled/`
 
-**Formato:** `GH-NN-descricao-curta.md`, onde `NN` é o número da issue em [bitize/bit-mde](https://github.com/bitize/bit-mde/issues).
+**Formato:** `GH-NN-descricao-curta.md`, onde `NN` é o número da issue em [bitize/bitmde](https://github.com/bitize/bitmde/issues).
 
 Exemplos:
 
