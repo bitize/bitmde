@@ -53,6 +53,7 @@ Escolhemos X porque Y.
 | [0008](0008-build-com-uglifyjs-beautify.md)                     | `lib/` gerado por UglifyJS em modo `beautify`                                  |
 | [0009](0009-certificados-fora-do-git-e-gerador-descartavel.md)  | Certificados fora do git, com gerador de certificado de teste descartável      |
 | [0011](0011-files-e-exports-como-contrato-de-empacotamento.md)  | `files` e `exports` como contrato de empacotamento, sem `.npmignore`           |
+| [0012](0012-renomeacao-para-bitize-bitmde.md)                   | Pacote e repositório renomeados de `bit-mde` para `bitmde`                     |
 
 > O **0010** está reservado pela tarefa [GH-3](../../tasks/specified/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md), que já o referencia em texto commitado — daí o salto na tabela. Número de ADR não se reutiliza nem se renumera.
 

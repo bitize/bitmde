@@ -151,7 +151,7 @@ Executar **após o PR ser mergeado na `main`**:
 
 - [Doc de arquitetura consultado](../../arquitetura/README.md)
 - [ADR relacionado](../../arquitetura/decisoes/README.md)
-- Issue: https://github.com/bitize/bit-mde/issues/NN
+- Issue: https://github.com/bitize/bitmde/issues/NN
 - Nota técnica / MOC da SEFAZ, se aplicável
 
 ## Histórico de revisões

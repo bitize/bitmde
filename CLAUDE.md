@@ -9,7 +9,7 @@ Biblioteca Node.js (CommonJS, JS puro com tipagem via JSDoc) que consome dois We
 - **NFeDistribuicaoDFe** — consulta de documentos destinados a um CNPJ/CPF (por `ultNSU`, `NSU` ou `chNFe`).
 - **NFeRecepcaoEvento4** — envio de lote de eventos de manifestação do destinatário.
 
-Publicada no npm como `@bitize/bit-mde` (pacote escopado, `publishConfig.access: public`); o remote é `bitize/bit-mde` (fork de `lucashpmelo/node-mde`, publicado como `node-mde` até a 0.14.13). O `README.md` é a documentação pública da API e deve ser atualizado junto com mudanças de assinatura.
+Publicada no npm como `@bitize/bitmde` (pacote escopado, `publishConfig.access: public`); o remote é `bitize/bitmde` (fork de `lucashpmelo/node-mde`, publicado como `node-mde` até a 0.14.13 e como `@bitize/bit-mde` até a 0.16.0). O `README.md` é a documentação pública da API e deve ser atualizado junto com mudanças de assinatura.
 
 ## Documentação interna (`.docs/`)
 
@@ -69,7 +69,7 @@ Nenhum job escreve no repositório: todos declaram `permissions: contents: read`
 
 `scripts/index.js` faz três coisas, nessa ordem: reescreve `src/env/version.js` com a `version` do `package.json`, limpa `./lib` e `./dist`, e copia cada arquivo de `src/` passando por `UglifyJS.minify({output:{beautify:true}})` para `./lib`. O `main` do pacote é `./lib/index.js` e os tipos vêm de `./dist/index.d.ts`, gerado pelo `tsc` (`allowJs` + `emitDeclarationOnly`, entrando só por `src/index.js`).
 
-`lib/` e `dist/` são gitignored — **rodar `npm run build` antes de publicar**. Bumpar a versão no `package.json` sozinho não basta: `src/env/version.js` é commitado e alimenta o header `User-Agent: bit-mde/<version>`; ele só é atualizado pelo build.
+`lib/` e `dist/` são gitignored — **rodar `npm run build` antes de publicar**. Bumpar a versão no `package.json` sozinho não basta: `src/env/version.js` é commitado e alimenta o header `User-Agent: bitmde/<version>`; ele só é atualizado pelo build.
 
 ## Arquitetura
 
@@ -114,13 +114,13 @@ A publicação é feita pela CI, em `.github/workflows/publicar.yml`, disparada 
 4. Commit `release x.y.z` e push na `main`.
 5. Criar o release no GitHub com a tag `vx.y.z`. O `v` é obrigatório: o workflow compara a tag com o `package.json` e aborta se divergirem, porque versão publicada no npm não se reescreve.
 
-O workflow refaz o build antes de publicar, então `lib/` e `dist/` saem sempre do fonte daquela tag. O passo 3 continua necessário mesmo assim, porque `src/env/version.js` é commitado e alimenta o header `User-Agent: bit-mde/<version>` — há um guard que reprova o release se ele estiver defasado. O guard compara o **valor** de `VERSION`, e não os bytes do arquivo: ele está em LF no índice e o build o reescreve em CRLF, então um `git diff` acusaria diferença em toda execução.
+O workflow refaz o build antes de publicar, então `lib/` e `dist/` saem sempre do fonte daquela tag. O passo 3 continua necessário mesmo assim, porque `src/env/version.js` é commitado e alimenta o header `User-Agent: bitmde/<version>` — há um guard que reprova o release se ele estiver defasado. O guard compara o **valor** de `VERSION`, e não os bytes do arquivo: ele está em LF no índice e o build o reescreve em CRLF, então um `git diff` acusaria diferença em toda execução.
 
 `npm run release` (`git pull && npm run build && npm publish`) é o caminho manual, mantido para a publicação de bootstrap descrita abaixo. Fora dela, publicar da máquina fura o guard de tag e sai sem provenance.
 
 O que vai no pacote é decidido pelo campo **`files`** do `package.json` (`lib/`, `dist/`, `CHANGELOG.md` — mais `package.json`, `README.md` e `LICENSE`, que o npm inclui sempre). É uma allowlist: **silêncio significa exclusão**, então arquivo ou pasta nova na raiz fica fora por padrão, e publicar algo novo exige acrescentá-lo ao `files` de propósito. **Não reintroduzir `.npmignore`** — removido na 0.16.0, com `files` presente ele não decidiria nada e só criaria dúvida sobre qual dos dois manda.
 
-`exports` fecha a superfície pública na raiz: deep import (`@bitize/bit-mde/lib/...`) falha com `ERR_PACKAGE_PATH_NOT_EXPORTED`. A entrada `"./package.json"` é obrigatória, `types` tem de vir antes de `require`/`default`, e `main`/`types` continuam declarados para bundler antigo.
+`exports` fecha a superfície pública na raiz: deep import (`@bitize/bitmde/lib/...`) falha com `ERR_PACKAGE_PATH_NOT_EXPORTED`. A entrada `"./package.json"` é obrigatória, `types` tem de vir antes de `require`/`default`, e `main`/`types` continuam declarados para bundler antigo.
 
 O workflow confere o conteúdo do tarball depois do build e reprova o release se algo proibido entrar ou algo essencial sumir. Conferir localmente com `npm pack --dry-run`. Detalhes em [ADR 0011](.docs/arquitetura/decisoes/0011-files-e-exports-como-contrato-de-empacotamento.md).
 
@@ -130,4 +130,4 @@ Publicado no **npmjs.com** como pacote escopado público, sob a org `bitize`. `p
 
 A autenticação é por **Trusted Publishing (OIDC)**, sem `NPM_TOKEN` guardado como secret: o npm troca o token de identidade emitido pelo GitHub por uma credencial de curta duração. Por isso o workflow declara `permissions: id-token: write` — tirar essa linha quebra a publicação por falta de credencial. O efeito colateral desejável é o **provenance**, gerado automaticamente (dispensa `--provenance`), que vira selo verificado na página do pacote. Exige `npm >= 11.5.1`, posterior ao npm que acompanha o Node 22, daí o passo que atualiza o npm antes de tudo.
 
-O trusted publisher é configurado na página do pacote no npmjs.com (Settings → Trusted Publisher → GitHub Actions), apontando `bitize/bit-mde` e o arquivo `publicar.yml`. Renomear esse arquivo invalida a configuração do lado do npm. Como a tela só existe para pacote já publicado, a **primeira** publicação de `@bitize/bit-mde` precisa sair de uma máquina, com `npm run release`; da segunda em diante é sempre a CI.
+O trusted publisher é configurado na página do pacote no npmjs.com (Settings → Trusted Publisher → GitHub Actions), apontando `bitize/bitmde` e o arquivo `publicar.yml`. Renomear esse arquivo invalida a configuração do lado do npm. Como a tela só existe para pacote já publicado, a **primeira** publicação de um nome precisa sair de uma máquina, com `npm run release`; da segunda em diante é sempre a CI. **Renomear o pacote refaz esse ciclo** — o nome novo nasce sem trusted publisher configurado —, e foi o que aconteceu duas vezes: na 0.15.0 (`@bitize/bit-mde`) e na renomeação para `@bitize/bitmde`.

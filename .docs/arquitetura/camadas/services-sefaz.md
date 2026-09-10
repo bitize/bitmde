@@ -31,13 +31,13 @@ const AgentOptions = Object.assign(
 
 ### Instância axios
 
-| Opção          | Default                                                                    |
-| -------------- | -------------------------------------------------------------------------- |
-| `baseURL`      | Endpoint do serviço para o `tpAmb`                                         |
-| `User-Agent`   | `bit-mde/<VERSION>` — de [src/env/version.js](../../../src/env/version.js) |
-| `Content-Type` | `application/soap+xml; charset=utf-8` (SOAP 1.2)                           |
-| `httpsAgent`   | O agent acima                                                              |
-| `timeout`      | `60000` (60 s)                                                             |
+| Opção          | Default                                                                   |
+| -------------- | ------------------------------------------------------------------------- |
+| `baseURL`      | Endpoint do serviço para o `tpAmb`                                        |
+| `User-Agent`   | `bitmde/<VERSION>` — de [src/env/version.js](../../../src/env/version.js) |
+| `Content-Type` | `application/soap+xml; charset=utf-8` (SOAP 1.2)                          |
+| `httpsAgent`   | O agent acima                                                             |
+| `timeout`      | `60000` (60 s)                                                            |
 
 Passar `requestOptions: { headers: {...} }` **substitui o objeto de headers inteiro**, não mescla chave a chave — `Object.assign` é raso. Quem sobrescrever headers precisa repetir `Content-Type` e, se quiser, o `User-Agent`.
 

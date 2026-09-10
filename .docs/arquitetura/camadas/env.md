@@ -58,7 +58,7 @@ A lista é fechada por decisão: o campo existe para o offset sair correto no `d
 
 ## `VERSION` — o arquivo gerado
 
-[src/env/version.js](../../../src/env/version.js) é o único arquivo de `src/` **escrito por script**, e ainda assim é commitado. Ele alimenta o header `User-Agent: bit-mde/<version>`.
+[src/env/version.js](../../../src/env/version.js) é o único arquivo de `src/` **escrito por script**, e ainda assim é commitado. Ele alimenta o header `User-Agent: bitmde/<version>`.
 
 O build (`npm run build`) reescreve o arquivo a partir do `version` do `package.json`. Bumpar o `package.json` sem rodar o build deixa os dois fora de sincronia — e a CI reprova o release por isso. Ver [build-e-versao.md](../build-e-versao.md).
 

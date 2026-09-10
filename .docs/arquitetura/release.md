@@ -60,13 +60,23 @@ permissions:
 
 **Tirar `id-token: write` quebra a publicação** por falta de credencial. O efeito colateral desejável é o **provenance**, gerado automaticamente (dispensa `--provenance`), que vira selo verificado na página do pacote. Ver [ADR 0002](decisoes/0002-publicacao-por-oidc-sem-npm-token.md).
 
-O trusted publisher é configurado na página do pacote no npmjs.com (Settings → Trusted Publisher → GitHub Actions), apontando `bitize/bit-mde` e o arquivo `publicar.yml`.
+O trusted publisher é configurado na página do pacote no npmjs.com (Settings → Trusted Publisher → GitHub Actions), apontando `bitize/bitmde` e o arquivo `publicar.yml`.
 
 > **Renomear `publicar.yml` invalida a configuração do lado do npm.** O nome do arquivo faz parte da identidade que o npm verifica.
 
 ### A publicação de bootstrap
 
-A tela de trusted publisher só existe para pacote **já publicado**. Por isso a primeira publicação de `@bitize/bit-mde` (0.15.0) saiu de uma máquina, com `npm run release` (`git pull && npm run build && npm publish`). **Da segunda publicação em diante é sempre a CI** — na prática, a 0.16.0.
+A tela de trusted publisher só existe para pacote **já publicado**. Por isso a **primeira publicação de cada nome** sai de uma máquina, com `npm run release` (`git pull && npm run build && npm publish`), e **da segunda em diante é sempre a CI**. Foi assim na estreia do `@bitize/bit-mde`: a 0.15.0 saiu manual e a 0.16.0 foi a primeira pela CI.
+
+> **Renomear o pacote refaz esse ciclo.** Para o npm, `@bitize/bitmde` é um pacote novo: nasce sem trusted publisher, e a tela para configurá-lo só aparece depois que existe uma versão publicada. A primeira versão sob o nome novo sai da máquina, como a 0.15.0 saiu. Ver [ADR 0012](decisoes/0012-renomeacao-para-bitize-bitmde.md).
+
+**Na versão de bootstrap, não criar o release no GitHub.** O passo 5 do [procedimento](#o-procedimento) vale para as versões publicadas pela CI. Na de bootstrap o pacote já foi para o npm pela máquina, e o release dispararia o `publicar.yml` para republicar a mesma versão — que falha com `EPUBLISHCONFLICT`, deixando um run vermelho sem nada a corrigir. Nessa versão, marcar o commit só com a tag:
+
+```sh
+git tag vx.y.z && git push origin vx.y.z
+```
+
+O release no GitHub volta a partir da versão seguinte, que é publicada pela CI normalmente.
 
 `npm run release` fica mantido para esse caso e para emergência. Fora dele, publicar da máquina **fura o guard de tag e sai sem provenance** — não fazer.
 

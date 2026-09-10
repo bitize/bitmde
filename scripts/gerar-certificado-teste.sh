@@ -23,7 +23,7 @@ mkdir -p "$DIR"
 
 openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
   -keyout "$DIR/key.pem" -out "$DIR/cert.pem" \
-  -subj '/C=BR/ST=SP/O=Bitize/CN=bit-mde teste' 2>/dev/null
+  -subj '/C=BR/ST=SP/O=Bitize/CN=bitmde teste' 2>/dev/null
 
 printf '%s' "$SENHA" >"$DIR/passphrase.txt"
 

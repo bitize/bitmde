@@ -1,6 +1,6 @@
 # 0001 — Fork de `node-mde` republicado como `@bitize/bit-mde`
 
-**Status**: Aceito
+**Status**: Aceito — a escolha do nome do pacote foi superseded por [0012](0012-renomeacao-para-bitize-bitmde.md); o resto segue vigente
 **Data**: 2026-08-16
 
 ## Contexto
