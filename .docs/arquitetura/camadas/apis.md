@@ -7,7 +7,7 @@
 - [DistribuicaoMDFe](../../../src/apis/distribuicaoMDFe-api.js) — MDF-e destinado: `consultaUltNSU`, `consultaNSU`, `consultaChMDFe`
 - [RecepcaoEvento](../../../src/apis/recepcaoEvento-api.js) — `enviarEvento`
 
-Ambas são reexportadas por [src/index.js](../../../src/index.js) em três formas (`module.exports`, `.default`, `.mde`), para funcionar tanto com `require` quanto com `import` sob transpiladores diferentes.
+Todas são reexportadas por [src/index.js](../../../src/index.js) em três formas (`module.exports`, `.default`, `.mde`), para funcionar tanto com `require` quanto com `import` sob transpiladores diferentes.
 
 ## Responsabilidade
 
@@ -21,7 +21,7 @@ Nenhuma regra de negócio, nenhuma montagem de XML e nenhuma chamada HTTP vivem 
 
 ## Construtor
 
-O padrão é idêntico nas duas classes:
+O padrão é idêntico nas quatro classes:
 
 ```js
 const certificadoValidator = new CertificadoValidator(config)
@@ -88,7 +88,7 @@ O spread produz um objeto **novo e não congelado** — o congelamento de `this.
 
 ## Tipagem
 
-O `dist/index.d.ts` é gerado pelo `tsc` (`allowJs` + `emitDeclarationOnly`) entrando por [src/index.js](../../../src/index.js). Na prática, **os blocos JSDoc destas duas classes são a definição de tipos do pacote**.
+O `dist/index.d.ts` é gerado pelo `tsc` (`allowJs` + `emitDeclarationOnly`) entrando por [src/index.js](../../../src/index.js). Na prática, **os blocos JSDoc destas quatro classes são a definição de tipos do pacote**.
 
 Consequência: mudar assinatura pública sem atualizar o JSDoc gera um `.d.ts` errado, e o erro só aparece para o consumidor. Ao mexer aqui, atualizar no mesmo PR:
 

@@ -1,6 +1,6 @@
 # Camada `validators/` — contrato e efeitos colaterais
 
-Doze validators em [src/validators/](../../../src/validators/), todos com o mesmo formato. Eles fazem duas coisas ao mesmo tempo: **validam** e **normalizam**.
+Onze validators em [src/validators/](../../../src/validators/), todos com o mesmo formato. Eles fazem duas coisas ao mesmo tempo: **validam** e **normalizam**.
 
 ## O contrato
 
