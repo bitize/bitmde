@@ -2,6 +2,7 @@
 
 class DistribuicaoSchema {
   static montarSchema(options) {
+    const documento = options.documento
     const distDFeInt = {
       tpAmb: options.tpAmb,
       cUFAutor: options.cUFAutor,
@@ -13,13 +14,15 @@ class DistribuicaoSchema {
       distDFeInt['CPF'] = options.cpf
     }
 
+    const { bloco, campo } = documento.consChave
+
     if (options.ultNSU) {
       distDFeInt['distNSU'] = {
         ['ultNSU']: options.ultNSU,
       }
-    } else if (options.chNFe) {
-      distDFeInt['consChNFe'] = {
-        ['chNFe']: options.chNFe,
+    } else if (options[campo]) {
+      distDFeInt[bloco] = {
+        [campo]: options[campo],
       }
     } else {
       distDFeInt['consNSU'] = {
@@ -27,15 +30,15 @@ class DistribuicaoSchema {
       }
     }
 
-    distDFeInt['@_xmlns'] = 'http://www.portalfiscal.inf.br/nfe'
-    distDFeInt['@_versao'] = '1.01'
+    distDFeInt['@_xmlns'] = documento.xmlns
+    distDFeInt['@_versao'] = documento.versao
 
     return {
-      nfeDistDFeInteresse: {
-        nfeDadosMsg: {
+      [documento.operacao]: {
+        [documento.dadosMsg]: {
           distDFeInt: distDFeInt,
         },
-        '@_xmlns': 'http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe',
+        '@_xmlns': documento.xmlnsWsdl,
       },
     }
   }

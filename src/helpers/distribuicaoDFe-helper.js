@@ -1,6 +1,6 @@
 'use strict'
 
-const { CA, DISTRIBUICAO } = require('../env')
+const { CA } = require('../env')
 const { DistribuicaoSchema } = require('../schemas')
 const SefazService = require('../services/sefaz-service')
 const { Gzip, Xml } = require('../util')
@@ -13,7 +13,7 @@ class DistribuicaoHelper {
    * @returns
    */
   static async enviarConsulta(data, opts) {
-    const baseURL = DISTRIBUICAO[opts.tpAmb]
+    const baseURL = opts.documento.endpoints[opts.tpAmb]
     const options = {
       method: 'POST',
       data: data,
@@ -40,9 +40,22 @@ class DistribuicaoHelper {
    * @returns {string}
    */
   static montarRequest(opts) {
+    const documento = opts.documento
     const schema = DistribuicaoSchema.montarSchema(opts)
     const xml = Xml.jsonToXml(schema)
-    const data = Xml.envelopar(xml)
+    let cabecalho = null
+
+    if (documento.cabecMsg) {
+      cabecalho = Xml.jsonToXml({
+        [documento.cabecMsg]: {
+          cUF: opts.cUFAutor,
+          versaoDados: documento.versao,
+          '@_xmlns': documento.cabecMsgXmlns,
+        },
+      })
+    }
+
+    const data = Xml.envelopar(xml, cabecalho)
 
     return data
   }
@@ -50,9 +63,10 @@ class DistribuicaoHelper {
   /**
    *
    * @param {string} data
+   * @param {Object} documento
    * @returns {Promise<{tpAmb: string,verAplic: string,cStat: string,xMotivo: string,dhResp: string,ultNSU: string,maxNSU: string, docZip:[{xml: string,json: Object,nsu: string,schema: string}], error: string}>}
    */
-  static async montarResponse(data) {
+  static async montarResponse(data, documento) {
     const retorno = {}
 
     const json = Xml.xmlToJson(data)
@@ -61,15 +75,10 @@ class DistribuicaoHelper {
       retorno['error'] = json.error
     }
 
-    const {
-      'soap:Envelope': {
-        'soap:Body': {
-          nfeDistDFeInteresseResponse: {
-            nfeDistDFeInteresseResult: { retDistDFeInt = {} } = {},
-          } = {},
-        } = {},
-      } = {},
-    } = json
+    const body = json['soap:Envelope']?.['soap:Body'] ?? {}
+    const response = body[documento.resposta.response] ?? {}
+    const result = response[documento.resposta.result] ?? {}
+    const retDistDFeInt = result.retDistDFeInt ?? {}
 
     const { loteDistDFeInt = {} } = retDistDFeInt
 

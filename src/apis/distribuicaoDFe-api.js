@@ -1,6 +1,7 @@
 'use strict'
 
 const { DistribuicaoController } = require('../controllers')
+const { DOCUMENTOS } = require('../env')
 const {
   AmbienteValidator,
   CertificadoValidator,
@@ -61,6 +62,7 @@ class DistribuicaoDFe {
       tpAmb: tpAmb,
       cert: cert,
       key: key,
+      documento: DOCUMENTOS.NFE,
       requestOptions: Object.freeze(requestOptions),
       httpsOptions: Object.freeze(httpsOptions),
     })
