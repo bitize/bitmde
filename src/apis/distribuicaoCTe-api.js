@@ -5,13 +5,13 @@ const { DOCUMENTOS } = require('../env')
 const {
   AmbienteValidator,
   CertificadoValidator,
-  ChaveValidator,
+  ChaveCteValidator,
   CnpjCpfValidator,
   NsuValidator,
   UfValidator,
 } = require('../validators')
 
-class DistribuicaoDFe {
+class DistribuicaoCTe {
   /**
    * @param {Object} config
    * @param {Buffer} [config.pfx]
@@ -70,10 +70,10 @@ class DistribuicaoDFe {
   }
 
   /**
-   * @param {string} chNFe
+   * @param {string} chCTe
    */
-  consultaChNFe(chNFe) {
-    const chaveValidator = new ChaveValidator(chNFe)
+  consultaChCTe(chCTe) {
+    const chaveValidator = new ChaveCteValidator(chCTe)
 
     if (!chaveValidator.isValid()) {
       throw new Error(chaveValidator.getError())
@@ -83,8 +83,8 @@ class DistribuicaoDFe {
 
     const opts = {
       ...this.config,
-      chNFe: value,
-      documento: DOCUMENTOS.NFE,
+      chCTe: value,
+      documento: DOCUMENTOS.CTE,
     }
 
     return DistribuicaoController.enviar(opts)
@@ -105,7 +105,7 @@ class DistribuicaoDFe {
     const opts = {
       ...this.config,
       nsu: value,
-      documento: DOCUMENTOS.NFE,
+      documento: DOCUMENTOS.CTE,
     }
 
     return DistribuicaoController.enviar(opts)
@@ -126,11 +126,11 @@ class DistribuicaoDFe {
     const opts = {
       ...this.config,
       ultNSU: value,
-      documento: DOCUMENTOS.NFE,
+      documento: DOCUMENTOS.CTE,
     }
 
     return DistribuicaoController.enviar(opts)
   }
 }
 
-module.exports = DistribuicaoDFe
+module.exports = DistribuicaoCTe

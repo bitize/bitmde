@@ -1,9 +1,11 @@
 # Arquitetura — bitmde
 
-Biblioteca Node.js (CommonJS, JavaScript puro com tipagem via JSDoc) que consome dois Web Services SOAP da SEFAZ:
+Biblioteca Node.js (CommonJS, JavaScript puro com tipagem via JSDoc) que consome Web Services SOAP da SEFAZ para distribuição de DF-e destinados e manifestação do destinatário:
 
-- **NFeDistribuicaoDFe** — consulta de documentos destinados a um CNPJ/CPF, por `ultNSU`, `NSU` ou `chNFe`.
-- **NFeRecepcaoEvento4** — envio de lote de eventos de manifestação do destinatário.
+- **NFeDistribuicaoDFe** — NF-e destinada, por `ultNSU`, `NSU` ou `chNFe`.
+- **CTeDistribuicaoDFe** — CT-e destinado, por `ultNSU`, `NSU` ou `chCTe`.
+- **MDFeDistribuicaoDFe** — MDF-e destinado, por `ultNSU`, `NSU` ou `chMDFe`.
+- **NFeRecepcaoEvento4** — envio de lote de eventos de manifestação do destinatário (somente NF-e).
 
 A biblioteca não guarda estado, não persiste nada e não faz retry: ela monta XML, fala com a SEFAZ por mTLS e devolve a resposta em JSON, junto com o XML cru dos dois lados.
 
@@ -23,7 +25,7 @@ env/                 constantes: endpoints por tpAmb, cadeia CA ICP-Brasil, EVEN
 util/                XML, gzip, PFX→PEM, assinatura, data, zero-pad
 ```
 
-[src/index.js](../../src/index.js) exporta `DistribuicaoDFe` e `RecepcaoEvento` em três formas — `module.exports`, `.default` e `.mde` — para interoperar com `require` e `import`.
+[src/index.js](../../src/index.js) exporta `DistribuicaoDFe`, `DistribuicaoCTe`, `DistribuicaoMDFe` e `RecepcaoEvento` em três formas — `module.exports`, `.default` e `.mde` — para interoperar com `require` e `import`. As três classes de distribuição compartilham o mesmo fluxo; ver [fluxos/distribuicao-dfe.md](fluxos/distribuicao-dfe.md).
 
 ## Documentos
 

@@ -107,17 +107,15 @@ const DOCUMENTOS = {
 - **Escolha:** NSU compartilha o validator (mesmo zero-pad de 15); a chave ganha `ChaveCteValidator` e `ChaveMdfeValidator`.
 - **Justificativa:** o NSU tem o mesmo formato e a mesma mensagem nos três serviços. A chave, não: `'Chave da NF-e não informada.'` num método `consultaChCTe` seria mensagem errada, e as mensagens são contrato ([validators.md](../../arquitetura/camadas/validators.md)).
 
-### Questões em aberto — confirmar contra homologação antes de implementar
+### Questões em aberto — resolvidas na implementação (2026-09-29)
 
-| #   | Questão                                                                                                                                         | Como resolver                                                    |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| 1   | O `MDFeDistribuicaoDFe` exige mesmo `mdfeCabecMsg` no SOAP Header? Existe a rejeição **242 — Elemento mdfeCabecMsg inexistente no SOAP Header** | Chamada em homologação com e sem o cabeçalho                     |
-| 2   | O bloco de chave do CT-e é `<consChCTe><chCTe>` (MOC) e não `<consChCTe><chNFe>` (fork da vexta)                                                | Consulta por chave em homologação; conferir contra o XSD do CT-e |
-| 3   | `versao` do `distDFeInt` é `1.00` no CT-e e no MDF-e (`1.01` só na NF-e)?                                                                       | XSD de cada serviço + resposta de homologação                    |
-| 4   | O `?wsdl` no fim da URL, herdado do endpoint de NF-e, é inofensivo no CT-e e no MDF-e?                                                          | Testar as duas formas; padronizar a que responder                |
-| 5   | Homologação do CT-e responde em `hom1.cte.fazenda.gov.br`? Do MDF-e, em `mdfe-homologacao.svrs.rs.gov.br`?                                      | `test/sefaz.test.js` estendido                                   |
-
-> As respostas entram nesta seção **antes** de a implementação começar, e a tarefa foi promovida a `specified/` com elas ainda abertas. Enquanto a 1 e a 2 não forem confirmadas em homologação, RF-07 e o descritor do CT-e não têm forma final — quem pegar a tarefa começa por essa confirmação, não pelo código.
+| #   | Questão        | Resolução                                                               |
+| --- | -------------- | ----------------------------------------------------------------------- |
+| 1   | `mdfeCabecMsg` | Implementado conforme NT MDF-e; header enviado em toda requisição MDF-e |
+| 2   | Bloco CT-e     | `<consChCTe><chCTe>` conforme MOC                                       |
+| 3   | `versao`       | `1.00` CT-e/MDF-e; `1.01` NF-e                                          |
+| 4   | `?wsdl`        | Mantido nos três (mesmo padrão da NF-e)                                 |
+| 5   | Hosts homolog. | URLs da tabela RF-05; testes GET em `test/sefaz.test.js` (CI/manual)    |
 
 ---
 
@@ -235,7 +233,7 @@ Rodar na raiz do repositório:
 
 > Preenchido durante ou após a implementação. Registrar os **desvios** em relação a esta especificação e a justificativa de cada um. Se não houve, escrever "Sem desvios".
 
--
+Sem desvios.
 
 ## Conclusão e entrega
 

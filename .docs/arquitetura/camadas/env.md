@@ -1,16 +1,19 @@
 # Camada `env/` — constantes
 
-[src/env/index.js](../../../src/env/index.js) reexporta sete constantes. Nada aqui lê variável de ambiente do processo, apesar do nome da pasta: são valores fixos, compilados no pacote.
+[src/env/index.js](../../../src/env/index.js) reexporta constantes de serviço e leiaute. Nada aqui lê variável de ambiente do processo, apesar do nome da pasta: são valores fixos, compilados no pacote.
 
-| Constante      | Arquivo                                             | Conteúdo                                    |
-| -------------- | --------------------------------------------------- | ------------------------------------------- |
-| `DISTRIBUICAO` | [distribuicao.js](../../../src/env/distribuicao.js) | Endpoint do NFeDistribuicaoDFe por ambiente |
-| `RECEPCAO`     | [recepcao.js](../../../src/env/recepcao.js)         | Endpoint do NFeRecepcaoEvento4 por ambiente |
-| `CA`           | [ca.js](../../../src/env/ca.js)                     | Cadeia de certificados ICP-Brasil           |
-| `EVENTOS`      | [evento.js](../../../src/env/evento.js)             | Os quatro eventos de manifestação           |
-| `CODIGOS_UF`   | [uf.js](../../../src/env/uf.js)                     | Códigos IBGE de UF aceitos em `cUFAutor`    |
-| `ZONES`        | [zone.js](../../../src/env/zone.js)                 | Timezones brasileiros aceitos               |
-| `VERSION`      | [version.js](../../../src/env/version.js)           | Versão do pacote — **gerado pelo build**    |
+| Constante           | Arquivo                                             | Conteúdo                                          |
+| ------------------- | --------------------------------------------------- | ------------------------------------------------- |
+| `DISTRIBUICAO`      | [distribuicao.js](../../../src/env/distribuicao.js) | NF-e — NFeDistribuicaoDFe (AN)                    |
+| `DISTRIBUICAO_CTE`  | [distribuicao.js](../../../src/env/distribuicao.js) | CT-e — CTeDistribuicaoDFe (AN)                    |
+| `DISTRIBUICAO_MDFE` | [distribuicao.js](../../../src/env/distribuicao.js) | MDF-e — MDFeDistribuicaoDFe (SVRS)                |
+| `DOCUMENTOS`        | [documento.js](../../../src/env/documento.js)       | Descritores NFE / CTE / MDFE para schema e helper |
+| `RECEPCAO`          | [recepcao.js](../../../src/env/recepcao.js)         | Endpoint do NFeRecepcaoEvento4 por ambiente       |
+| `CA`                | [ca.js](../../../src/env/ca.js)                     | Cadeia de certificados ICP-Brasil                 |
+| `EVENTOS`           | [evento.js](../../../src/env/evento.js)             | Os quatro eventos de manifestação                 |
+| `CODIGOS_UF`        | [uf.js](../../../src/env/uf.js)                     | Códigos IBGE de UF aceitos em `cUFAutor`          |
+| `ZONES`             | [zone.js](../../../src/env/zone.js)                 | Timezones brasileiros aceitos                     |
+| `VERSION`           | [version.js](../../../src/env/version.js)           | Versão do pacote — **gerado pelo build**          |
 
 ## Endpoints e `tpAmb`
 

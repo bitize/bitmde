@@ -1,6 +1,6 @@
-# Fluxo — NFeDistribuicaoDFe
+# Fluxo — Distribuição de DF-e (NF-e, CT-e, MDF-e)
 
-Consulta de documentos fiscais destinados a um CNPJ/CPF. Três formas de perguntar, um único caminho de código.
+Consulta de documentos fiscais destinados a um CNPJ/CPF. Três formas de perguntar (`ultNSU`, NSU, chave), um único caminho de código parametrizado por `opts.documento` (`DOCUMENTOS.NFE`, `.CTE`, `.MDFE`). As classes públicas são `DistribuicaoDFe`, `DistribuicaoCTe` e `DistribuicaoMDFe`.
 
 ## O caminho completo
 
@@ -8,7 +8,7 @@ Consulta de documentos fiscais destinados a um CNPJ/CPF. Três formas de pergunt
 DistribuicaoDFe.consultaUltNSU(ultNSU)      ← apis/distribuicaoDFe-api.js
   │  NsuValidator: exige valor, ≤ 15 chars, zero-pad para 15
   ▼
-DistribuicaoController.enviar({ ...config, ultNSU })
+DistribuicaoController.enviar({ ...config, ultNSU, documento: DOCUMENTOS.* })
   │
   ├─ DistribuicaoHelper.montarRequest(opts)
   │    DistribuicaoSchema.montarSchema → objeto JS
@@ -16,11 +16,11 @@ DistribuicaoController.enviar({ ...config, ultNSU })
   │    Xml.envelopar                   → <soap12:Envelope>…
   │
   ├─ DistribuicaoHelper.enviarConsulta(data, opts)
-  │    endpoint = DISTRIBUICAO[tpAmb]
+  │    endpoint = documento.endpoints[tpAmb]
   │    new SefazService({ baseURL, ca: CA, cert, key, tpAmb, requestOptions, httpsOptions })
   │    POST  → { status, data }
   │
-  ├─ DistribuicaoHelper.montarResponse(retornoSefaz.data)   ← async: tem gunzip
+  ├─ DistribuicaoHelper.montarResponse(retornoSefaz.data, opts.documento)   ← async: tem gunzip
   │    Xml.xmlToJson → desestruturação defensiva → normaliza docZip para array
   │    para cada docZip: Gzip.unzip(base64) → Xml.xmlToJson
   │
@@ -29,13 +29,17 @@ DistribuicaoController.enviar({ ...config, ultNSU })
 
 ## As três consultas
 
-| Método           | Validator        | Bloco no XML         | Uso                                                             |
-| ---------------- | ---------------- | -------------------- | --------------------------------------------------------------- |
-| `consultaUltNSU` | `NsuValidator`   | `<distNSU><ultNSU>`  | Varredura incremental: devolve o lote seguinte ao NSU informado |
-| `consultaNSU`    | `NsuValidator`   | `<consNSU><NSU>`     | Um documento específico, pelo NSU                               |
-| `consultaChNFe`  | `ChaveValidator` | `<consChNFe><chNFe>` | Um documento específico, pela chave de 44 dígitos               |
+Cada classe pública expõe os mesmos três modos (`consultaUltNSU`, `consultaNSU`, consulta por chave); NSU é compartilhado via `NsuValidator`, a chave usa validator e bloco XML conforme o documento.
 
-A precedência é resolvida no schema (`ultNSU` → `chNFe` → `nsu`), mas na prática cada método monta `opts` com **um** desses campos apenas. Ver [../camadas/schemas-xml.md](../camadas/schemas-xml.md).
+| Classe / método                   | Validator            | Bloco no XML           | Uso                                                             |
+| --------------------------------- | -------------------- | ---------------------- | --------------------------------------------------------------- |
+| `consultaUltNSU`                  | `NsuValidator`       | `<distNSU><ultNSU>`    | Varredura incremental: devolve o lote seguinte ao NSU informado |
+| `consultaNSU`                     | `NsuValidator`       | `<consNSU><NSU>`       | Um documento específico, pelo NSU                               |
+| `DistribuicaoDFe.consultaChNFe`   | `ChaveValidator`     | `<consChNFe><chNFe>`   | Chave NF-e (44 dígitos)                                         |
+| `DistribuicaoCTe.consultaChCTe`   | `ChaveCteValidator`  | `<consChCTe><chCTe>`   | Chave CT-e (44 dígitos)                                         |
+| `DistribuicaoMDFe.consultaChMDFe` | `ChaveMdfeValidator` | `<consChMDFe><chMDFe>` | Chave MDF-e (44 dígitos)                                        |
+
+A precedência é resolvida no schema (`ultNSU` → campo de chave do descritor → `nsu`), mas na prática cada método monta `opts` com **um** desses campos apenas. Ver [../camadas/schemas-xml.md](../camadas/schemas-xml.md).
 
 ### Zero-pad do NSU
 

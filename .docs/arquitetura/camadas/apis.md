@@ -1,11 +1,13 @@
 # Camada `apis/` — a superfície pública
 
-`src/apis/` é a única camada que o consumidor do pacote enxerga. Duas classes, uma por Web Service:
+`src/apis/` é a única camada que o consumidor do pacote enxerga. Quatro classes:
 
-- [DistribuicaoDFe](../../../src/apis/distribuicaoDFe-api.js) — `consultaUltNSU`, `consultaNSU`, `consultaChNFe`
+- [DistribuicaoDFe](../../../src/apis/distribuicaoDFe-api.js) — NF-e destinada: `consultaUltNSU`, `consultaNSU`, `consultaChNFe`
+- [DistribuicaoCTe](../../../src/apis/distribuicaoCTe-api.js) — CT-e destinado: `consultaUltNSU`, `consultaNSU`, `consultaChCTe`
+- [DistribuicaoMDFe](../../../src/apis/distribuicaoMDFe-api.js) — MDF-e destinado: `consultaUltNSU`, `consultaNSU`, `consultaChMDFe`
 - [RecepcaoEvento](../../../src/apis/recepcaoEvento-api.js) — `enviarEvento`
 
-Ambas são reexportadas por [src/index.js](../../../src/index.js) em três formas (`module.exports`, `.default`, `.mde`), para funcionar tanto com `require` quanto com `import` sob transpiladores diferentes.
+Todas são reexportadas por [src/index.js](../../../src/index.js) em três formas (`module.exports`, `.default`, `.mde`), para funcionar tanto com `require` quanto com `import` sob transpiladores diferentes.
 
 ## Responsabilidade
 
@@ -19,7 +21,7 @@ Nenhuma regra de negócio, nenhuma montagem de XML e nenhuma chamada HTTP vivem 
 
 ## Construtor
 
-O padrão é idêntico nas duas classes:
+O padrão é idêntico nas quatro classes:
 
 ```js
 const certificadoValidator = new CertificadoValidator(config)
@@ -33,10 +35,12 @@ const { cert, key } = certificadoValidator.getValues()
 
 A ordem importa para a mensagem de erro: com dois problemas simultâneos na config, o usuário vê o primeiro da lista.
 
-| Classe            | Validators, na ordem                    |
-| ----------------- | --------------------------------------- |
-| `DistribuicaoDFe` | Certificado → Ambiente → CnpjCpf → Uf   |
-| `RecepcaoEvento`  | Certificado → Ambiente → CnpjCpf → Zone |
+| Classe             | Validators, na ordem                    |
+| ------------------ | --------------------------------------- |
+| `DistribuicaoDFe`  | Certificado → Ambiente → CnpjCpf → Uf   |
+| `DistribuicaoCTe`  | Certificado → Ambiente → CnpjCpf → Uf   |
+| `DistribuicaoMDFe` | Certificado → Ambiente → CnpjCpf → Uf   |
+| `RecepcaoEvento`   | Certificado → Ambiente → CnpjCpf → Zone |
 
 `options.requestOptions` e `options.httpsOptions` **não passam por validator** — são repassados como estão (com `{}` de default) e mesclados lá embaixo, no [SefazService](services-sefaz.md).
 
@@ -62,10 +66,14 @@ O congelamento alcança dois níveis — `config` e os dois objetos de options d
 
 ## Métodos públicos
 
-Cada método valida seu argumento e monta `opts` espalhando a config:
+Cada método valida seu argumento e monta `opts` espalhando a config e o descritor do documento (interno ao controller):
 
 ```js
-const opts = { ...this.config, nsu: value }
+const opts = {
+  ...this.config,
+  nsu: value,
+  documento: DOCUMENTOS.NFE, // DistribuicaoCTe → DOCUMENTOS.CTE; DistribuicaoMDFe → DOCUMENTOS.MDFE
+}
 return DistribuicaoController.enviar(opts)
 ```
 
@@ -84,7 +92,7 @@ O spread produz um objeto **novo e não congelado** — o congelamento de `this.
 
 ## Tipagem
 
-O `dist/index.d.ts` é gerado pelo `tsc` (`allowJs` + `emitDeclarationOnly`) entrando por [src/index.js](../../../src/index.js). Na prática, **os blocos JSDoc destas duas classes são a definição de tipos do pacote**.
+O `dist/index.d.ts` é gerado pelo `tsc` (`allowJs` + `emitDeclarationOnly`) entrando por [src/index.js](../../../src/index.js). Na prática, **os blocos JSDoc destas quatro classes são a definição de tipos do pacote**.
 
 Consequência: mudar assinatura pública sem atualizar o JSDoc gera um `.d.ts` errado, e o erro só aparece para o consumidor. Ao mexer aqui, atualizar no mesmo PR:
 

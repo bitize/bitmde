@@ -1,6 +1,6 @@
 # Camada `validators/` — contrato e efeitos colaterais
 
-Dez validators em [src/validators/](../../../src/validators/), todos com o mesmo formato. Eles fazem duas coisas ao mesmo tempo: **validam** e **normalizam**.
+Onze validators em [src/validators/](../../../src/validators/), todos com o mesmo formato. Eles fazem duas coisas ao mesmo tempo: **validam** e **normalizam**.
 
 ## O contrato
 
@@ -25,9 +25,9 @@ const valores = validator.getValues()
 
 `getValues()` devolve **objeto** quando o validator recebeu a config inteira, e **valor escalar** quando recebeu um argumento único:
 
-| Escalar                          | Objeto                                                                                                                              |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `ChaveValidator`, `NsuValidator` | `CertificadoValidator`, `AmbienteValidator`, `CnpjCpfValidator`, `UfValidator`, `ZoneValidator`, `LoteValidator`, `EventoValidator` |
+| Escalar                                                                     | Objeto                                                                                                                              |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `ChaveValidator`, `ChaveCteValidator`, `ChaveMdfeValidator`, `NsuValidator` | `CertificadoValidator`, `AmbienteValidator`, `CnpjCpfValidator`, `UfValidator`, `ZoneValidator`, `LoteValidator`, `EventoValidator` |
 
 ## O que cada um normaliza
 
@@ -41,6 +41,8 @@ Nem todo validator normaliza; os que normalizam são a razão de o contrato ter 
 | `ZoneValidator`        | Pertence a `ZONES`, se informado                            | Default de `timezone` = `'America/Sao_Paulo'`           |
 | `EventoValidator`      | `chNFe`, `tipoEvento` em `EVENTOS`, justificativa no 210240 | Resolve `tpEvento` e `descEvento` a partir de `EVENTOS` |
 | `ChaveValidator`       | Presente e com exatamente 44 caracteres                     | `String(...)`                                           |
+| `ChaveCteValidator`    | Idem, para CT-e                                             | `String(...)`                                           |
+| `ChaveMdfeValidator`   | Idem, para MDF-e                                            | `String(...)`                                           |
 | `AmbienteValidator`    | `tpAmb` é exatamente `'1'` ou `'2'`                         | —                                                       |
 | `CnpjCpfValidator`     | Ao menos um dos dois informado                              | —                                                       |
 | `UfValidator`          | `cUFAutor` pertence a `CODIGOS_UF`                          | —                                                       |
@@ -74,6 +76,8 @@ Catálogo atual, na ordem em que aparecem:
 | `Código UF do Autor não informado.` / `Código UF inválido.`                | Uf            |
 | `Timezone inválido.`                                                       | Zone          |
 | `Chave da NF-e não informada.` / `Chave da NF-e com tamanho incorreto.`    | Chave, Evento |
+| `Chave do CT-e não informada.` / `Chave do CT-e com tamanho incorreto.`    | ChaveCte      |
+| `Chave do MDF-e não informada.` / `Chave do MDF-e com tamanho incorreto.`  | ChaveMdfe     |
 | `NSU não informado.` / `NSU com tamanho incorreto.`                        | Nsu           |
 | `Lote não informado.`                                                      | Lote          |
 | `Um lote deve possuir no mínimo 1 e no máximo 20 eventos.`                 | Lote          |
