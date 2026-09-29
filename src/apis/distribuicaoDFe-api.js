@@ -62,7 +62,6 @@ class DistribuicaoDFe {
       tpAmb: tpAmb,
       cert: cert,
       key: key,
-      documento: DOCUMENTOS.NFE,
       requestOptions: Object.freeze(requestOptions),
       httpsOptions: Object.freeze(httpsOptions),
     })
@@ -85,6 +84,7 @@ class DistribuicaoDFe {
     const opts = {
       ...this.config,
       chNFe: value,
+      documento: DOCUMENTOS.NFE,
     }
 
     return DistribuicaoController.enviar(opts)
@@ -105,6 +105,7 @@ class DistribuicaoDFe {
     const opts = {
       ...this.config,
       nsu: value,
+      documento: DOCUMENTOS.NFE,
     }
 
     return DistribuicaoController.enviar(opts)
@@ -125,6 +126,7 @@ class DistribuicaoDFe {
     const opts = {
       ...this.config,
       ultNSU: value,
+      documento: DOCUMENTOS.NFE,
     }
 
     return DistribuicaoController.enviar(opts)
