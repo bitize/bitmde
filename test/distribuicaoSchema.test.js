@@ -3,9 +3,9 @@
 const assert = require('assert')
 const { DOCUMENTOS } = require('../src/env')
 const { DistribuicaoHelper } = require('../src/helpers')
-
-const NFE_XML_BODY =
-  '<nfeDistDFeInteresse xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe"><nfeDadosMsg><distDFeInt xmlns="http://www.portalfiscal.inf.br/nfe" versao="1.01"><tpAmb>2</tpAmb><cUFAutor>29</cUFAutor><CNPJ>99999999999999</CNPJ><distNSU><ultNSU>000000000000001</ultNSU></distNSU></distDFeInt></nfeDadosMsg></nfeDistDFeInteresse>'
+const {
+  NFE_DIST_DFE_ENVELOPE,
+} = require('./fixtures/nfe-distribuicao-envelope')
 
 const CTE_XML_BODY =
   '<cteDistDFeInteresse xmlns="http://www.portalfiscal.inf.br/cte/wsdl/CTeDistribuicaoDFe"><cteDadosMsg><distDFeInt xmlns="http://www.portalfiscal.inf.br/cte" versao="1.00"><tpAmb>2</tpAmb><cUFAutor>29</cUFAutor><CNPJ>99999999999999</CNPJ><distNSU><ultNSU>000000000000001</ultNSU></distNSU></distDFeInt></cteDadosMsg></cteDistDFeInteresse>'
@@ -34,8 +34,7 @@ describe('DistribuicaoHelper.montarRequest()', function () {
       ultNSU: '000000000000001',
     })
 
-    assert.ok(req.includes(NFE_XML_BODY))
-    assert.ok(!req.includes('<soap12:Header>'))
+    assert.strictEqual(req, NFE_DIST_DFE_ENVELOPE)
   })
 
   it('XML do CT-e com elementos e versão corretos', function () {
