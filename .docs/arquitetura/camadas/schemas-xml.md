@@ -33,13 +33,13 @@ E também por que os atributos (`'@_xmlns'`, `'@_versao'`, `'@_Id'`) são inseri
 
 ### Os dois schemas
 
-[DistribuicaoSchema](../../../src/schemas/distribuicaoDFe-schema.js) monta `distDFeInt` com `versao="1.01"`, e escolhe **um** dos três blocos de consulta, nesta precedência:
+[DistribuicaoSchema](../../../src/schemas/distribuicaoDFe-schema.js) monta `distDFeInt` a partir de `opts.documento` (NF-e, CT-e ou MDF-e — ver [documento.js](../../../src/env/documento.js)): namespace, `versao`, raiz SOAP e bloco de chave vêm do descritor. Escolhe **um** dos três blocos de consulta, nesta precedência:
 
-| Precedência | Campo em `opts` | Bloco gerado         |
-| ----------- | --------------- | -------------------- |
-| 1º          | `ultNSU`        | `<distNSU><ultNSU>`  |
-| 2º          | `chNFe`         | `<consChNFe><chNFe>` |
-| 3º (else)   | `nsu`           | `<consNSU><NSU>`     |
+| Precedência | Campo em `opts`              | Bloco gerado (NF-e)    |
+| ----------- | ---------------------------- | ---------------------- |
+| 1º          | `ultNSU`                     | `<distNSU><ultNSU>`    |
+| 2º          | `chNFe` / `chCTe` / `chMDFe` | `consCh*` do descritor |
+| 3º (else)   | `nsu`                        | `<consNSU><NSU>`       |
 
 O `else` final não testa `opts.nsu`: se nenhum dos três vier, sai `<consNSU><NSU>undefined</NSU>`. Na prática isso não acontece porque a camada `apis/` só chama o controller depois de validar, mas é a razão de não chamar controller diretamente.
 
@@ -55,9 +55,9 @@ Três funções estáticas em [src/util/xml.js](../../../src/util/xml.js):
 
 `new XMLBuilder({ ignoreAttributes: false }).build(json)`. A flag é obrigatória — sem ela o builder descarta as chaves `@_` e o XML sai sem `xmlns`, `versao` e `Id`.
 
-### `envelopar(xml)`
+### `envelopar(xml, cabecalho?)`
 
-Concatena o envelope **SOAP 1.2** em volta do corpo:
+Concatena o envelope **SOAP 1.2** em volta do corpo. Com um argumento, a saída é byte a byte a de antes da distribuição de CT-e/MDF-e. Com `cabecalho`, insere `<soap12:Header>…</soap12:Header>` antes do `Body` (MDF-e: `mdfeCabecMsg` montado no helper).
 
 ```text
 <?xml version="1.0" encoding="utf-8"?><soap12:Envelope …><soap12:Body>…</soap12:Body></soap12:Envelope>

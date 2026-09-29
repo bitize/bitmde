@@ -8,7 +8,7 @@
 static async enviar(opts) {
   const data = XHelper.montarRequest(opts)
   const retornoSefaz = await XHelper.enviarConsulta(data, opts) // .enviarEvento na recepção
-  const json = await XHelper.montarResponse(retornoSefaz.data)
+  const json = await XHelper.montarResponse(retornoSefaz.data, opts.documento)
   return RetornoHelper.montarRetorno({ json, data, retornoSefaz })
 }
 ```
@@ -23,11 +23,11 @@ O JSDoc de `enviar` em cada controller descreve o shape completo do retorno — 
 
 Cada helper de serviço tem os mesmos três métodos:
 
-| Método                            | Faz                                                                     |
-| --------------------------------- | ----------------------------------------------------------------------- |
-| `montarRequest`                   | `opts` → schema → XML → (assinatura, só na recepção) → envelope SOAP    |
-| `enviarConsulta` / `enviarEvento` | Escolhe o endpoint por `tpAmb`, instancia o `SefazService` e faz `POST` |
-| `montarResponse`                  | XML da SEFAZ → JSON normalizado                                         |
+| Método                            | Faz                                                                                                      |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `montarRequest`                   | `opts` → schema → XML → (assinatura, só na recepção) → envelope SOAP                                     |
+| `enviarConsulta` / `enviarEvento` | Endpoint por `documento.endpoints[tpAmb]` (distribuição) ou `RECEPCAO[tpAmb]`; `POST` via `SefazService` |
+| `montarResponse`                  | XML da SEFAZ → JSON normalizado                                                                          |
 
 ### `montarResponse` — o padrão de leitura defensiva
 

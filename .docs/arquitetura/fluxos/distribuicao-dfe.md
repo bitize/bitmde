@@ -1,6 +1,6 @@
-# Fluxo — NFeDistribuicaoDFe
+# Fluxo — Distribuição de DF-e (NF-e, CT-e, MDF-e)
 
-Consulta de documentos fiscais destinados a um CNPJ/CPF. Três formas de perguntar, um único caminho de código.
+Consulta de documentos fiscais destinados a um CNPJ/CPF. Três formas de perguntar (`ultNSU`, NSU, chave), um único caminho de código parametrizado por `opts.documento` (`DOCUMENTOS.NFE`, `.CTE`, `.MDFE`). As classes públicas são `DistribuicaoDFe`, `DistribuicaoCTe` e `DistribuicaoMDFe`.
 
 ## O caminho completo
 
@@ -16,7 +16,7 @@ DistribuicaoController.enviar({ ...config, ultNSU })
   │    Xml.envelopar                   → <soap12:Envelope>…
   │
   ├─ DistribuicaoHelper.enviarConsulta(data, opts)
-  │    endpoint = DISTRIBUICAO[tpAmb]
+  │    endpoint = documento.endpoints[tpAmb]
   │    new SefazService({ baseURL, ca: CA, cert, key, tpAmb, requestOptions, httpsOptions })
   │    POST  → { status, data }
   │

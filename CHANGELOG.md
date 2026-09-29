@@ -2,8 +2,15 @@
 
 ## [Não publicado]
 
+### Adicionado
+
+- `DistribuicaoCTe` e `DistribuicaoMDFe` — consulta de CT-e e MDF-e destinados (`consultaUltNSU`, `consultaNSU`, `consultaChCTe` / `consultaChMDFe`), com a mesma configuração de `DistribuicaoDFe` e o mesmo formato de retorno
+- Descritores `DOCUMENTOS` e endpoints `DISTRIBUICAO_CTE` / `DISTRIBUICAO_MDFE` em `env/`
+- Cabeçalho SOAP `mdfeCabecMsg` na distribuição de MDF-e via `Xml.envelopar(xml, cabecalho)`
+
 ### Modificado
 
+- Schema, helper e controller de distribuição parametrizados por descritor de documento; `DistribuicaoDFe` permanece inalterada na API pública
 - `actions/checkout` e `actions/setup-node` atualizadas da v4 para a v7 nos três workflows. A v4 roda em Node 20, deprecado nos runners do GitHub e já forçado a executar em Node 24 — o aviso aparecia em todo run. Nenhuma quebra das v5/v6/v7 se aplica a este repositório: o cache automático da v5 do `setup-node` depende do campo `packageManager` no `package.json`, que não existe aqui, e a remoção do `NODE_AUTH_TOKEN` fictício na v7 não afeta quem publica por OIDC
 
 ## [0.17.1] / 2026-09-10

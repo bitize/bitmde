@@ -36,6 +36,10 @@ npm i @bitize/bitmde
   - Retorna o Documento Fiscal referente ao NSU informado, podendo ser um `Resumo`, uma `NF-e` ou um `Evento`
 - Envio de evento
   - Registra o evento de manifestação na nota informada (`Confirmação da Operação`, `Ciência da Operação`, `Desconhecimento da Operação` ou `Operação não Realizada`)
+- Consulta de CT-e destinado
+  - Mesmas modalidades da NF-e (`ultNSU`, NSU, chave de acesso), via `DistribuicaoCTe`
+- Consulta de MDF-e destinado
+  - Mesmas modalidades da NF-e (`ultNSU`, NSU, chave de acesso), via `DistribuicaoMDFe`
 
 ## Distribuição de DF-e
 
@@ -217,6 +221,56 @@ console.log(consulta)
 //   resXml: '<?xml version="1.0" encoding="utf-8"?> ... </soap:Body></soap:Envelope>',
 //   status: 200,
 // }
+```
+
+## Distribuição de CT-e
+
+`DistribuicaoCTe` usa a **mesma** `config` de `DistribuicaoDFe` (certificado, `cUFAutor`, CNPJ/CPF, `tpAmb`, `options`). O retorno tem o mesmo formato (`data`, `reqXml`, `resXml`, `status`, `error?`).
+
+| Método           | Argumento | Descrição                         |
+| :--------------- | :-------: | :-------------------------------- |
+| `consultaUltNSU` | `ultNSU`  | Varredura incremental             |
+| `consultaNSU`    |   `nsu`   | Documento pelo NSU                |
+| `consultaChCTe`  |  `chCTe`  | Documento pela chave (44 dígitos) |
+
+#### Exemplo (`consultaUltNSU`)
+
+```js
+const { DistribuicaoCTe } = require('@bitize/bitmde')
+const fs = require('fs')
+
+const distribuicao = new DistribuicaoCTe({
+  pfx: fs.readFileSync('./certificado.pfx'),
+  passphrase: 'senha',
+  cnpj: '12345678901234',
+  cUFAutor: '41',
+  tpAmb: '2',
+})
+
+const consulta = await distribuicao.consultaUltNSU('000000000000000')
+```
+
+## Distribuição de MDF-e
+
+`DistribuicaoMDFe` usa a **mesma** `config` de `DistribuicaoDFe`. Métodos: `consultaUltNSU`, `consultaNSU`, `consultaChMDFe` (chave de 44 dígitos).
+
+#### Exemplo (`consultaChMDFe`)
+
+```js
+const { DistribuicaoMDFe } = require('@bitize/bitmde')
+const fs = require('fs')
+
+const distribuicao = new DistribuicaoMDFe({
+  cert: fs.readFileSync('./cert.pem', 'utf8'),
+  key: fs.readFileSync('./key.pem', 'utf8'),
+  cnpj: '12345678901234',
+  cUFAutor: '41',
+  tpAmb: '2',
+})
+
+const consulta = await distribuicao.consultaChMDFe(
+  '41000000000000000000000000000000000000000039'
+)
 ```
 
 ## Manifestação do Destinatário
