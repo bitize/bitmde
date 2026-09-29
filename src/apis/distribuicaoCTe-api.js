@@ -62,7 +62,6 @@ class DistribuicaoCTe {
       tpAmb: tpAmb,
       cert: cert,
       key: key,
-      documento: DOCUMENTOS.CTE,
       requestOptions: Object.freeze(requestOptions),
       httpsOptions: Object.freeze(httpsOptions),
     })
@@ -85,6 +84,7 @@ class DistribuicaoCTe {
     const opts = {
       ...this.config,
       chCTe: value,
+      documento: DOCUMENTOS.CTE,
     }
 
     return DistribuicaoController.enviar(opts)
@@ -105,6 +105,7 @@ class DistribuicaoCTe {
     const opts = {
       ...this.config,
       nsu: value,
+      documento: DOCUMENTOS.CTE,
     }
 
     return DistribuicaoController.enviar(opts)
@@ -125,6 +126,7 @@ class DistribuicaoCTe {
     const opts = {
       ...this.config,
       ultNSU: value,
+      documento: DOCUMENTOS.CTE,
     }
 
     return DistribuicaoController.enviar(opts)
