@@ -248,11 +248,107 @@ const distribuicao = new DistribuicaoCTe({
 })
 
 const consulta = await distribuicao.consultaUltNSU('000000000000000')
+
+if (consulta.error) {
+  throw new Error(consulta.error)
+}
+```
+
+#### Exemplo (`consultaNSU`)
+
+```js
+const { DistribuicaoCTe } = require('@bitize/bitmde')
+const fs = require('fs')
+
+const distribuicao = new DistribuicaoCTe({
+  pfx: fs.readFileSync('./certificado.pfx'),
+  passphrase: 'senha',
+  cnpj: '12345678901234',
+  cUFAutor: '41',
+  tpAmb: '2',
+})
+
+const consulta = await distribuicao.consultaNSU('000000000000049')
+
+if (consulta.error) {
+  throw new Error(consulta.error)
+}
+```
+
+#### Exemplo (`consultaChCTe`)
+
+```js
+const { DistribuicaoCTe } = require('@bitize/bitmde')
+const fs = require('fs')
+
+const distribuicao = new DistribuicaoCTe({
+  pfx: fs.readFileSync('./certificado.pfx'),
+  passphrase: 'senha',
+  cnpj: '12345678901234',
+  cUFAutor: '41',
+  tpAmb: '2',
+})
+
+const consulta = await distribuicao.consultaChCTe(
+  '41000000000000000000000000000000000000000039'
+)
+
+if (consulta.error) {
+  throw new Error(consulta.error)
+}
 ```
 
 ## Distribuição de MDF-e
 
-`DistribuicaoMDFe` usa a **mesma** `config` de `DistribuicaoDFe`. Métodos: `consultaUltNSU`, `consultaNSU`, `consultaChMDFe` (chave de 44 dígitos).
+`DistribuicaoMDFe` usa a **mesma** `config` de `DistribuicaoDFe`. O retorno tem o mesmo formato (`data`, `reqXml`, `resXml`, `status`, `error?`).
+
+| Método           | Argumento | Descrição                         |
+| :--------------- | :-------: | :-------------------------------- |
+| `consultaUltNSU` | `ultNSU`  | Varredura incremental             |
+| `consultaNSU`    |   `nsu`   | Documento pelo NSU                |
+| `consultaChMDFe` | `chMDFe`  | Documento pela chave (44 dígitos) |
+
+#### Exemplo (`consultaUltNSU`)
+
+```js
+const { DistribuicaoMDFe } = require('@bitize/bitmde')
+const fs = require('fs')
+
+const distribuicao = new DistribuicaoMDFe({
+  pfx: fs.readFileSync('./certificado.pfx'),
+  passphrase: 'senha',
+  cnpj: '12345678901234',
+  cUFAutor: '41',
+  tpAmb: '2',
+})
+
+const consulta = await distribuicao.consultaUltNSU('000000000000000')
+
+if (consulta.error) {
+  throw new Error(consulta.error)
+}
+```
+
+#### Exemplo (`consultaNSU`)
+
+```js
+const { DistribuicaoMDFe } = require('@bitize/bitmde')
+const fs = require('fs')
+
+const distribuicao = new DistribuicaoMDFe({
+  pfx: fs.readFileSync('./certificado.pfx'),
+  passphrase: 'senha',
+  cnpj: '12345678901234',
+  cUFAutor: '41',
+  tpAmb: '2',
+})
+
+const consulta = await distribuicao.consultaNSU('000000000000049')
+
+if (consulta.error) {
+  throw new Error(consulta.error)
+}
+```
 
 #### Exemplo (`consultaChMDFe`)
 
@@ -271,6 +367,10 @@ const distribuicao = new DistribuicaoMDFe({
 const consulta = await distribuicao.consultaChMDFe(
   '41000000000000000000000000000000000000000039'
 )
+
+if (consulta.error) {
+  throw new Error(consulta.error)
+}
 ```
 
 ## Manifestação do Destinatário
