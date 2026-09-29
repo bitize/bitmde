@@ -66,10 +66,14 @@ O congelamento alcança dois níveis — `config` e os dois objetos de options d
 
 ## Métodos públicos
 
-Cada método valida seu argumento e monta `opts` espalhando a config:
+Cada método valida seu argumento e monta `opts` espalhando a config e o descritor do documento (interno ao controller):
 
 ```js
-const opts = { ...this.config, nsu: value }
+const opts = {
+  ...this.config,
+  nsu: value,
+  documento: DOCUMENTOS.NFE, // DistribuicaoCTe → DOCUMENTOS.CTE; DistribuicaoMDFe → DOCUMENTOS.MDFE
+}
 return DistribuicaoController.enviar(opts)
 ```
 

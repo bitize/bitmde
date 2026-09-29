@@ -15,7 +15,7 @@ A consulta de DF-e destinados usa o mesmo leiaute (`distDFeInt`, `retDistDFeInt`
 
 ## Decisão
 
-Três classes em `apis/` (`DistribuicaoDFe`, `DistribuicaoCTe`, `DistribuicaoMDFe`) injetam um descritor de `env/documento.js` em `this.config`; schema, helper e controller compartilhados leem esse descritor para montar XML, envelope SOAP (incluindo `mdfeCabecMsg` quando aplicável), endpoint e parse da resposta.
+Três classes em `apis/` (`DistribuicaoDFe`, `DistribuicaoCTe`, `DistribuicaoMDFe`) injetam um descritor de `env/documento.js` em `opts` ao delegar a `DistribuicaoController.enviar` — não em `this.config`, que permanece igual ao contrato público de configuração (certificado, destinatário, ambiente, UF, opções de transporte). Schema, helper e controller compartilhados leem `opts.documento` para montar XML, envelope SOAP (incluindo `mdfeCabecMsg` quando aplicável), endpoint e parse da resposta.
 
 ## Consequências
 
