@@ -12,7 +12,7 @@ class Gzip {
     const buf = Buffer.from(str, 'base64')
     return new Promise((resolve, reject) => {
       zlib.unzip(buf, function (err, buffer) {
-        if (err) reject(err)
+        if (err) return reject(err)
         const content = buffer.toString('utf8')
         resolve(content)
       })

@@ -59,7 +59,21 @@ if (loteDistDFeInt.docZip) {
 }
 ```
 
+Antes disso, um `<loteDistDFeInt/>` vazio — que o parser devolve como string `''`, não como objeto — é trocado por `{}`; sem isso a atribuição de `docZip` lançaria `TypeError` em modo estrito.
+
 Por fim, cada campo escalar recebe `|| ''`. O consumidor nunca vê `undefined` num campo esperado — vê string vazia.
+
+### `docZip` processado item a item
+
+Na distribuição, cada `docZip` passa por `DistribuicaoHelper.abrirDocZip`, que **nunca rejeita**: ou devolve `{ xml, json, nsu, schema }`, ou devolve `{ nsu, schema, error }`. `montarResponse` faz o `Promise.all` sobre esses resultados e os separa, na ordem do lote, em `docZip` (válidos) e `docZipErrors` (falhas). As três falhas possíveis, com o texto exato:
+
+| Etapa                  | `error`                                                     |
+| ---------------------- | ----------------------------------------------------------- |
+| `value` vazio          | `docZip sem conteúdo.`                                      |
+| `Gzip.unzip` rejeitou  | `Falha ao descompactar o docZip: <mensagem original>`       |
+| `Xml.xmlToJson` lançou | `Falha ao interpretar o XML do docZip: <mensagem original>` |
+
+O prefixo é contrato; o sufixo é o `err.message` do zlib ou do `fast-xml-parser`. Falha de `docZip` não preenche o `error` de topo, então o `RetornoHelper` não esvazia `data` e `ultNSU`/`maxNSU` chegam ao chamador. Ver [ADR 0013](../decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md).
 
 ### Propagação de erro
 
@@ -100,5 +114,6 @@ A segunda usa `Math.floor(status / 100) > 2`, ou seja, **3xx também é erro** a
 ## Ao mexer aqui
 
 - Campo novo no retorno da SEFAZ: acrescentar em `montarResponse` **com `|| ''`** e atualizar o JSDoc do controller (é ele que vira tipo público) e o `README.md`.
-- Nunca lançar de dentro de helper por causa de resposta da SEFAZ — o contrato é devolver `error`. A única brecha conhecida é `Gzip.unzip` num `docZip` corrompido: a Promise rejeita dentro do `Promise.all` de `montarResponse` e a rejeição sobe até o chamador. Está registrada na [ADR 0004](../decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md); o conserto, quando vier, é convertê-la em `error` — não abrir a regra.
+- Nunca lançar de dentro de helper por causa de resposta da SEFAZ — o contrato é devolver `error` ([ADR 0004](../decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md)). A brecha que existia no `docZip` corrompido foi fechada pela [ADR 0013](../decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md); não reintroduzir `Promise.all` sobre operação que pode rejeitar.
+- Brecha ainda aberta: `Xml.xmlToJson` sobre o **envelope** lança quando o corpo da resposta não é XML (o `fast-xml-parser` rejeita entradas como `'nao e xml <<'`). Vale para os dois helpers.
 - Toda classe daqui é exportada com `Object.freeze` e existe teste que garante isso.

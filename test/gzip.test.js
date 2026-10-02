@@ -16,6 +16,17 @@ describe('Gzip', function () {
       assert.equal(xml, XML_UNZIP)
     })
 
+    it('Gzip inválido rejeita sem exceção não capturada', async function () {
+      await assert.rejects(Gzip.unzip('bm90IGd6aXA='), (err) => {
+        assert.strictEqual(err.code, 'Z_DATA_ERROR')
+        return true
+      })
+
+      // Se o callback do zlib voltar a lançar depois do reject, a exceção
+      // aparece aqui, e o mocha a atribui a este teste.
+      await new Promise((resolve) => setImmediate(resolve))
+    })
+
     it('Imutabilidade', function () {
       assert.throws(function () {
         Gzip.unzip = 'subscrever unzip'

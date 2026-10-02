@@ -57,7 +57,7 @@ util/                XML, gzip, PFX→PEM, assinatura, data, zero-pad
 
 Cinco regras valem em qualquer arquivo de `src/`. Quebrar uma delas quebra teste.
 
-1. **Erro de configuração ou de argumento lança; erro de rede ou da SEFAZ, não.** Config inválida vira `throw new Error(validator.getError())` de forma síncrona; falha de transporte vira `{ data: {}, error, reqXml, resXml, status }`. Uma exceção conhecida sobrevive: `Gzip.unzip` de um `docZip` corrompido rejeita e a rejeição propaga para o chamador. Ver [ADR 0004](decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md).
+1. **Erro de configuração ou de argumento lança; erro de rede ou da SEFAZ, não.** Config inválida vira `throw new Error(validator.getError())` de forma síncrona; falha de transporte vira `{ data: {}, error, reqXml, resXml, status }`. Ver [ADR 0004](decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md). Falha de **um** documento do lote da distribuição (`docZip` corrompido) não esvazia `data`: vira item de `data.docZipErrors` e o resto do lote segue — ver [ADR 0013](decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md).
 2. **Imutabilidade.** Praticamente todo módulo exporta `Object.freeze(Classe)`, e as instâncias de `apis/` congelam `this` e `this.config`. Ver [ADR 0005](decisoes/0005-object-freeze-pervasivo.md).
 3. **`tpAmb` é string.** `'1'` produção, `'2'` homologação — é a chave dos mapas em [src/env/distribuicao.js](../../src/env/distribuicao.js) e [src/env/recepcao.js](../../src/env/recepcao.js).
 4. **Idioma e mensagens.** Domínio, nomes de arquivo/classe e mensagens de erro em português. As mensagens são comparadas **literalmente** nos testes (`assert.strictEqual(err.message, 'NSU não informado.')`) — mudar o texto quebra teste.

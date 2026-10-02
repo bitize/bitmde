@@ -1,15 +1,15 @@
-# GH-NN: docZip corrompido não deve derrubar o lote da distribuição DF-e
+# GH-11: docZip corrompido não deve derrubar o lote da distribuição DF-e
 
-| Campo                | Valor                               |
-| -------------------- | ----------------------------------- |
-| **Issue**            | GH-NN                               |
-| **Status**           | drafts                              |
-| **Prioridade**       | P1 (alto)                           |
-| **Tipo**             | correção                            |
-| **Camadas afetadas** | controllers / helpers / util / test |
-| **Criado em**        | 2026-10-01                          |
-| **Atualizado em**    | 2026-10-01                          |
-| **Concluído em**     | —                                   |
+| Campo                | Valor                                               |
+| -------------------- | --------------------------------------------------- |
+| **Issue**            | [GH-11](https://github.com/bitize/bitmde/issues/11) |
+| **Status**           | specified                                           |
+| **Prioridade**       | P1 (alto)                                           |
+| **Tipo**             | correção                                            |
+| **Camadas afetadas** | controllers / helpers / util / test                 |
+| **Criado em**        | 2026-10-01                                          |
+| **Atualizado em**    | 2026-10-01                                          |
+| **Concluído em**     | —                                                   |
 
 ---
 
@@ -153,48 +153,53 @@ Se **todos** os `docZip` falharem, o retorno continua sendo sucesso de transport
 
 Arquivo novo `test/distribuicaoDFe-helper.test.js`, chamando `DistribuicaoHelper.montarResponse` direto com um envelope SOAP montado no teste — sem rede e **sem ler certificado**, então roda isolado como `xml.test.js` e `gzip.test.js`. O `docZip` válido reaproveita o `XML_ZIP` de `test/gzip.test.js`; o corrompido usa `'bm90IGd6aXA='` (base64 de `not gzip`).
 
-- [ ] `Gzip.unzip` com gzip inválido: `assert.rejects` com `code === 'Z_DATA_ERROR'` **e** nenhum `uncaughtException` — aguardar um `setImmediate` depois da rejeição, para o mocha acusar a exceção no teste certo se ela voltar (em `test/gzip.test.js`)
-- [ ] Lote misto (um válido + um corrompido): `docZip` com 1 item igual ao esperado, `docZipErrors` com 1 item `{ nsu, schema, error }`, `ultNSU`/`maxNSU`/`cStat` preenchidos, sem `error` de topo
-- [ ] Mensagem do gzip corrompido: `assert.strictEqual(err, 'Falha ao descompactar o docZip: incorrect header check')` — a mensagem vem da própria zlib e é estável entre Node 20/22/24
-- [ ] Conteúdo que descompacta mas não é XML (gzip de `'nao e xml <<'`): `error` começa com `'Falha ao interpretar o XML do docZip: '` — `startsWith`, porque o sufixo é do `fast-xml-parser`
-- [ ] `docZip` sem conteúdo: `assert.strictEqual(err, 'docZip sem conteúdo.')`
-- [ ] Lote com todos os itens falhando: `docZip: []`, `docZipErrors` com todos, `ultNSU`/`maxNSU` preenchidos, sem `error`
-- [ ] Lote sem nenhum `docZip` (`cStat` 137): `docZip: []` e `docZipErrors: []`
-- [ ] Ordem do lote preservada nos dois arrays (válido, corrompido, válido → `nsu` na ordem original)
-- [ ] `test/sefaz.test.js` — não obrigatório: a tarefa não toca transporte, certificado nem assinatura. Rodar contra homologação só se houver A1 à mão, para confirmar que o lote real continua vindo com `docZipErrors: []`
+- [x] `Gzip.unzip` com gzip inválido: `assert.rejects` com `code === 'Z_DATA_ERROR'` **e** nenhum `uncaughtException` — aguardar um `setImmediate` depois da rejeição, para o mocha acusar a exceção no teste certo se ela voltar (em `test/gzip.test.js`)
+- [x] Lote misto (um válido + um corrompido): `docZip` com 1 item igual ao esperado, `docZipErrors` com 1 item `{ nsu, schema, error }`, `ultNSU`/`maxNSU`/`cStat` preenchidos, sem `error` de topo
+- [x] Mensagem do gzip corrompido: `assert.strictEqual(err, 'Falha ao descompactar o docZip: incorrect header check')` — a mensagem vem da própria zlib e é estável entre Node 20/22/24
+- [x] Conteúdo que descompacta mas não é XML (gzip de `'nao e xml <<'`): `error` começa com `'Falha ao interpretar o XML do docZip: '` — `startsWith`, porque o sufixo é do `fast-xml-parser`
+- [x] `docZip` sem conteúdo: `assert.strictEqual(err, 'docZip sem conteúdo.')`
+- [x] Lote com todos os itens falhando: `docZip: []`, `docZipErrors` com todos, `ultNSU`/`maxNSU` preenchidos, sem `error`
+- [x] Lote sem nenhum `docZip` (`cStat` 137): `docZip: []` e `docZipErrors: []`
+- [x] Ordem do lote preservada nos dois arrays (válido, corrompido, válido → `nsu` na ordem original)
+- [ ] `test/sefaz.test.js` — não obrigatório: a tarefa não toca transporte, certificado nem assinatura. Rodar contra homologação só se houver A1 à mão, para confirmar que o lote real continua vindo com `docZipErrors: []` — **não rodado**: só há o certificado autoassinado do gerador, com o qual o arquivo reprova (403) independentemente desta mudança
 
 O total de testes sobe; atualizar a contagem "65 dos 67" em `CLAUDE.md` e em [testes-e-certificados.md](../../arquitetura/testes-e-certificados.md), e acrescentar o arquivo novo à lista dos que rodam sem certificado nos dois lugares.
 
 ## Checklist de implementação
 
-- [ ] `src/util/gzip.js` — `return reject(err)`
-- [ ] `src/helpers/distribuicaoDFe-helper.js` — try/catch por item, `docZipErrors`, JSDoc
-- [ ] `src/controllers/distribuicaoDFe-controller.js` — JSDoc do retorno
-- [ ] `test/distribuicaoDFe-helper.test.js` e caso novo em `test/gzip.test.js`
-- [ ] [README.md](../../../README.md) — `docZipErrors` nos exemplos de retorno das três consultas, com uma frase sobre quando aparece
-- [ ] `CHANGELOG.md` em `[Não publicado]`: `### Corrigido` (processo derrubado por `docZip` corrompido; lote inteiro perdido) e `### Adicionado` (`docZipErrors`)
-- [ ] ADR 0013 criado e acrescentado à tabela de [decisoes/README.md](../../arquitetura/decisoes/README.md)
-- [ ] [arquitetura/README.md](../../arquitetura/README.md) — invariante 1 sem a "exceção conhecida", apontando para a ADR 0013
-- [ ] [controllers-helpers.md](../../arquitetura/camadas/controllers-helpers.md) — "Ao mexer aqui" sem a brecha; `docZipErrors` no formato de retorno
-- [ ] [fluxos/distribuicao-dfe.md](../../arquitetura/fluxos/distribuicao-dfe.md) — seções "O retorno" e "Gunzip" reescritas
-- [ ] `CLAUDE.md` e [testes-e-certificados.md](../../arquitetura/testes-e-certificados.md) — contagem de testes e lista dos que rodam sem `certs/`
+- [x] `src/util/gzip.js` — `return reject(err)`
+- [x] `src/helpers/distribuicaoDFe-helper.js` — try/catch por item, `docZipErrors`, JSDoc
+- [x] `src/controllers/distribuicaoDFe-controller.js` — JSDoc do retorno
+- [x] `test/distribuicaoDFe-helper.test.js` e caso novo em `test/gzip.test.js`
+- [x] [README.md](../../../README.md) — `docZipErrors` nos exemplos de retorno das três consultas, com uma frase sobre quando aparece
+- [x] `CHANGELOG.md` em `[Não publicado]`: `### Corrigido` (processo derrubado por `docZip` corrompido; lote inteiro perdido) e `### Adicionado` (`docZipErrors`)
+- [x] ADR 0013 criado e acrescentado à tabela de [decisoes/README.md](../../arquitetura/decisoes/README.md)
+- [x] [arquitetura/README.md](../../arquitetura/README.md) — invariante 1 sem a "exceção conhecida", apontando para a ADR 0013
+- [x] [controllers-helpers.md](../../arquitetura/camadas/controllers-helpers.md) — "Ao mexer aqui" sem a brecha; `docZipErrors` no formato de retorno
+- [x] [fluxos/distribuicao-dfe.md](../../arquitetura/fluxos/distribuicao-dfe.md) — seções "O retorno" e "Gunzip" reescritas
+- [x] `CLAUDE.md` e [testes-e-certificados.md](../../arquitetura/testes-e-certificados.md) — contagem de testes e lista dos que rodam sem `certs/`
 
 ## Validação pré-PR (obrigatório)
 
 Rodar na raiz do repositório:
 
-- [ ] `npm run format` (ou conferir com `npm run format:check`)
-- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real)
-- [ ] `npm run test:ci` — tudo menos `test/sefaz.test.js`; é o que roda com o certificado descartável
-- [ ] `npx mocha test/distribuicaoDFe-helper.test.js test/gzip.test.js` **sem** `certs/` — confirma que o arquivo novo roda isolado
-- [ ] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`; conferir `docZipErrors` no `dist/index.d.ts`
-- [ ] `git status` limpo, exceto o que a tarefa mudou de propósito
+- [x] `npm run format` (ou conferir com `npm run format:check`)
+- [x] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real) — `certs/` já existia (autoassinado do gerador)
+- [x] `npm run test:ci` — tudo menos `test/sefaz.test.js`; é o que roda com o certificado descartável
+- [x] `npx mocha test/distribuicaoDFe-helper.test.js test/gzip.test.js` **sem** `certs/` — confirma que o arquivo novo roda isolado
+- [x] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`; conferir `docZipErrors` no `dist/` (sai em `dist/apis/distribuicaoDFe-api.d.ts` e `dist/controllers/distribuicaoDFe-controller.d.ts`)
+- [x] `git status` limpo, exceto o que a tarefa mudou de propósito
 
 ## Notas de implementação
 
 > Preenchido durante ou após a implementação. Registrar os **desvios** em relação a esta especificação e a justificativa de cada um. Se não houve, escrever "Sem desvios".
 
--
+- **`DistribuicaoHelper.abrirDocZip`.** A especificação pedia try/catch por item sem nomear onde; ele ficou num método estático próprio, que nunca rejeita, para manter `montarResponse` legível. Coberto pelo teste de imutabilidade do helper.
+- **`|| ''` também em `nsu` e `schema` dos itens válidos.** A especificação o previa só para `docZipErrors`; aplicar aos dois evita que o mesmo atributo tenha default num array e não no outro. Antes, um `docZip` válido sem atributo vinha com `undefined`.
+- **`<loteDistDFeInt/>` vazio.** Fora do escopo original. O teste de lote vazio revelou que o parser devolve `''` para o elemento vazio, e a atribuição `loteDistDFeInt['docZip'] = []` lançava `TypeError` em modo estrito — mesma classe de brecha (resposta da SEFAZ fazendo a consulta lançar). Corrigido com uma checagem de tipo e coberto por teste; o caso `cStat` 137 real (sem o elemento) ganhou teste próprio.
+- **Contagem de testes.** A especificação mandava atualizar "65 dos 67", mas a contagem já estava defasada na `main`: eram 65 de **71** (`sefaz.test.js` tem 6). Agora são 74 de 80.
+- **`test/sefaz.test.js` não rodado** — ver Testes. A mudança não toca transporte, certificado nem assinatura.
+- **Brecha restante documentada.** `Xml.xmlToJson` sobre o envelope ainda lança com corpo não-XML; ficou registrada em "Ao mexer aqui" de [controllers-helpers.md](../../arquitetura/camadas/controllers-helpers.md), para tarefa própria.
 
 ## Conclusão e entrega
 
@@ -203,7 +208,7 @@ Executar **após o PR ser mergeado na `main`**:
 - [ ] Desvios registrados em "Notas de implementação"
 - [ ] Checklists marcados
 - [ ] Cabeçalho: **Status** = `done` e **Concluído em** preenchido
-- [ ] Arquivo movido: `git mv .docs/tasks/specified/GH-NN-doczip-corrompido-nao-derruba-o-lote.md .docs/tasks/done/GH-NN-doczip-corrompido-nao-derruba-o-lote.md`
+- [ ] Arquivo movido: `git mv .docs/tasks/specified/GH-11-doczip-corrompido-nao-derruba-o-lote.md .docs/tasks/done/GH-11-doczip-corrompido-nao-derruba-o-lote.md`
 - [ ] Blockquote de especificação na issue apontando para `.docs/tasks/done/` (era `specified/`)
 - [ ] Issue fechada no GitHub
 
@@ -217,10 +222,11 @@ Executar **após o PR ser mergeado na `main`**:
 - [ADR 0006 — JS com JSDoc em vez de TypeScript](../../arquitetura/decisoes/0006-js-com-jsdoc-em-vez-de-typescript.md)
 - [GH-3 — Suporte a CT-e e MDF-e na distribuição](GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) — mexe no mesmo `montarResponse`
 - Origem: DEV-987 (rastreador interno da Bitize)
-- Issue: https://github.com/bitize/bitmde/issues/NN
+- Issue: https://github.com/bitize/bitmde/issues/11
 
 ## Histórico de revisões
 
-| Data       | Rev | Descrição                |
-| ---------- | --- | ------------------------ |
-| 2026-10-01 | 1.0 | Criação da especificação |
+| Data       | Rev | Descrição                                                                                    |
+| ---------- | --- | -------------------------------------------------------------------------------------------- |
+| 2026-10-01 | 1.0 | Criação da especificação                                                                     |
+| 2026-10-01 | 1.1 | Implementação: issue #11, ADR 0013, código, testes e docs; desvios em Notas de implementação |
