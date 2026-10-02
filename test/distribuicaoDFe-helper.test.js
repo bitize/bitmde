@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require('assert')
-const { DistribuicaoHelper } = require('../src/helpers')
+const { DistribuicaoHelper, RetornoHelper } = require('../src/helpers')
 
 const XML_ZIP =
   'H4sIAAAAAAAEAIVS22qDQBD9FfFdd9Z7ZLKQphosqQ3mQuibMZto8RJcifn8rjG9PZUdZg7DOWeGYbHlIg65cqvKWvg3cZyqedddfEL6vtd7U2/aMzEAKNm/LtdZzqtU/SYX/5O1ohZdWmdcVa68FWkzVakO8PD4o780bZeWp0JkaakX9Uk/tKQ+cZVhlssVmUkNoPLZnjcAGKBtDwVMzzIodak3AIO6HpJRg/N49cL+apDcm3iLm4qz99lKWSSzMJrPlEAJnqPNWyJRlATLCMnIwShgUkqpNLEAHBOJ7OAxD6qCGWCARkEDZwPg30MDU2YkIwG7SxwyiuRe8SqTN3H1iXQZMB6L8y4t2W73sXdtJ+6TUDhGveaLbc9DsXyyt1NpNZLkzIRnh675PZZOfMP2LfNn7IOD9aptOkaHy5meDS44FnWRjG3M1kU3HEmu9gWRjP+BfQI6BY33GAIAAA=='
@@ -146,6 +146,36 @@ describe('DistribuicaoHelper', function () {
       assertMetadadosDoLote(retorno)
       assert.deepStrictEqual(retorno.docZip, [])
       assert.deepStrictEqual(retorno.docZipErrors, [])
+    })
+
+    it('loteDistDFeInt com texto no lugar dos docZip vira error', async function () {
+      const resXml = montarResposta('conteúdo inesperado')
+      const retorno = await DistribuicaoHelper.montarResponse(resXml)
+
+      assert.strictEqual(retorno.error, 'loteDistDFeInt inválido.')
+
+      // Com `error`, o RetornoHelper esvazia `data`: o chamador não tem
+      // ultNSU para avançar sobre um lote que não pôde ler.
+      const final = RetornoHelper.montarRetorno({
+        json: retorno,
+        data: '',
+        retornoSefaz: { data: resXml, status: 200 },
+      })
+      assert.deepStrictEqual(final.data, {})
+      assert.strictEqual(final.error, 'loteDistDFeInt inválido.')
+    })
+
+    it('loteDistDFeInt repetido vira error', async function () {
+      // fecha o primeiro lote e abre um segundo dentro do mesmo retDistDFeInt
+      const retorno = await DistribuicaoHelper.montarResponse(
+        montarResposta(
+          docZip('000000000000001', XML_ZIP) +
+            '</loteDistDFeInt><loteDistDFeInt>' +
+            docZip('000000000000002', XML_ZIP)
+        )
+      )
+
+      assert.strictEqual(retorno.error, 'loteDistDFeInt inválido.')
     })
 
     it('Ordem do lote preservada', async function () {

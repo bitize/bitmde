@@ -59,7 +59,7 @@ if (loteDistDFeInt.docZip) {
 }
 ```
 
-Antes disso, um `<loteDistDFeInt/>` vazio — que o parser devolve como string `''`, não como objeto — é trocado por `{}`; sem isso a atribuição de `docZip` lançaria `TypeError` em modo estrito.
+Antes disso, um `<loteDistDFeInt/>` vazio — que o parser devolve como string `''`, não como objeto — é trocado por `{}`; sem isso a atribuição de `docZip` lançaria `TypeError` em modo estrito. **Só** a string vazia vira lote vazio: texto no lugar dos `docZip` (string não vazia) ou elemento repetido (array) preenchem `error` com `loteDistDFeInt inválido.`. Tratá-los como lote vazio deixaria `ultNSU` chegar ao chamador, que avançaria a varredura por cima de documentos que não viu; com `error`, o `RetornoHelper` esvazia `data`.
 
 Por fim, cada campo escalar recebe `|| ''`. O consumidor nunca vê `undefined` num campo esperado — vê string vazia.
 

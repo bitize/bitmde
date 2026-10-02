@@ -6,7 +6,7 @@
 
 - **Um `docZip` corrompido na distribuição DF-e encerrava o processo de quem consome a biblioteca.** `Gzip.unzip` rejeitava a Promise mas seguia executando e lançava um `TypeError` fora dela, como `uncaughtException`, antes de qualquer `.catch` do chamador
 - Um documento ilegível no lote deixa de derrubar a consulta inteira. Antes, `consultaUltNSU`, `consultaNSU` e `consultaChNFe` perderiam os documentos válidos e o `ultNSU`/`maxNSU`, e a varredura ficaria presa no mesmo NSU. Ver [ADR 0013](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md)
-- `<loteDistDFeInt/>` vazio na resposta deixa de lançar `TypeError`
+- `<loteDistDFeInt/>` vazio na resposta deixa de lançar `TypeError` e vira lote sem documentos. Um `loteDistDFeInt` em qualquer outra forma que não seja um lote — texto no lugar dos `docZip`, elemento repetido — passa a devolver `error: 'loteDistDFeInt inválido.'` em vez de lançar
 
 ### Adicionado
 

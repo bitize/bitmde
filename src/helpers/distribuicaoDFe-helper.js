@@ -73,8 +73,16 @@ class DistribuicaoHelper {
 
     let { loteDistDFeInt = {} } = retDistDFeInt
 
-    // <loteDistDFeInt/> vazio chega do parser como string, não como objeto
-    if (typeof loteDistDFeInt !== 'object') {
+    // <loteDistDFeInt/> vazio chega do parser como string, não como objeto.
+    // Qualquer outra forma não é um lote: vira `error`, e não lote vazio,
+    // para o chamador não avançar o ultNSU sobre documentos que não viu.
+    if (loteDistDFeInt === '') {
+      loteDistDFeInt = {}
+    } else if (
+      typeof loteDistDFeInt !== 'object' ||
+      Array.isArray(loteDistDFeInt)
+    ) {
+      retorno['error'] = 'loteDistDFeInt inválido.'
       loteDistDFeInt = {}
     }
 

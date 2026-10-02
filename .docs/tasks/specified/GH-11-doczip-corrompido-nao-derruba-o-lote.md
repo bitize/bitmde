@@ -196,8 +196,8 @@ Rodar na raiz do repositório:
 
 - **`DistribuicaoHelper.abrirDocZip`.** A especificação pedia try/catch por item sem nomear onde; ele ficou num método estático próprio, que nunca rejeita, para manter `montarResponse` legível. Coberto pelo teste de imutabilidade do helper.
 - **`|| ''` também em `nsu` e `schema` dos itens válidos.** A especificação o previa só para `docZipErrors`; aplicar aos dois evita que o mesmo atributo tenha default num array e não no outro. Antes, um `docZip` válido sem atributo vinha com `undefined`.
-- **`<loteDistDFeInt/>` vazio.** Fora do escopo original. O teste de lote vazio revelou que o parser devolve `''` para o elemento vazio, e a atribuição `loteDistDFeInt['docZip'] = []` lançava `TypeError` em modo estrito — mesma classe de brecha (resposta da SEFAZ fazendo a consulta lançar). Corrigido com uma checagem de tipo e coberto por teste; o caso `cStat` 137 real (sem o elemento) ganhou teste próprio.
-- **Contagem de testes.** A especificação mandava atualizar "65 dos 67", mas a contagem já estava defasada na `main`: eram 65 de **71** (`sefaz.test.js` tem 6). Agora são 74 de 80.
+- **`<loteDistDFeInt/>` vazio.** Fora do escopo original. O teste de lote vazio revelou que o parser devolve `''` para o elemento vazio, e a atribuição `loteDistDFeInt['docZip'] = []` lançava `TypeError` em modo estrito — mesma classe de brecha (resposta da SEFAZ fazendo a consulta lançar). Corrigido com uma checagem de tipo e coberto por teste; o caso `cStat` 137 real (sem o elemento) ganhou teste próprio. Na revisão do PR (CodeRabbit), a primeira versão tratava **qualquer** não-objeto como lote vazio; ficou restrito à string vazia. Texto no lugar dos `docZip` ou elemento repetido viram `error: 'loteDistDFeInt inválido.'` — retorno, e não `throw` como o revisor sugeriu, por causa da [ADR 0004](../../arquitetura/decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md).
+- **Contagem de testes.** A especificação mandava atualizar "65 dos 67", mas a contagem já estava defasada na `main`: eram 65 de **71** (`sefaz.test.js` tem 6). Agora são 76 de 82.
 - **`test/sefaz.test.js` não rodado** — ver Testes. A mudança não toca transporte, certificado nem assinatura.
 - **Brecha restante documentada.** `Xml.xmlToJson` sobre o envelope ainda lança com corpo não-XML; ficou registrada em "Ao mexer aqui" de [controllers-helpers.md](../../arquitetura/camadas/controllers-helpers.md), para tarefa própria.
 
@@ -230,3 +230,4 @@ Executar **após o PR ser mergeado na `main`**:
 | ---------- | --- | -------------------------------------------------------------------------------------------- |
 | 2026-10-01 | 1.0 | Criação da especificação                                                                     |
 | 2026-10-01 | 1.1 | Implementação: issue #11, ADR 0013, código, testes e docs; desvios em Notas de implementação |
+| 2026-10-01 | 1.2 | Revisão do PR: `loteDistDFeInt` que não é lote vira `error` em vez de lote vazio             |
