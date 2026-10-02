@@ -108,12 +108,27 @@ console.log(consulta)
 //         schema: 'procNFe_v4.00.xsd',
 //       },
 //     ],
+//     docZipErrors: [],
 //   },
 //   reqXml: '<?xml version="1.0" encoding="utf-8"?> ... </soap12:Body></soap12:Envelope>',
 //   resXml: '<?xml version="1.0" encoding="utf-8"?> ... </soap:Body></soap:Envelope>',
 //   status: 200,
 // }
 ```
+
+`docZip` traz só os documentos que puderam ser abertos. Um documento do lote que não descompacta ou não é XML válido não derruba a consulta: ele vai para `docZipErrors`, com o motivo, e `ultNSU`/`maxNSU` continuam preenchidos para a varredura avançar. O formato é o mesmo nas três consultas:
+
+```js
+// docZipErrors: [
+//   {
+//     nsu: '000000000000051',
+//     schema: 'procNFe_v4.00.xsd',
+//     error: 'Falha ao descompactar o docZip: incorrect header check',
+//   },
+// ]
+```
+
+As mensagens possíveis em `error` são `docZip sem conteúdo.`, `Falha ao descompactar o docZip: <motivo>` e `Falha ao interpretar o XML do docZip: <motivo>`.
 
 ### Consulta por chNFe
 
@@ -161,6 +176,7 @@ console.log(consulta)
 //         schema: 'procNFe_v4.00.xsd',
 //       },
 //     ],
+//     docZipErrors: [],
 //   },
 //   reqXml: '<?xml version="1.0" encoding="utf-8"?> ... </soap12:Body></soap12:Envelope>',
 //   resXml: '<?xml version="1.0" encoding="utf-8"?> ... </soap:Body></soap:Envelope>',
@@ -212,6 +228,7 @@ console.log(consulta)
 //         schema: 'resNFe_v1.01.xsd',
 //       },
 //     ],
+//     docZipErrors: [],
 //   },
 //   reqXml: '<?xml version="1.0" encoding="utf-8"?> ... </soap12:Body></soap12:Envelope>',
 //   resXml: '<?xml version="1.0" encoding="utf-8"?> ... </soap:Body></soap:Envelope>',

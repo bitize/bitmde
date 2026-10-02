@@ -41,19 +41,20 @@ Escolhemos X porque Y.
 
 ## ADRs ativos
 
-| ADR                                                             | Decisão                                                                        |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| [0001](0001-fork-e-republicacao-como-bitize-bit-mde.md)         | Fork de `node-mde` republicado como `@bitize/bit-mde`                          |
-| [0002](0002-publicacao-por-oidc-sem-npm-token.md)               | Publicação pela CI por Trusted Publishing (OIDC), sem `NPM_TOKEN`              |
-| [0003](0003-lockfile-versionado.md)                             | `package-lock.json` versionado e `npm ci` em todos os workflows                |
-| [0004](0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md) | Erro de configuração lança; erro de rede/SEFAZ vira retorno                    |
-| [0005](0005-object-freeze-pervasivo.md)                         | `Object.freeze` em todo módulo e nas instâncias públicas                       |
-| [0006](0006-js-com-jsdoc-em-vez-de-typescript.md)               | JavaScript com JSDoc em vez de TypeScript no fonte                             |
-| [0007](0007-assinatura-por-infevento-e-splice-do-lote.md)       | Assinatura individual por `infEvento` e montagem do lote por recorte de string |
-| [0008](0008-build-com-uglifyjs-beautify.md)                     | `lib/` gerado por UglifyJS em modo `beautify`                                  |
-| [0009](0009-certificados-fora-do-git-e-gerador-descartavel.md)  | Certificados fora do git, com gerador de certificado de teste descartável      |
-| [0011](0011-files-e-exports-como-contrato-de-empacotamento.md)  | `files` e `exports` como contrato de empacotamento, sem `.npmignore`           |
-| [0012](0012-renomeacao-para-bitize-bitmde.md)                   | Pacote e repositório renomeados de `bit-mde` para `bitmde`                     |
+| ADR                                                             | Decisão                                                                            |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [0001](0001-fork-e-republicacao-como-bitize-bit-mde.md)         | Fork de `node-mde` republicado como `@bitize/bit-mde`                              |
+| [0002](0002-publicacao-por-oidc-sem-npm-token.md)               | Publicação pela CI por Trusted Publishing (OIDC), sem `NPM_TOKEN`                  |
+| [0003](0003-lockfile-versionado.md)                             | `package-lock.json` versionado e `npm ci` em todos os workflows                    |
+| [0004](0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md) | Erro de configuração lança; erro de rede/SEFAZ vira retorno                        |
+| [0005](0005-object-freeze-pervasivo.md)                         | `Object.freeze` em todo módulo e nas instâncias públicas                           |
+| [0006](0006-js-com-jsdoc-em-vez-de-typescript.md)               | JavaScript com JSDoc em vez de TypeScript no fonte                                 |
+| [0007](0007-assinatura-por-infevento-e-splice-do-lote.md)       | Assinatura individual por `infEvento` e montagem do lote por recorte de string     |
+| [0008](0008-build-com-uglifyjs-beautify.md)                     | `lib/` gerado por UglifyJS em modo `beautify`                                      |
+| [0009](0009-certificados-fora-do-git-e-gerador-descartavel.md)  | Certificados fora do git, com gerador de certificado de teste descartável          |
+| [0011](0011-files-e-exports-como-contrato-de-empacotamento.md)  | `files` e `exports` como contrato de empacotamento, sem `.npmignore`               |
+| [0012](0012-renomeacao-para-bitize-bitmde.md)                   | Pacote e repositório renomeados de `bit-mde` para `bitmde`                         |
+| [0013](0013-falha-de-doczip-vira-item-de-doczip-errors.md)      | Falha de `docZip` vira item de `docZipErrors`, sem derrubar o lote da distribuição |
 
 > O **0010** está reservado pela tarefa [GH-3](../../tasks/specified/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md), que já o referencia em texto commitado — daí o salto na tabela. Número de ADR não se reutiliza nem se renumera.
 

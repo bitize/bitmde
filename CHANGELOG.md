@@ -2,6 +2,16 @@
 
 ## [Não publicado]
 
+### Corrigido
+
+- **Um `docZip` corrompido na distribuição DF-e encerrava o processo de quem consome a biblioteca.** `Gzip.unzip` rejeitava a Promise mas seguia executando e lançava um `TypeError` fora dela, como `uncaughtException`, antes de qualquer `.catch` do chamador
+- Um documento ilegível no lote deixa de derrubar a consulta inteira. Antes, `consultaUltNSU`, `consultaNSU` e `consultaChNFe` perderiam os documentos válidos e o `ultNSU`/`maxNSU`, e a varredura ficaria presa no mesmo NSU. Ver [ADR 0013](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md)
+- `<loteDistDFeInt/>` vazio na resposta deixa de lançar `TypeError` e vira lote sem documentos. Um `loteDistDFeInt` em qualquer outra forma que não seja um lote — texto no lugar dos `docZip`, elemento repetido — passa a devolver `error: 'loteDistDFeInt inválido.'` em vez de lançar
+
+### Adicionado
+
+- Campo `data.docZipErrors: [{ nsu, schema, error }]` no retorno da distribuição DF-e, com os documentos do lote que não puderam ser descompactados ou interpretados. Sempre presente; `[]` quando todos abrem. `docZip` mantém o formato de sempre e passa a trazer só os documentos válidos. Falha de documento não preenche o `error` de topo
+
 ### Modificado
 
 - `actions/checkout` e `actions/setup-node` atualizadas da v4 para a v7 nos três workflows. A v4 roda em Node 20, deprecado nos runners do GitHub e já forçado a executar em Node 24 — o aviso aparecia em todo run. Nenhuma quebra das v5/v6/v7 se aplica a este repositório: o cache automático da v5 do `setup-node` depende do campo `packageManager` no `package.json`, que não existe aqui, e a remoção do `NODE_AUTH_TOKEN` fictício na v7 não afeta quem publica por OIDC

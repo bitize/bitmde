@@ -30,7 +30,7 @@ Os `.pem` precisam ser do **mesmo** certificado do `.pfx`: [certificado.test.js]
 Rodam isoladamente, porque não leem certificado:
 
 ```sh
-npx mocha test/xml.test.js test/gzip.test.js test/zeroPad.test.js test/data.test.js
+npx mocha test/xml.test.js test/gzip.test.js test/zeroPad.test.js test/data.test.js test/distribuicaoDFe-helper.test.js
 ```
 
 ## O certificado descartável
@@ -41,7 +41,7 @@ Quem não tem um A1 em mãos roda:
 npm run certs:teste
 ```
 
-[scripts/gerar-certificado-teste.sh](../../scripts/gerar-certificado-teste.sh) gera um autoassinado válido por 10 anos e libera tudo menos `sefaz.test.js` — 65 dos 67 testes.
+[scripts/gerar-certificado-teste.sh](../../scripts/gerar-certificado-teste.sh) gera um autoassinado válido por 10 anos e libera tudo menos `sefaz.test.js` — 76 dos 82 testes.
 
 O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Regerar exige apagar o diretório à mão.
 
@@ -56,16 +56,17 @@ Há ainda `MSYS_NO_PATHCONV=1`, que impede o Git Bash de converter o argumento d
 
 ## Os arquivos de teste
 
-| Arquivo                | Cobre                                                        | Precisa de `certs/`  |
-| ---------------------- | ------------------------------------------------------------ | -------------------- |
-| `xml.test.js`          | `jsonToXml`, `xmlToJson`, `envelopar`                        | Não                  |
-| `gzip.test.js`         | `Gzip.unzip`                                                 | Não                  |
-| `zeroPad.test.js`      | `ZeroPad.padNsu`                                             | Não                  |
-| `data.test.js`         | `Data.toFormat` e os timezones                               | Não                  |
-| `certificado.test.js`  | `Certificado.p12ToPem` contra os `.pem` do disco             | **Sim**              |
-| `distribuicao.test.js` | `DistribuicaoDFe`: validação, montagem, imutabilidade        | **Sim**              |
-| `recepcao.test.js`     | `RecepcaoEvento`: validação, lote, assinatura, imutabilidade | **Sim**              |
-| `sefaz.test.js`        | Integração real contra a SEFAZ                               | **Sim**, e A1 válido |
+| Arquivo                          | Cobre                                                                                           | Precisa de `certs/`  |
+| -------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------- |
+| `xml.test.js`                    | `jsonToXml`, `xmlToJson`, `envelopar`                                                           | Não                  |
+| `gzip.test.js`                   | `Gzip.unzip`                                                                                    | Não                  |
+| `zeroPad.test.js`                | `ZeroPad.padNsu`                                                                                | Não                  |
+| `data.test.js`                   | `Data.toFormat` e os timezones                                                                  | Não                  |
+| `distribuicaoDFe-helper.test.js` | `DistribuicaoHelper.montarResponse` sobre envelope montado no teste: lote misto, `docZipErrors` | Não                  |
+| `certificado.test.js`            | `Certificado.p12ToPem` contra os `.pem` do disco                                                | **Sim**              |
+| `distribuicao.test.js`           | `DistribuicaoDFe`: validação, montagem, imutabilidade                                           | **Sim**              |
+| `recepcao.test.js`               | `RecepcaoEvento`: validação, lote, assinatura, imutabilidade                                    | **Sim**              |
+| `sefaz.test.js`                  | Integração real contra a SEFAZ                                                                  | **Sim**, e A1 válido |
 
 ### `sefaz.test.js`
 

@@ -45,7 +45,7 @@ O limite superior é validado **antes** do pad (`length > 15` reprova), então u
 
 ## O retorno
 
-`data` traz os campos de `retDistDFeInt`, todos string, mais o array `docZip`:
+`data` traz os campos de `retDistDFeInt`, todos string, mais os arrays `docZip` e `docZipErrors`:
 
 | Campo                         | Significado                                                                        |
 | ----------------------------- | ---------------------------------------------------------------------------------- |
@@ -54,6 +54,7 @@ O limite superior é validado **antes** do pad (`length > 15` reprova), então u
 | `maxNSU`                      | Maior NSU existente para o destinatário — comparar com `ultNSU` diz se acabou      |
 | `dhResp`, `verAplic`, `tpAmb` | Metadados da resposta                                                              |
 | `docZip[]`                    | Os documentos                                                                      |
+| `docZipErrors[]`              | Os documentos do lote que não puderam ser abertos — `[]` quando todos abriram      |
 
 Cada item de `docZip`:
 
@@ -66,13 +67,15 @@ Cada item de `docZip`:
 
 O campo `schema` é o que distingue os tipos de documento que a SEFAZ devolve no mesmo lote (procNFe, resNFe, resEvento, procEventoNFe). A biblioteca **não** interpreta esse campo nem valida o conteúdo — entrega os quatro campos e sai do caminho.
 
+Cada item de `docZipErrors` traz `nsu`, `schema` e `error` (string). Os dois arrays preservam a ordem do lote. Os textos de `error` estão em [../camadas/controllers-helpers.md](../camadas/controllers-helpers.md).
+
 ## Varredura incremental
 
 O padrão de uso previsto pelo serviço, e o motivo de `ultNSU` e `maxNSU` virem no retorno:
 
 1. Guardar o último NSU processado;
 2. Chamar `consultaUltNSU(ultimoNSU)`;
-3. Processar `docZip`;
+3. Processar `docZip` — e registrar `docZipErrors`, que já não impedem o avanço;
 4. Se `ultNSU < maxNSU`, ainda há documentos — repetir a partir do `ultNSU` devolvido.
 
 A biblioteca não faz esse laço, e isso é intencional: a SEFAZ impõe **restrição de cadência** por consumidor (consulta repetida em intervalo curto é rejeitada com `cStat` de bloqueio, e a penalidade é por CNPJ). Quem chama precisa controlar o intervalo com conhecimento do próprio agendamento — ver [../camadas/services-sefaz.md](../camadas/services-sefaz.md).
@@ -83,4 +86,6 @@ A biblioteca não faz esse laço, e isso é intencional: a SEFAZ impõe **restri
 
 Os `docZip` são descompactados em paralelo (`Promise.all` sobre o `map`), e é o único motivo de `montarResponse` da distribuição ser assíncrono, enquanto o da recepção é síncrono.
 
-Um `docZip` corrompido rejeita a Promise, e essa rejeição **propaga** — é o único caminho em que a distribuição lança em vez de devolver `error`. Na prática só acontece com resposta truncada.
+Cada item passa por `DistribuicaoHelper.abrirDocZip`, que captura a falha do próprio item, então o `Promise.all` nunca rejeita: um `docZip` corrompido vira entrada de `docZipErrors` e o resto do lote — documentos válidos, `ultNSU`, `maxNSU` — chega ao chamador. Sem isso a varredura ficaria presa no mesmo NSU, repetindo a consulta que a SEFAZ penaliza. Ver [ADR 0013](../decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md).
+
+Até a 0.17.1, o callback do `zlib.unzip` em `Gzip.unzip` chamava `reject(err)` sem `return` e seguia para `buffer.toString()` com `buffer` indefinido. O `TypeError` saía fora de qualquer Promise, como `uncaughtException`: um `docZip` corrompido **encerrava o processo** do consumidor, antes de qualquer `.catch`. O `return` antes do `reject` é load-bearing, e `test/gzip.test.js` cobre o caso.
