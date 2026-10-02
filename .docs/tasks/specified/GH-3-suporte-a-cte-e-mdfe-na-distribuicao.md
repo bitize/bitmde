@@ -8,7 +8,7 @@
 | **Tipo**             | feature                                                                 |
 | **Camadas afetadas** | apis / validators / controllers / helpers / schemas / env / util / test |
 | **Criado em**        | 2026-08-16                                                              |
-| **Atualizado em**    | 2026-08-16                                                              |
+| **Atualizado em**    | 2026-10-01                                                              |
 | **Concluído em**     | —                                                                       |
 
 ---
@@ -44,19 +44,19 @@ Não faz parte do escopo: manifestação/evento de CT-e ou MDF-e (`CTeRecepcaoEv
 
 ## Requisitos
 
-| ID    | Requisito                                                                                                                                      | Prioridade |
-| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| RF-01 | Classe pública `DistribuicaoCTe` com `consultaUltNSU`, `consultaNSU` e `consultaChCTe`, mesma config de `DistribuicaoDFe`                      | Must       |
-| RF-02 | Classe pública `DistribuicaoMDFe` com `consultaUltNSU`, `consultaNSU` e `consultaChMDFe`, mesma config                                         | Must       |
-| RF-03 | `DistribuicaoDFe` permanece **inalterada** em assinatura e comportamento                                                                       | Must       |
-| RF-04 | Retorno idêntico ao da NF-e: `{ data: { tpAmb, verAplic, cStat, xMotivo, dhResp, ultNSU, maxNSU, docZip[] }, reqXml, resXml, status, error? }` | Must       |
-| RF-05 | Endpoints por `tpAmb`: CT-e no Ambiente Nacional, MDF-e na SVRS                                                                                | Must       |
-| RF-06 | Validators próprios de chave para CT-e e MDF-e, com mensagens em português (texto exato abaixo)                                                | Must       |
-| RF-07 | Suporte a cabeçalho SOAP (`mdfeCabecMsg`), exigido pelos serviços de MDF-e, sem alterar o envelope gerado hoje                                 | Must       |
-| RF-08 | Uma única implementação de schema/helper/controller parametrizada por documento — sem cópia por tipo                                           | Must       |
-| RF-09 | `src/index.js` exporta as classes novas nas três formas (`module.exports`, `.default`, `.mde`)                                                 | Must       |
-| RF-10 | `README.md` documenta os dois serviços novos, com exemplo por método                                                                           | Must       |
-| RF-11 | Docs de `.docs/arquitetura/` atualizados (env, apis, schemas, controllers-helpers, fluxo)                                                      | Should     |
+| ID    | Requisito                                                                                                                                                      | Prioridade |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| RF-01 | Classe pública `DistribuicaoCTe` com `consultaUltNSU`, `consultaNSU` e `consultaChCTe`, mesma config de `DistribuicaoDFe`                                      | Must       |
+| RF-02 | Classe pública `DistribuicaoMDFe` com `consultaUltNSU`, `consultaNSU` e `consultaChMDFe`, mesma config                                                         | Must       |
+| RF-03 | `DistribuicaoDFe` permanece **inalterada** em assinatura e comportamento                                                                                       | Must       |
+| RF-04 | Retorno idêntico ao da NF-e: `{ data: { tpAmb, verAplic, cStat, xMotivo, dhResp, ultNSU, maxNSU, docZip[], docZipErrors[] }, reqXml, resXml, status, error? }` | Must       |
+| RF-05 | Endpoints por `tpAmb`: CT-e no Ambiente Nacional, MDF-e na SVRS                                                                                                | Must       |
+| RF-06 | Validators próprios de chave para CT-e e MDF-e, com mensagens em português (texto exato abaixo)                                                                | Must       |
+| RF-07 | Suporte a cabeçalho SOAP (`mdfeCabecMsg`), exigido pelos serviços de MDF-e, sem alterar o envelope gerado hoje                                                 | Must       |
+| RF-08 | Uma única implementação de schema/helper/controller parametrizada por documento — sem cópia por tipo                                                           | Must       |
+| RF-09 | `src/index.js` exporta as classes novas nas três formas (`module.exports`, `.default`, `.mde`)                                                                 | Must       |
+| RF-10 | `README.md` documenta os dois serviços novos, com exemplo por método                                                                                           | Must       |
+| RF-11 | Docs de `.docs/arquitetura/` atualizados (env, apis, schemas, controllers-helpers, fluxo)                                                                      | Should     |
 
 ## Decisões de design
 
@@ -172,7 +172,8 @@ const DOCUMENTOS = {
 
 - `DistribuicaoHelper` e `DistribuicaoController` passam a receber o descritor por `opts` (a classe de `apis/` o injeta junto da config). `montarResponse` lê a resposta pelo nome vindo do descritor (`<doc>DistDFeInteresseResponse` › `<doc>DistDFeInteresseResult` › `retDistDFeInt`), mantendo a desestruturação defensiva com default em cada nível.
 - Alternativa aceitável na implementação, se a parametrização do `montarResponse` ficar ilegível: três controllers finos delegando a **um** helper parametrizado. O que não é aceitável é copiar `montarResponse`.
-- Campos novos no retorno: **nenhum**. `docZip[]` continua com `xml`, `json`, `nsu` e `schema`, e todo escalar continua com `|| ''`. O que muda é o valor de `schema` que a SEFAZ devolve (`procCTe`, `resCTe`, `procEventoCTe`, `procMDFe`…) — a biblioteca segue sem interpretá-lo.
+- Campos novos no retorno: **nenhum** além dos que a NF-e já tem. `docZip[]` continua com `xml`, `json`, `nsu` e `schema`, `docZipErrors[]` com `nsu`, `schema` e `error` ([GH-11](../done/GH-11-doczip-corrompido-nao-derruba-o-lote.md), [ADR 0013](../../arquitetura/decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md)), e todo escalar continua com `|| ''`. O que muda é o valor de `schema` que a SEFAZ devolve (`procCTe`, `resCTe`, `procEventoCTe`, `procMDFe`…) — a biblioteca segue sem interpretá-lo.
+- **Herdado da GH-11:** o tratamento por item de `docZip` (`abrirDocZip`, que nunca rejeita) e a normalização de `loteDistDFeInt` — string vazia vira lote vazio, qualquer outra forma não-lote vira `error: 'loteDistDFeInt inválido.'` — já estão no `montarResponse` da NF-e. Ao parametrizar, **preservar os dois**: são independentes do tipo de documento e valem igual para CT-e e MDF-e. Não reintroduzir `Promise.all` sobre operação que pode rejeitar.
 - `enviarConsulta` precisa repassar `tpAmb` ao `SefazService` também nos documentos novos (o fork da vexta esqueceu).
 - JSDoc do controller a atualizar: é ele que vira o tipo de retorno público dos seis métodos novos.
 
@@ -206,6 +207,7 @@ const DOCUMENTOS = {
 - [ ] **Regressão de XML da NF-e:** `DistribuicaoSchema` parametrizado gera, para NF-e, string idêntica à atual — congelar o XML esperado no teste
 - [ ] XML gerado para CT-e e MDF-e conferido contra o esperado, incluindo `<soap12:Header><mdfeCabecMsg>` no MDF-e
 - [ ] `Xml.envelopar(xml)` de um argumento continua byte a byte igual (protege o recorte do lote da recepção)
+- [ ] `test/distribuicaoDFe-helper.test.js` (GH-11) continua passando sem alteração depois da parametrização, e ganha ao menos um lote misto de CT-e ou MDF-e — prova que `docZipErrors` vale para os documentos novos
 - [ ] `test/sefaz.test.js` estendido com CT-e e MDF-e em homologação **e** produção, e rodado manualmente — obrigatório: a tarefa toca transporte
 
 ## Checklist de implementação
@@ -268,3 +270,4 @@ Executar **após o PR ser mergeado na `main`**:
 | ---------- | --- | ---------------------------------------------------------------------------- |
 | 2026-08-16 | 0.1 | Rascunho inicial, com cinco questões em aberto para confirmar                |
 | 2026-08-16 | 1.0 | Promovida a `specified/` com a issue GH-3; questões em aberto seguem abertas |
+| 2026-10-01 | 1.1 | RF-04 e helpers ajustados ao `docZipErrors` entregue pela GH-11              |
