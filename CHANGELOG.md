@@ -2,6 +2,8 @@
 
 ## [Não publicado]
 
+## [0.18.0] / 2026-10-01
+
 ### Corrigido
 
 - **Um `docZip` corrompido na distribuição DF-e encerrava o processo de quem consome a biblioteca.** `Gzip.unzip` rejeitava a Promise mas seguia executando e lançava um `TypeError` fora dela, como `uncaughtException`, antes de qualquer `.catch` do chamador
