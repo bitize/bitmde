@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['20.x', '22.x', '24.x']
+        node-version: ['22.x', '24.x']
 
     steps:
       - uses: actions/checkout@v7
@@ -40,5 +40,6 @@ jobs:
 
       # Exclui sefaz.test.js: é teste de integração real contra os endpoints de
       # produção e homologação da SEFAZ, e exige certificado ICP-Brasil válido.
+      # Exclui também tls-sefaz.test.js, que exige rede e roda em cadeia-tls.yml.
       - name: Rodar testes
         run: npm run test:ci

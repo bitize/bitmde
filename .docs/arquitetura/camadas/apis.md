@@ -38,7 +38,9 @@ A ordem importa para a mensagem de erro: com dois problemas simultâneos na conf
 | `DistribuicaoDFe` | Certificado → Ambiente → CnpjCpf → Uf   |
 | `RecepcaoEvento`  | Certificado → Ambiente → CnpjCpf → Zone |
 
-`options.requestOptions` e `options.httpsOptions` **não passam por validator** — são repassados como estão (com `{}` de default) e mesclados lá embaixo, no [SefazService](services-sefaz.md).
+`options.requestOptions` e `options.httpsOptions` **não passam por validator** — são repassados como estão (com `{}` de default) e mesclados lá embaixo, no [SefazService](services-sefaz.md), por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. O JSDoc de `httpsOptions` nos dois construtores diz isso, e diz que informar `ca` substitui a cadeia inteira — é o texto que chega ao consumidor pelo `dist/index.d.ts`.
+
+Além das duas classes, a raiz do pacote exporta `CA_PADRAO` e `CA_ICP_BRASIL`, congelados, nas mesmas três formas. Ver [env.md](env.md).
 
 ### O que fica em `this.config`
 

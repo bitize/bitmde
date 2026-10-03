@@ -17,26 +17,26 @@ apis/                classe pública; valida a config no construtor e congela (O
 controllers/         static enviar(opts): montarRequest → envia → montarResponse → montarRetorno
     └ helpers/       orquestra schema → XML → (assinatura) → serviço → parse da resposta
         └ schemas/   objeto JS espelhando o XML (chaves `@_` = atributos, para o XMLBuilder)
-        └ services/  sefaz-service.js: instância axios + https.Agent com mTLS
-        └ helpers/retorno-helper.js: formato final { data, reqXml, resXml, status, error? }
-env/                 constantes: endpoints por tpAmb, cadeia CA ICP-Brasil, EVENTOS, CODIGOS_UF, ZONES, VERSION
+        └ services/  sefaz-service.js: instância axios + https.Agent com mTLS, TLS validado por padrão
+        └ helpers/retorno-helper.js: formato final { data, reqXml, resXml, status, error?, transportError? }
+env/                 constantes: endpoints por tpAmb, cadeias CA (ICP-Brasil e CA_PADRAO), EVENTOS, CODIGOS_UF, ZONES, VERSION
 util/                XML, gzip, PFX→PEM, assinatura, data, zero-pad
 ```
 
-[src/index.js](../../src/index.js) exporta `DistribuicaoDFe` e `RecepcaoEvento` em três formas — `module.exports`, `.default` e `.mde` — para interoperar com `require` e `import`.
+[src/index.js](../../src/index.js) exporta `DistribuicaoDFe`, `RecepcaoEvento` e as cadeias `CA_PADRAO` e `CA_ICP_BRASIL` em três formas — `module.exports`, `.default` e `.mde` — para interoperar com `require` e `import`.
 
 ## Documentos
 
 ### Camadas
 
-| Doc                                                              | Cobre                                                                           |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [camadas/apis.md](camadas/apis.md)                               | Classes públicas, config congelada, JSDoc como fonte dos tipos                  |
-| [camadas/validators.md](camadas/validators.md)                   | O contrato `isValid()` / `getValues()` / `getError()` e seus efeitos colaterais |
-| [camadas/controllers-helpers.md](camadas/controllers-helpers.md) | Orquestração, montagem da resposta e formato de retorno                         |
-| [camadas/schemas-xml.md](camadas/schemas-xml.md)                 | Schemas como objeto JS, `fast-xml-parser`, envelope SOAP                        |
-| [camadas/services-sefaz.md](camadas/services-sefaz.md)           | axios, `https.Agent`, mTLS, mapeamento de erro de rede para status              |
-| [camadas/env.md](camadas/env.md)                                 | `tpAmb`, endpoints, cadeia CA, `EVENTOS`, `CODIGOS_UF`, `ZONES`, `VERSION`      |
+| Doc                                                              | Cobre                                                                             |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [camadas/apis.md](camadas/apis.md)                               | Classes públicas, config congelada, JSDoc como fonte dos tipos                    |
+| [camadas/validators.md](camadas/validators.md)                   | O contrato `isValid()` / `getValues()` / `getError()` e seus efeitos colaterais   |
+| [camadas/controllers-helpers.md](camadas/controllers-helpers.md) | Orquestração, montagem da resposta e formato de retorno                           |
+| [camadas/schemas-xml.md](camadas/schemas-xml.md)                 | Schemas como objeto JS, `fast-xml-parser`, envelope SOAP                          |
+| [camadas/services-sefaz.md](camadas/services-sefaz.md)           | axios, `https.Agent`, mTLS, validação TLS, erro de transporte (`status: 0`)       |
+| [camadas/env.md](camadas/env.md)                                 | `tpAmb`, endpoints, `CA`/`CA_PADRAO`, `EVENTOS`, `CODIGOS_UF`, `ZONES`, `VERSION` |
 
 ### Fluxos completos
 
@@ -45,7 +45,7 @@ util/                XML, gzip, PFX→PEM, assinatura, data, zero-pad
 
 ### Processo
 
-- [testes-e-certificados.md](testes-e-certificados.md) — o pré-requisito de `certs/`, o gerador descartável e o teste de integração.
+- [testes-e-certificados.md](testes-e-certificados.md) — o pré-requisito de `certs/`, o gerador descartável, os testes de integração e o workflow semanal da cadeia TLS.
 - [build-e-versao.md](build-e-versao.md) — `scripts/index.js`, `src/env/version.js` commitado, `lib/` e `dist/`.
 - [release.md](release.md) — tag, guards da CI, Trusted Publishing e provenance.
 
@@ -57,7 +57,7 @@ util/                XML, gzip, PFX→PEM, assinatura, data, zero-pad
 
 Cinco regras valem em qualquer arquivo de `src/`. Quebrar uma delas quebra teste.
 
-1. **Erro de configuração ou de argumento lança; erro de rede ou da SEFAZ, não.** Config inválida vira `throw new Error(validator.getError())` de forma síncrona; falha de transporte vira `{ data: {}, error, reqXml, resXml, status }`. Ver [ADR 0004](decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md). Falha de **um** documento do lote da distribuição (`docZip` corrompido) não esvazia `data`: vira item de `data.docZipErrors` e o resto do lote segue — ver [ADR 0013](decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md).
+1. **Erro de configuração ou de argumento lança; erro de rede ou da SEFAZ, não.** Config inválida vira `throw new Error(validator.getError())` de forma síncrona; resposta HTTP de erro vira `{ data: {}, error, reqXml, resXml, status }`, e falha sem resposta HTTP vira o mesmo com `status: 0`, `resXml: ''` e `transportError: { code, message }` — nenhum status é sintetizado. Ver [ADR 0004](decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md) e [ADR 0014](decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md). Falha de **um** documento do lote da distribuição (`docZip` corrompido) não esvazia `data`: vira item de `data.docZipErrors` e o resto do lote segue — ver [ADR 0013](decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md).
 2. **Imutabilidade.** Praticamente todo módulo exporta `Object.freeze(Classe)`, e as instâncias de `apis/` congelam `this` e `this.config`. Ver [ADR 0005](decisoes/0005-object-freeze-pervasivo.md).
 3. **`tpAmb` é string.** `'1'` produção, `'2'` homologação — é a chave dos mapas em [src/env/distribuicao.js](../../src/env/distribuicao.js) e [src/env/recepcao.js](../../src/env/recepcao.js).
 4. **Idioma e mensagens.** Domínio, nomes de arquivo/classe e mensagens de erro em português. As mensagens são comparadas **literalmente** nos testes (`assert.strictEqual(err.message, 'NSU não informado.')`) — mudar o texto quebra teste.

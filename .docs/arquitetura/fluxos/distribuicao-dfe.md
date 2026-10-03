@@ -17,14 +17,14 @@ DistribuicaoController.enviar({ ...config, ultNSU })
   │
   ├─ DistribuicaoHelper.enviarConsulta(data, opts)
   │    endpoint = DISTRIBUICAO[tpAmb]
-  │    new SefazService({ baseURL, ca: CA, cert, key, tpAmb, requestOptions, httpsOptions })
-  │    POST  → { status, data }
+  │    new SefazService({ baseURL, ca: CA_PADRAO, cert, key, tpAmb, requestOptions, httpsOptions })
+  │    POST  → { status, data, transportError? }
   │
   ├─ DistribuicaoHelper.montarResponse(retornoSefaz.data)   ← async: tem gunzip
   │    Xml.xmlToJson → desestruturação defensiva → normaliza docZip para array
   │    para cada docZip: Gzip.unzip(base64) → Xml.xmlToJson
   │
-  └─ RetornoHelper.montarRetorno → { data, reqXml, resXml, status, error? }
+  └─ RetornoHelper.montarRetorno → { data, reqXml, resXml, status, error?, transportError? }
 ```
 
 ## As três consultas
@@ -68,6 +68,8 @@ Cada item de `docZip`:
 O campo `schema` é o que distingue os tipos de documento que a SEFAZ devolve no mesmo lote (procNFe, resNFe, resEvento, procEventoNFe). A biblioteca **não** interpreta esse campo nem valida o conteúdo — entrega os quatro campos e sai do caminho.
 
 Cada item de `docZipErrors` traz `nsu`, `schema` e `error` (string). Os dois arrays preservam a ordem do lote. Os textos de `error` estão em [../camadas/controllers-helpers.md](../camadas/controllers-helpers.md).
+
+Quando a SEFAZ não responde — cadeia TLS que não fecha, DNS, conexão recusada, timeout —, o retorno vem com `status: 0`, `resXml: ''`, `data: {}` e `transportError: { code, message }`. Sem `data`, não há `ultNSU`: a varredura não avança, e a próxima tentativa repete o mesmo NSU, respeitando a cadência. Ver [ADR 0014](../decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md).
 
 ## Varredura incremental
 

@@ -1,6 +1,6 @@
 'use strict'
 
-const { CA, RECEPCAO } = require('../env')
+const { CA_PADRAO, RECEPCAO } = require('../env')
 const { RecepcaoSchema } = require('../schemas')
 const SefazService = require('../services/sefaz-service')
 const { Assinatura, Xml } = require('../util')
@@ -21,7 +21,7 @@ class RecepcaoHelper {
 
     const client = new SefazService({
       baseURL: baseURL,
-      ca: CA,
+      ca: CA_PADRAO,
       cert: opts.cert,
       key: opts.key,
       tpAmb: opts.tpAmb,

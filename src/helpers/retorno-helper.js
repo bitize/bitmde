@@ -9,6 +9,7 @@ class RetornoHelper {
    * @param {Object} options.retornoSefaz
    * @param {string} options.retornoSefaz.data
    * @param {number} options.retornoSefaz.status
+   * @param {{code: string, message: string}} [options.retornoSefaz.transportError]
    * @returns
    */
   static montarRetorno(options) {
@@ -19,6 +20,17 @@ class RetornoHelper {
       reqXml: data,
       resXml: retornoSefaz.data,
       status: retornoSefaz.status,
+    }
+
+    // Sem resposta HTTP, status é 0 e a condição de status abaixo não pega.
+    if (retornoSefaz.transportError) {
+      const { code, message } = retornoSefaz.transportError
+
+      retorno['data'] = {}
+      retorno['error'] = `Falha de transporte (${code}): ${message}`
+      retorno['transportError'] = { code, message }
+
+      return retorno
     }
 
     if (json.error) {

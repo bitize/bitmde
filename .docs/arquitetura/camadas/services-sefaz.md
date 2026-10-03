@@ -10,7 +10,7 @@ Duas mesclas, ambas com o mesmo padrão: default nosso primeiro, options do usu�
 
 ```js
 const AgentOptions = Object.assign(
-  { cert, key, ca, rejectUnauthorized: false },
+  { cert, key, ca, rejectUnauthorized: true },
   { ...opts.httpsOptions }
 )
 ```
@@ -19,15 +19,15 @@ const AgentOptions = Object.assign(
 
 ### `https.Agent`
 
-| Opção                | Origem                                                       |
-| -------------------- | ------------------------------------------------------------ |
-| `cert`, `key`        | Certificado A1 do contribuinte, já em PEM — é o mTLS         |
-| `ca`                 | Cadeia ICP-Brasil de [src/env/ca.js](../../../src/env/ca.js) |
-| `rejectUnauthorized` | `false` por padrão, sobrescritível por `httpsOptions`        |
+| Opção                | Origem                                                                                                   |
+| -------------------- | -------------------------------------------------------------------------------------------------------- |
+| `cert`, `key`        | Certificado A1 do contribuinte, já em PEM — é o mTLS                                                     |
+| `ca`                 | `CA_PADRAO` de [src/env/ca.js](../../../src/env/ca.js), passado pelo helper: raízes do Node + ICP-Brasil |
+| `rejectUnauthorized` | `true` por padrão, sobrescritível por `httpsOptions`                                                     |
 
-`rejectUnauthorized: false` é o default histórico, adotado porque endpoints da SEFAZ apresentavam cadeia incompleta. É um default **inseguro**: nessa configuração o certificado do servidor não é verificado, e a conexão fica exposta a interceptação. Ele é mantido só por compatibilidade com as versões anteriores.
+O certificado do servidor é verificado por padrão desde a 0.19.0. Até a 0.18.0 o padrão era `false`, e a cadeia passada em `ca` era só a ICP-Brasil, que **substitui** as raízes do Node em vez de somar: quem ligava a validação não fechava o handshake com o Ambiente Nacional, cujo certificado hoje vem da GlobalSign. As duas coisas mudaram juntas, e o porquê está no [ADR 0014](../decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md). Ver também [env.md](env.md).
 
-> **Em produção, passar `httpsOptions: { rejectUnauthorized: true }`.** A cadeia própria em `ca` já vai no agent, então a verificação funciona sem carregar a ICP-Brasil por conta própria.
+`httpsOptions` continua mandando sobre tudo. `{ rejectUnauthorized: false }` desliga a validação (desaconselhado), e `{ ca: [...] }` troca a cadeia **inteira** — para somar uma AC, o consumidor compõe `[...CA_PADRAO, minhaCa]`.
 
 ### Instância axios
 
@@ -45,22 +45,23 @@ O `User-Agent` sai de `src/env/version.js`, que é **commitado e regenerado pelo
 
 ## `request(config)` — nunca lança
 
-Todo o corpo é `try/catch`, e o `catch` classifica em três casos:
+Todo o corpo é `try/catch`, e o `catch` separa só dois casos: houve resposta HTTP ou não houve.
 
-| Situação                                           | `status`         | `data`                    |
-| -------------------------------------------------- | ---------------- | ------------------------- |
-| Sucesso                                            | Real             | Corpo da resposta         |
-| `error.response` (a SEFAZ respondeu com erro HTTP) | Real do response | Corpo do response         |
-| `error.request` + `ECONNABORTED`                   | **504**          | `<error>mensagem</error>` |
-| `error.request` (sem resposta)                     | **502**          | `<error>mensagem</error>` |
-| Qualquer outro erro                                | **500**          | `<error>mensagem</error>` |
+| Situação                                           | `status`         | `data`            | `transportError`    |
+| -------------------------------------------------- | ---------------- | ----------------- | ------------------- |
+| Sucesso                                            | Real             | Corpo da resposta | —                   |
+| `error.response` (a SEFAZ respondeu com erro HTTP) | Real do response | Corpo do response | —                   |
+| Qualquer outro erro (sem resposta HTTP)            | **`0`**          | `''`              | `{ code, message }` |
 
-Dois pontos que explicam o desenho:
+Três pontos que explicam o desenho:
 
-1. **Status sintético.** 504/502/500 não vieram da SEFAZ — foram atribuídos aqui. Quem lê `status` no retorno está lendo "o que aconteceu", não necessariamente "o que o servidor respondeu".
-2. **O erro vira XML.** Empacotar a mensagem em `<error>…</error>` mantém a assinatura de `data` como string de XML, para que `montarResponse` possa fazer `Xml.xmlToJson` sem tratar o caso especial. O `error` resultante sobe até o retorno público pelo `RetornoHelper`. Ver [controllers-helpers.md](controllers-helpers.md).
+1. **Nenhum status sintético.** `status` é o que o servidor mandou, ou `0` quando não houve resposta — convenção de `fetch` e `XMLHttpRequest`. Até a 0.18.0 havia 504 (timeout), 502 (sem resposta) e 500 (antes do envio), indistinguíveis de status reais; a distinção agora está no `code`.
+2. **`code` sem tradução.** É o `error.code` do Node ou do axios: `ECONNABORTED` (timeout do axios), `ECONNREFUSED`, `ENOTFOUND`, `UNABLE_TO_GET_ISSUER_CERT_LOCALLY` (cadeia), `ERR_BAD_REQUEST` (antes do envio). Sem `code`, `ERR_DESCONHECIDO`. `message` é `error.message`, ou `String(error)` quando vier vazio.
+3. **Só `code` e `message` saem do `catch`.** O `AxiosError` carrega `config.httpsAgent`, e o agente guarda `cert` e `key` do A1. Nunca repassar o erro, `error.config`, `error.request`, nem usá-lo como `cause`: a chave privada iria parar no log de quem consome. `test/transporte.test.js` confere que o retorno serializado não contém `PRIVATE KEY` nem `httpsAgent`.
 
-Consequência prática: **a biblioteca não lança por problema de rede.** Timeout, DNS, certificado vencido e 500 da SEFAZ chegam como retorno com `error` preenchido. Ver [ADR 0004](../decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md).
+O `RetornoHelper` transforma `transportError` no `error` público. Ver [controllers-helpers.md](controllers-helpers.md).
+
+Consequência prática: **a biblioteca não lança por problema de rede.** Timeout, DNS, certificado vencido e 500 da SEFAZ chegam como retorno com `error` preenchido. Ver [ADR 0004](../decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md) e, para a forma do erro de transporte, [ADR 0014](../decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md).
 
 ## O que não existe aqui
 

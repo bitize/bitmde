@@ -2,6 +2,43 @@
 
 ## [Não publicado]
 
+> Versão-alvo: **0.19.0**. Muda o comportamento padrão de transporte; leia [Compatibilidade](#compatibilidade) antes de atualizar.
+
+### Modificado
+
+- **O certificado do servidor da SEFAZ passa a ser validado por padrão** (`rejectUnauthorized: true`). Até a 0.18.0 o padrão era `false`: a biblioteca aceitava qualquer servidor, inclusive um intermediário malicioso, e apresentava a ele o certificado A1 no mTLS
+- **A cadeia padrão passa a somar as raízes do Node à ICP-Brasil, em vez de substituí-las.** A cadeia embarcada (AC Raiz Brasileira v10 e AC SERPRO SSLv1) não valida mais o Ambiente Nacional, que hoje serve `AC SERPRO AR46 OV TLS CA 2025 ← GlobalSign Root R46`, e a opção `ca` do Node descarta as raízes padrão. Quem ligava `rejectUnauthorized: true`, como esta documentação recomendava, recebia sempre `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`. As raízes respeitam `NODE_EXTRA_CA_CERTS` e `--use-system-ca` quando o Node oferece `tls.getCACertificates`
+- **Erro de transporte deixa de se disfarçar de status HTTP.** Sem resposta da SEFAZ, o retorno vinha com `status` 500, 502 ou 504 sintético e `resXml: '<error>mensagem</error>'`, e o código do erro se perdia. Agora vem com `status: 0`, `resXml: ''`, `transportError: { code, message }` e `error: 'Falha de transporte (<code>): <message>'`. Resposta HTTP real da SEFAZ, inclusive 5xx, não muda. Ver [ADR 0014](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md)
+
+### Adicionado
+
+- `CA_PADRAO` e `CA_ICP_BRASIL` exportados na raiz do pacote, nas três formas (`module.exports`, `.default`, `.mde`): a cadeia que a biblioteca usa por padrão e só a ICP-Brasil embarcada. São arrays de PEM congelados, para compor como `httpsOptions: { ca: [...CA_PADRAO, minhaCa] }`
+- Campo `transportError?: { code, message }` no retorno dos três métodos de consulta e do `enviarEvento`
+- `engines: { node: ">=22" }` no `package.json`
+- Workflow `cadeia-tls.yml`, que confere toda semana o handshake TLS com `www1` e `hom1` usando `CA_PADRAO`, para a próxima troca de cadeia do Ambiente Nacional aparecer antes de chegar a quem consome
+
+### Removido
+
+- **Node 20 deixa de ser suportado**: sem suporte do projeto Node.js desde abril de 2026, sai da matriz de testes da CI. A biblioteca passa a exigir Node 22 ou posterior
+
+### Compatibilidade
+
+Nenhuma assinatura muda, mas dois comportamentos padrão mudam, daí o bump de minor (`^0.18.0` não resolve para a 0.19.0):
+
+1. **Servidor cuja cadeia não fecha em `CA_PADRAO` passa a ser recusado.** Para os endpoints do Ambiente Nacional, que são os únicos que a biblioteca chama, nada muda. Atrás de um proxy que reassina TLS, acrescente a CA dele com `NODE_EXTRA_CA_CERTS` ou com `httpsOptions: { ca: [...CA_PADRAO, caDoProxy] }`. Quem já passava `ca` próprio continua no controle, porque `httpsOptions` sobrescreve o padrão.
+2. **Erro de transporte muda de forma.** Quem testa só `if (retorno.error)` não precisa mudar nada. Quem lia `status` 500/502/504 ou procurava `<error>` em `resXml` passa a usar `transportError`:
+
+```diff
+-if (retorno.status === 502 && /^<error>/.test(retorno.resXml)) {
++if (retorno.transportError) {
++  log(retorno.transportError.code, retorno.transportError.message)
+ }
+```
+
+Voltar ao comportamento antigo de TLS ainda é possível com `httpsOptions: { rejectUnauthorized: false }`, e não é recomendado.
+
+Quem ainda roda Node 20 recebe um aviso de `engines` na instalação e deve atualizar para o Node 22 ou o 24, ambos LTS.
+
 ## [0.18.0] / 2026-10-01
 
 ### Corrigido
