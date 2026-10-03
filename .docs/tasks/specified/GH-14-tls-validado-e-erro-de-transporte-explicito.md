@@ -184,21 +184,21 @@ Decisões 1, 2 e 4 juntas mudam o contrato de transporte, e reverter qualquer um
 
 Unitários, sem rede externa (entram no `test:ci`). Usar um servidor HTTPS local em `127.0.0.1` com certificado gerado em tempo de teste pelo `node-forge`, que já é dependência. Assim os testes não dependem de `certs/` nem do gerador descartável.
 
-- [ ] Servidor local com certificado autoassinado e configuração padrão: `status: 0`, `resXml: ''`, `transportError.code` de cadeia (`SELF_SIGNED_CERT_IN_CHAIN` ou `DEPTH_ZERO_SELF_SIGNED_CERT`, conforme o certificado gerado) e `error` com o prefixo exato `Falha de transporte (`
-- [ ] O mesmo servidor com `httpsOptions: { ca: [...CA_PADRAO, certDoServidor] }`: a requisição passa e devolve o status real
-- [ ] O mesmo servidor com `httpsOptions: { rejectUnauthorized: false }`: a requisição passa (o opt-out da RF-04)
-- [ ] Porta fechada: `transportError.code === 'ECONNREFUSED'`
-- [ ] Servidor que aceita a conexão e não responde, com `requestOptions: { timeout: 50 }`: `transportError.code === 'ECONNABORTED'`
-- [ ] Servidor local respondendo 502 de verdade: `status: 502`, corpo em `resXml`, **sem** `transportError` (RF-08)
-- [ ] Nenhum vazamento: `JSON.stringify(retorno)` não contém `BEGIN` de chave privada nem `httpsAgent`
-- [ ] `RetornoHelper.montarRetorno` com `transportError`: `data: {}`, `error` com o texto exato, `transportError` repassado
-- [ ] `CA_PADRAO` e `CA_ICP_BRASIL` congelados (`assert.throws` ao fazer `push`) e presentes nas três formas de exportação
-- [ ] `CA_PADRAO` contém todos os itens de `CA_ICP_BRASIL` e todos os de `tls.rootCertificates`
+- [x] Servidor local com certificado autoassinado e configuração padrão: `status: 0`, `resXml: ''`, `transportError.code` de cadeia (`SELF_SIGNED_CERT_IN_CHAIN` ou `DEPTH_ZERO_SELF_SIGNED_CERT`, conforme o certificado gerado) e `error` com o prefixo exato `Falha de transporte (`
+- [x] O mesmo servidor com `httpsOptions: { ca: [...CA_PADRAO, certDoServidor] }`: a requisição passa e devolve o status real
+- [x] O mesmo servidor com `httpsOptions: { rejectUnauthorized: false }`: a requisição passa (o opt-out da RF-04)
+- [x] Porta fechada: `transportError.code === 'ECONNREFUSED'`
+- [x] Servidor que aceita a conexão e não responde, com `requestOptions: { timeout: 50 }`: `transportError.code === 'ECONNABORTED'`
+- [x] Servidor local respondendo 502 de verdade: `status: 502`, corpo em `resXml`, **sem** `transportError` (RF-08)
+- [x] Nenhum vazamento: `JSON.stringify(retorno)` não contém `BEGIN` de chave privada nem `httpsAgent`
+- [x] `RetornoHelper.montarRetorno` com `transportError`: `data: {}`, `error` com o texto exato, `transportError` repassado
+- [x] `CA_PADRAO` e `CA_ICP_BRASIL` congelados (`assert.throws` ao fazer `push`) e presentes nas três formas de exportação
+- [x] `CA_PADRAO` contém todos os itens de `CA_ICP_BRASIL` e todos os de `tls.rootCertificates`
 
 Integração, com rede e sem A1 (fora do `test:ci`, roda no workflow agendado):
 
-- [ ] `test/tls-sefaz.test.js`: handshake TLS contra `www1` e `hom1` com `rejectUnauthorized: true` e `ca: CA_PADRAO` fecha com sucesso
-- [ ] O mesmo arquivo: com `ca: CA_ICP_BRASIL` sozinho, falha com `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`. É o caso que os testes comentados de `sefaz.test.js` tentavam cobrir. Se um dia esse caso passar a fechar, o AN voltou à ICP-Brasil, e o teste deve falhar alto para alguém olhar.
+- [x] `test/tls-sefaz.test.js`: handshake TLS contra `www1` e `hom1` com `rejectUnauthorized: true` e `ca: CA_PADRAO` fecha com sucesso
+- [x] O mesmo arquivo: com `ca: CA_ICP_BRASIL` sozinho, falha com `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`. É o caso que os testes comentados de `sefaz.test.js` tentavam cobrir. Se um dia esse caso passar a fechar, o AN voltou à ICP-Brasil, e o teste deve falhar alto para alguém olhar.
 
 Integração com A1 (manual, contra homologação):
 
@@ -206,35 +206,43 @@ Integração com A1 (manual, contra homologação):
 
 ## Checklist de implementação
 
-- [ ] Código em `src/` (`env/ca.js`, `env/index.js`, `services/sefaz-service.js`, os dois helpers, `helpers/retorno-helper.js`, `index.js`)
-- [ ] Testes em `test/` (unitários novos, `tls-sefaz.test.js`, ajuste de `sefaz.test.js`)
-- [ ] `package.json`: `--ignore test/tls-sefaz.test.js` no `test:ci`
-- [ ] `.github/workflows/cadeia-tls.yml`
-- [ ] JSDoc atualizado (construtores de `src/apis/`, `enviar` dos controllers, `request` do serviço)
-- [ ] [README.md](../../../README.md): padrão de TLS, `CA_PADRAO`/`CA_ICP_BRASIL`, `transportError`, `status: 0`, e como voltar ao comportamento antigo (desaconselhado)
-- [ ] `CHANGELOG.md` em `[Não publicado]`, com `### Modificado`, `### Adicionado` e `### Compatibilidade` (migração)
-- [ ] [CLAUDE.md](../../../CLAUDE.md): a seção "Onde o erro aparece" cita os status 504/502/500, e o diagrama cita "cadeia CA ICP-Brasil"
-- [ ] Docs de `.docs/arquitetura/`: [README.md](../../arquitetura/README.md) (invariante 1 e diagrama), [services-sefaz.md](../../arquitetura/camadas/services-sefaz.md) (tabela do agent, recomendação de produção, tabela de `request`, "O erro vira XML"), [env.md](../../arquitetura/camadas/env.md) (seção `CA`, aviso de `rejectUnauthorized`), [controllers-helpers.md](../../arquitetura/camadas/controllers-helpers.md) (`RetornoHelper`, propagação de erro), [testes-e-certificados.md](../../arquitetura/testes-e-certificados.md) (`tls-sefaz.test.js` e o workflow agendado)
-- [ ] ADR 0014 criado, índice de ADRs atualizado e candidato "`rejectUnauthorized: false`" removido
+- [x] Código em `src/` (`env/ca.js`, `env/index.js`, `services/sefaz-service.js`, os dois helpers, `helpers/retorno-helper.js`, `index.js`)
+- [x] Testes em `test/` (unitários novos, `tls-sefaz.test.js`, ajuste de `sefaz.test.js`)
+- [x] `package.json`: `--ignore test/tls-sefaz.test.js` no `test:ci`
+- [x] `.github/workflows/cadeia-tls.yml`
+- [x] JSDoc atualizado (construtores de `src/apis/`, `enviar` dos controllers, `request` do serviço)
+- [x] [README.md](../../../README.md): padrão de TLS, `CA_PADRAO`/`CA_ICP_BRASIL`, `transportError`, `status: 0`, e como voltar ao comportamento antigo (desaconselhado)
+- [x] `CHANGELOG.md` em `[Não publicado]`, com `### Modificado`, `### Adicionado` e `### Compatibilidade` (migração)
+- [x] [CLAUDE.md](../../../CLAUDE.md): a seção "Onde o erro aparece" cita os status 504/502/500, e o diagrama cita "cadeia CA ICP-Brasil"
+- [x] Docs de `.docs/arquitetura/`: [README.md](../../arquitetura/README.md) (invariante 1 e diagrama), [services-sefaz.md](../../arquitetura/camadas/services-sefaz.md) (tabela do agent, recomendação de produção, tabela de `request`, "O erro vira XML"), [env.md](../../arquitetura/camadas/env.md) (seção `CA`, aviso de `rejectUnauthorized`), [controllers-helpers.md](../../arquitetura/camadas/controllers-helpers.md) (`RetornoHelper`, propagação de erro), [testes-e-certificados.md](../../arquitetura/testes-e-certificados.md) (`tls-sefaz.test.js` e o workflow agendado)
+- [x] ADR 0014 criado, índice de ADRs atualizado e candidato "`rejectUnauthorized: false`" removido
 
 ## Validação pré-PR (obrigatório)
 
 Rodar na raiz do repositório:
 
-- [ ] `npm run format` (ou conferir com `npm run format:check`)
-- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real)
-- [ ] `npm run test:ci` — tudo menos `test/sefaz.test.js` e `test/tls-sefaz.test.js`
-- [ ] `npx mocha test/tls-sefaz.test.js` — exige rede
+- [x] `npm run format` (ou conferir com `npm run format:check`)
+- [x] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real)
+- [x] `npm run test:ci` — tudo menos `test/sefaz.test.js` e `test/tls-sefaz.test.js`
+- [x] `npx mocha test/tls-sefaz.test.js` — exige rede
 - [ ] `test/sefaz.test.js` rodado à parte (`npx mocha test/sefaz.test.js`) — exige certificado A1 válido e acesso à rede
-- [ ] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`; conferir que `dist/index.d.ts` expõe `CA_PADRAO`, `CA_ICP_BRASIL` e `transportError`
-- [ ] `npm pack --dry-run` — o tarball não muda de forma (nenhum arquivo novo fora de `lib/` e `dist/`)
-- [ ] `git status` limpo, exceto o que a tarefa mudou de propósito
+- [x] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`; conferir que `dist/index.d.ts` expõe `CA_PADRAO`, `CA_ICP_BRASIL` e `transportError`
+- [x] `npm pack --dry-run` — o tarball não muda de forma (nenhum arquivo novo fora de `lib/` e `dist/`)
+- [x] `git status` limpo, exceto o que a tarefa mudou de propósito
 
 ## Notas de implementação
 
 > Preenchido durante ou após a implementação.
 
--
+- **Composição em `src/env/ca.js`**, não em `src/util/`: `CA_PADRAO` é uma constante como as outras e os helpers a leem pelo mesmo caminho de `CA`. A exceção à regra de "módulo de dado" ficou registrada em [env.md](../../arquitetura/camadas/env.md).
+- **Congelamento em `src/index.js`**, no lugar: `Object.freeze(env.CA)` e `Object.freeze(env.CA_PADRAO)` congelam os mesmos arrays que os helpers usam, e atribuir o resultado a `const` faz os dois saírem como `readonly string[]` no `dist/index.d.ts`. Com `Object.freeze(CA_PADRAO)` como instrução solta, o `tsc` tipava `CA_PADRAO` como `string[]` mutável.
+- **Testes unitários em dois arquivos**: `test/ca.test.js` (exportação, congelamento, composição) e `test/transporte.test.js` (servidor HTTPS local, `SefazService`, `RetornoHelper`). Nenhum lê `certs/`. A chave do servidor local sai de `crypto.generateKeyPairSync` e o certificado é montado pelo node-forge: gerar RSA 2048 em JS puro deixaria o `before` lento sem ganho.
+- **Dois testes além da lista**: `SefazService.request` com erro sem `code` (`ERR_DESCONHECIDO`) e com rejeição que não é `Error` (`String(error)`), trocando `client.instance` — a classe do serviço é a única de `src/` sem `Object.freeze`.
+- **Contagem de testes**: `test:ci` passou de 76 para 92; o total, de 82 para 103 (92 + 5 de `tls-sefaz.test.js` + 6 de `sefaz.test.js`).
+- **Node 20 simulado**: `tls.getCACertificates = undefined` antes do `require` faz `CA_PADRAO` cair em `tls.rootCertificates` + ICP-Brasil (122 itens no Node 24.19), e `ca.test.js`, `transporte.test.js` e `tls-sefaz.test.js` passam nesse modo. A matriz da CI exercita o Node 20 de verdade.
+- **`sefaz.test.js` não rodou com A1 real**: o `certs/` desta máquina é o descartável. Com ele e a validação ligada, os dois casos "sem informar cert.pem e key.pem" passam (`403`) e os quatro que exigem A1 recebem `403` em vez de `200` — todos com resposta HTTP, ou seja, o handshake com `CA_PADRAO` fechou nos seis. Falta rodar com A1 válido antes do release.
+- **`cadeia-tls.yml` ainda não rodou no GitHub**: `workflow_dispatch` só fica disponível depois que o arquivo chega à `main`. Disparar à mão logo após o merge para confirmar que o runner (fora do Brasil) alcança `www1` e `hom1`. Localmente, `npx mocha test/tls-sefaz.test.js` passou nos quatro casos de host.
+- **Recepção de evento**: [recepcao-evento.md](../../arquitetura/fluxos/recepcao-evento.md) ganhou um aviso de que timeout não prova que o lote não chegou, porque com `status: 0` fica mais tentador reenviar às cegas.
 
 ## Conclusão e entrega
 
@@ -265,3 +273,4 @@ Executar **após o PR ser mergeado na `main`**:
 | Data       | Rev | Descrição                |
 | ---------- | --- | ------------------------ |
 | 2026-10-03 | 1.0 | Criação da especificação |
+| 2026-10-03 | 1.1 | Implementação e notas    |

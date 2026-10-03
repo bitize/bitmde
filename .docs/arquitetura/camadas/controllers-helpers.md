@@ -45,7 +45,7 @@ const {
 } = json
 ```
 
-Motivo: quando a SEFAZ devolve HTML de erro, um envelope de falha SOAP, ou quando o `SefazService` sintetizou `<error>…</error>`, o caminho esperado não existe. Sem os defaults, seria `TypeError` em vez de retorno com `error`. **Não simplificar essa desestruturação.**
+Motivo: quando a SEFAZ devolve HTML de erro, um envelope de falha SOAP, ou quando não houve resposta e `data` chega como `''`, o caminho esperado não existe. Sem os defaults, seria `TypeError` em vez de retorno com `error`. **Não simplificar essa desestruturação.**
 
 Em seguida, o campo repetível é normalizado para array — `docZip` na distribuição, `retEvento` na recepção — porque o `fast-xml-parser` devolve objeto quando há **um** elemento e array quando há vários:
 
@@ -77,7 +77,9 @@ O prefixo é contrato; o sufixo é o `err.message` do zlib ou do `fast-xml-parse
 
 ### Propagação de erro
 
-Se `Xml.xmlToJson` produziu um objeto com `error` (caso da resposta sintética do `SefazService`), `montarResponse` copia `retorno['error']` **antes** de tentar ler o envelope, e segue: o resultado é um objeto com `error` preenchido e os demais campos vazios. Quem transforma isso no formato final é o `RetornoHelper`.
+Erro de transporte **não passa** por `montarResponse` como erro. Sem resposta HTTP, o `SefazService` devolve `data: ''` e o motivo em `transportError`; `montarResponse('')` não lança e devolve o objeto com os campos vazios, e o controller segue sem ramo especial. Quem lê `transportError` é o `RetornoHelper`.
+
+O `if (json.error)` de `montarResponse` continua lá: se o corpo de uma resposta HTTP real vier como `<error>…</error>`, ele copia `retorno['error']` **antes** de tentar ler o envelope, e o resultado é um objeto com `error` preenchido e os demais campos vazios. Até a 0.18.0 era o caminho do erro de transporte, que o `SefazService` embrulhava nessa tag; hoje é só defesa contra corpo inesperado.
 
 ## `RetornoHelper` — o formato final
 
@@ -92,20 +94,24 @@ const retorno = {
 }
 ```
 
-| Campo    | Conteúdo                                                        |
-| -------- | --------------------------------------------------------------- |
-| `data`   | O JSON normalizado pelo `montarResponse`                        |
-| `reqXml` | O XML **enviado**, envelope SOAP incluído (útil para auditoria) |
-| `resXml` | O corpo cru da resposta, como veio                              |
-| `status` | O HTTP status — real, ou o sintetizado pelo `SefazService`      |
-| `error`  | Só existe quando houve erro                                     |
+| Campo            | Conteúdo                                                           |
+| ---------------- | ------------------------------------------------------------------ |
+| `data`           | O JSON normalizado pelo `montarResponse`                           |
+| `reqXml`         | O XML **enviado**, envelope SOAP incluído (útil para auditoria)    |
+| `resXml`         | O corpo cru da resposta, como veio; `''` quando não houve resposta |
+| `status`         | O HTTP status real, ou `0` quando não houve resposta               |
+| `error`          | Só existe quando houve erro                                        |
+| `transportError` | `{ code, message }` — só existe quando não houve resposta HTTP     |
 
-Duas condições fazem `data` virar `{}` e `error` aparecer:
+Três condições fazem `data` virar `{}` e `error` aparecer, nesta ordem:
 
 ```js
-if (json.error) { ... }                                        // erro capturado no parse/transporte
+if (retornoSefaz.transportError) { ...; return retorno }      // sem resposta HTTP
+if (json.error) { ... }                                        // corpo <error>…</error>
 if (Math.floor(retornoSefaz.status / 100) > 2 && !json.error) { ... }  // status >= 300
 ```
+
+A primeira monta `error` com o texto exato `Falha de transporte (${code}): ${message}`, copia `transportError` (só `code` e `message`) e retorna cedo. Ela precisa vir antes: com `status: 0`, a terceira condição é falsa (`Math.floor(0 / 100) > 2`), e o retorno sairia sem `error`. Ver [ADR 0014](../decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md).
 
 A segunda usa `Math.floor(status / 100) > 2`, ou seja, **3xx também é erro** aqui — não há tratamento de redirect. E `reqXml` e `resXml` continuam preenchidos mesmo no caminho de erro; é o que permite diagnosticar rejeição da SEFAZ sem reproduzir a chamada.
 

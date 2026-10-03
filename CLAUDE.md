@@ -28,7 +28,7 @@ Regra de fronteira: aqui ficam as regras que, ignoradas, quebram build/teste/rel
 
 ```sh
 npm test                        # mocha sobre ./test (exige ./certs — ver abaixo)
-npm run test:ci                 # tudo menos sefaz.test.js (o que a CI roda)
+npm run test:ci                 # tudo menos sefaz.test.js e tls-sefaz.test.js (o que a CI roda)
 npm run certs:teste             # gera ./certs autoassinado descartável
 npx mocha test/xml.test.js      # um arquivo de teste
 npx mocha --grep "Imutabilidade"  # filtra por nome do teste
@@ -42,11 +42,11 @@ npm run release                 # git pull && npm publish
 
 Todo arquivo de teste que toca certificado faz `fs.readFileSync` **no topo do módulo**, com caminho relativo ao CWD. Sem o diretório `certs/` (gitignored) o mocha aborta antes de rodar qualquer teste — inclusive os que não dependem dele. É preciso criar `certs/` na raiz com `certificado.pfx`, `passphrase.txt`, `cert.pem` e `key.pem` (o mesmo certificado A1 nos dois formatos, pois `certificado.test.js` compara a conversão PFX→PEM com os `.pem` do disco). Sempre rodar mocha a partir da raiz do repositório.
 
-Sem `certs/`, ainda é possível rodar isoladamente: `test/xml.test.js`, `test/gzip.test.js`, `test/zeroPad.test.js`, `test/data.test.js`, `test/distribuicaoDFe-helper.test.js`.
+Sem `certs/`, ainda é possível rodar isoladamente: `test/xml.test.js`, `test/gzip.test.js`, `test/zeroPad.test.js`, `test/data.test.js`, `test/distribuicaoDFe-helper.test.js`, `test/ca.test.js`, `test/transporte.test.js` (servidor HTTPS local, sem rede externa) e `test/tls-sefaz.test.js` (exige rede).
 
-Quem não tem um A1 em mãos pode rodar `npm run certs:teste`, que gera um autoassinado descartável e libera tudo menos `sefaz.test.js` (76 dos 82 testes). O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Dois detalhes do `scripts/gerar-certificado-teste.sh` são load-bearing e não devem ser "simplificados": o `.pfx` precisa ser gerado com `-keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES` porque o node-forge não decifra o padrão AES-256 do OpenSSL 3; e os `.pem` são normalizados para CRLF porque `certificado.test.js` compara byte a byte com a saída do forge, que usa CRLF, enquanto o OpenSSL escreve LF no Linux.
+Quem não tem um A1 em mãos pode rodar `npm run certs:teste`, que gera um autoassinado descartável e libera tudo menos `sefaz.test.js` (97 dos 103 testes). O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Dois detalhes do `scripts/gerar-certificado-teste.sh` são load-bearing e não devem ser "simplificados": o `.pfx` precisa ser gerado com `-keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES` porque o node-forge não decifra o padrão AES-256 do OpenSSL 3; e os `.pem` são normalizados para CRLF porque `certificado.test.js` compara byte a byte com a saída do forge, que usa CRLF, enquanto o OpenSSL escreve LF no Linux.
 
-`test/sefaz.test.js` é um teste de integração real: bate nos endpoints de produção **e** homologação da SEFAZ com mTLS, e falha sem rede ou com certificado vencido. É o único arquivo excluído da CI.
+`test/sefaz.test.js` é um teste de integração real: bate nos endpoints de produção **e** homologação da SEFAZ com mTLS, e falha sem rede ou com certificado vencido. `test/tls-sefaz.test.js` só faz o handshake TLS com `www1`/`hom1`, sem A1, e falha de propósito se a ICP-Brasil sozinha voltar a fechar a cadeia. Os dois são os únicos excluídos do `test:ci`.
 
 ### CI
 
@@ -59,7 +59,11 @@ Mais um em release publicado, descrito em [Release](#release):
 
 - `.github/workflows/publicar.yml` — confere tag e `version.js`, roda testes, build, confere o conteúdo do tarball e `npm publish`.
 
-Os três usam `npm ci` com `cache: npm` no `setup-node`. Ambos exigem `package-lock.json` versionado, e ele é — **não voltar a ignorá-lo**: sem lockfile, `npm ci` falha de imediato nos três workflows, e o pacote publicado passaria a ser montado com dependências resolvidas na hora do run, sem reprodutibilidade. Como consequência, bump de dependência agora é mudança de dois arquivos: `package.json` e `package-lock.json`, no mesmo commit.
+E um agendado, toda segunda-feira e sob demanda:
+
+- `.github/workflows/cadeia-tls.yml` — Node 24, `npm ci` → `npx mocha test/tls-sefaz.test.js`. Avisa (pelo e-mail padrão do GitHub) quando o Ambiente Nacional trocar de cadeia.
+
+Os quatro usam `npm ci` com `cache: npm` no `setup-node`. Ambos exigem `package-lock.json` versionado, e ele é — **não voltar a ignorá-lo**: sem lockfile, `npm ci` falha de imediato em todos os workflows, e o pacote publicado passaria a ser montado com dependências resolvidas na hora do run, sem reprodutibilidade. Como consequência, bump de dependência agora é mudança de dois arquivos: `package.json` e `package-lock.json`, no mesmo commit.
 
 Nenhum job escreve no repositório: todos declaram `permissions: contents: read` e `persist-credentials: false` no checkout, para o `GITHUB_TOKEN` não ficar gravado no `.git/config` do runner. `publicar.yml` é o único que soma `id-token: write`, pelo OIDC.
 
@@ -81,20 +85,22 @@ apis/          classe pública, valida config no construtor e congela (Object.fr
 controllers/   static enviar(opts): montarRequest -> envia -> montarResponse -> montarRetorno
   └ helpers/     orquestra schema -> XML -> (assinatura) -> serviço -> parse da resposta
       └ schemas/   objeto JS espelhando o XML (chaves `@_` = atributos, para o XMLBuilder)
-      └ services/sefaz-service.js  instância axios + https.Agent com mTLS
-      └ helpers/retorno-helper.js  formato final { data, reqXml, resXml, status, error? }
-env/           constantes: endpoints por tpAmb, cadeia CA ICP-Brasil, EVENTOS, CODIGOS_UF, ZONES, VERSION
+      └ services/sefaz-service.js  instância axios + https.Agent com mTLS, TLS validado por padrão
+      └ helpers/retorno-helper.js  formato final { data, reqXml, resXml, status, error?, transportError? }
+env/           constantes: endpoints por tpAmb, CA (ICP-Brasil) e CA_PADRAO (raízes do Node + ICP-Brasil), EVENTOS, CODIGOS_UF, ZONES, VERSION
 ```
 
-`src/index.js` exporta `DistribuicaoDFe` e `RecepcaoEvento` em três formas (`module.exports`, `.default`, `.mde`) para interoperar com `require` e `import`.
+`src/index.js` exporta `DistribuicaoDFe`, `RecepcaoEvento`, `CA_PADRAO` e `CA_ICP_BRASIL` (estes dois congelados) em três formas (`module.exports`, `.default`, `.mde`) para interoperar com `require` e `import`.
 
 ### Convenções que atravessam o código
 
 **Contrato dos validators.** Todos seguem o mesmo formato: `new Validator(entrada)` → `isValid()` → `getValues()` / `getError()`. `isValid()` **muta o estado interno** — é onde acontecem a conversão PFX→PEM, o zero-padding do NSU (`ZeroPad.padNsu`, 15 dígitos), o default de `idLote` (`'1'`) e o de `timezone` (`'America/Sao_Paulo'`). Chamar `getValues()` sem antes chamar `isValid()` devolve dados crus. Novos validators devem seguir esse mesmo contrato.
 
-**Onde o erro aparece.** Problemas de configuração e de argumento **lançam** (`throw new Error(validator.getError())`) de forma síncrona, dentro do construtor ou do método público. Problemas de rede/SEFAZ **não lançam**: `SefazService.request` captura tudo e devolve `{status, data:'<error>…</error>'}` (504 para `ECONNABORTED`, 502 quando não houve resposta, 500 no resto), e `RetornoHelper` transforma isso em `{ data: {}, error, reqXml, resXml, status }`. Preservar essa separação.
+**Onde o erro aparece.** Problemas de configuração e de argumento **lançam** (`throw new Error(validator.getError())`) de forma síncrona, dentro do construtor ou do método público. Problemas de rede/SEFAZ **não lançam**: `SefazService.request` captura tudo. Resposta HTTP de erro passa com o status real; sem resposta HTTP, devolve `{ status: 0, data: '', transportError: { code, message } }`, e `RetornoHelper` transforma isso em `{ data: {}, error: 'Falha de transporte (<code>): <message>', transportError, reqXml, resXml: '', status: 0 }`. Nenhum status é sintetizado. Do erro do axios saem **só** `code` e `message`: ele carrega `config.httpsAgent`, com a chave do A1. Preservar essa separação ([ADR 0014](.docs/arquitetura/decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md)).
 
 **Imutabilidade.** Praticamente todo módulo exporta `Object.freeze(Classe)`, e as instâncias de `apis/` congelam `this` e `this.config`. Existem testes que asseguram isso (`assert.throws` ao sobrescrever um método estático). Consequência prática: `requestOptions` e `httpsOptions` chegam congelados no `SefazService`, que precisa copiá-los (`{ ...opts.httpsOptions }`) antes de mesclar — foi exatamente a origem do bug #22 (`Cannot add property rejectUnauthorized, object is not extensible`).
+
+**TLS.** O padrão do agente é `{ ca: CA_PADRAO, rejectUnauthorized: true }`, e `httpsOptions` sobrescreve tudo. `CA_PADRAO` soma as raízes do Node (`tls.getCACertificates('default')`, ou `tls.rootCertificates` no Node 20) à ICP-Brasil, porque a opção `ca` do Node **substitui** as raízes padrão. Passar só a ICP-Brasil quebra o handshake com o Ambiente Nacional, cuja cadeia hoje é GlobalSign.
 
 **Assinatura digital.** Só a recepção de evento assina. `RecepcaoHelper.montarRequest` assina cada `infEvento` individualmente com `xml-crypto` (referência `//*[local-name(.)='infEvento']`, assinatura inserida _depois_ do nó) e depois faz _splice de string_ nos blocos `<evento versao="1.00">…` para montar o lote dentro de um único `<envEvento>`. Mexer no formato do XML gerado pelo schema pode quebrar esse recorte por `indexOf`.
 

@@ -56,7 +56,7 @@ new DistribuicaoDFe(config)
   - `tpAmb` `<String>` - [OBRIGATÓRIO] - Identificação de Ambiente. Informar `'1'` para **Produção** ou `'2'` para **Homologação**.
   - `options` `<Object>` - [OPCIONAL]
     - `requestOptions` `<AxiosRequestConfig>` - [OPCIONAL]
-    - `httpsOptions` `<AgentOptions>` - [OPCIONAL]
+    - `httpsOptions` `<AgentOptions>` - [OPCIONAL] - Opções do `https.Agent`, mescladas por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. Ver [Conexão com a SEFAZ](#conexão-com-a-sefaz).
 
 ### Consulta por ultNSU
 
@@ -255,7 +255,7 @@ new RecepcaoEvento(config)
   - `timezone` `<String>` - [OPCIONAL] - Fuso horário do autor. É utilizado `'America/Sao_Paulo'` como valor padrão. Consulte a tabela [lista de timezones](#lista-de-timezones) válidos para o Brasil.
   - `options` `<Object>` - [OPCIONAL]
     - `requestOptions` `<AxiosRequestConfig>` - [OPCIONAL]
-    - `httpsOptions` `<AgentOptions>` - [OPCIONAL]
+    - `httpsOptions` `<AgentOptions>` - [OPCIONAL] - Opções do `https.Agent`, mescladas por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. Ver [Conexão com a SEFAZ](#conexão-com-a-sefaz).
 
 ### Enviar Lote de Eventos
 
@@ -346,6 +346,60 @@ console.log(manifestacao)
 //   status: 200,
 // }
 ```
+
+## Conexão com a SEFAZ
+
+### Validação do certificado do servidor
+
+O certificado do servidor da SEFAZ é **validado por padrão**. Sem `httpsOptions`, o agente HTTPS usa:
+
+```js
+{ ca: CA_PADRAO, rejectUnauthorized: true }
+```
+
+A biblioteca exporta as duas cadeias que usa:
+
+- `CA_PADRAO` — as raízes que o Node usaria por padrão, somadas à cadeia ICP-Brasil. Inclui `NODE_EXTRA_CA_CERTS` e `--use-system-ca` quando o Node oferece `tls.getCACertificates` (22.15 ou posterior); no Node 20, usa o bundle da Mozilla (`tls.rootCertificates`). É montada uma vez, quando o pacote é carregado.
+- `CA_ICP_BRASIL` — só a cadeia ICP-Brasil embarcada (AC Raiz Brasileira v10 e AC SERPRO SSLv1).
+
+As duas são arrays de PEM congelados. Informar `ca` em `httpsOptions` **substitui** a cadeia inteira. Para acrescentar uma AC, por exemplo a de um proxy corporativo, some à cadeia padrão:
+
+```js
+const { CA_PADRAO, DistribuicaoDFe } = require('@bitize/bitmde')
+
+const distribuicao = new DistribuicaoDFe({
+  // ...
+  options: {
+    httpsOptions: {
+      ca: [...CA_PADRAO, fs.readFileSync('./minha-ca.pem', 'utf8')],
+    },
+  },
+})
+```
+
+Desligar a validação ainda é possível com `httpsOptions: { rejectUnauthorized: false }`, mas **não é recomendado**: assim a biblioteca aceita qualquer servidor e apresenta a ele o certificado A1 no mTLS.
+
+### Erro de transporte
+
+Quando não há resposta HTTP (falha na cadeia TLS, DNS, conexão recusada, timeout), a biblioteca não lança. O retorno vem com `status: 0` e o motivo em `transportError`:
+
+```js
+// {
+//   data: {},
+//   reqXml: '<?xml version="1.0" encoding="utf-8"?> ... </soap12:Body></soap12:Envelope>',
+//   resXml: '',
+//   status: 0,
+//   error: 'Falha de transporte (UNABLE_TO_GET_ISSUER_CERT_LOCALLY): unable to get local issuer certificate',
+//   transportError: {
+//     code: 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+//     message: 'unable to get local issuer certificate',
+//   },
+// }
+```
+
+`transportError.code` é o código do Node ou do axios, sem tradução: `ECONNREFUSED`, `ENOTFOUND`, `ECONNRESET`, `ECONNABORTED` (timeout), `UNABLE_TO_GET_ISSUER_CERT_LOCALLY` (cadeia), entre outros. Sem código, vem `ERR_DESCONHECIDO`. `error` continua preenchido, então `if (retorno.error)` cobre esse caso como antes.
+
+Uma resposta HTTP de erro da SEFAZ, como um `502` ou um `503`, chega com o status real, o corpo em `resXml` e **sem** `transportError`. Então `status: 0` significa sempre "a SEFAZ não respondeu".
 
 ## Sobre o BitERP
 
