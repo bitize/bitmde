@@ -43,14 +43,14 @@ describe('Cadeia de certificados', function () {
   })
 
   it('CA_PADRAO soma as raízes do Node à ICP-Brasil', function () {
-    for (const pem of CA_ICP_BRASIL) {
-      assert.ok(CA_PADRAO.includes(pem))
-    }
+    // A seleção efetiva do runtime: com --use-openssl-ca, por exemplo, ela
+    // não contém necessariamente tls.rootCertificates.
+    const raizes =
+      typeof tls.getCACertificates === 'function'
+        ? tls.getCACertificates('default')
+        : tls.rootCertificates
 
-    for (const pem of tls.rootCertificates) {
-      assert.ok(CA_PADRAO.includes(pem))
-    }
-
-    assert.ok(CA_PADRAO.length >= tls.rootCertificates.length + 2)
+    assert.deepStrictEqual(CA_PADRAO.slice(0, raizes.length), raizes)
+    assert.deepStrictEqual(CA_PADRAO.slice(raizes.length), [...CA_ICP_BRASIL])
   })
 })
