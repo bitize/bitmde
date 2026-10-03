@@ -6,7 +6,7 @@ class DistribuicaoController {
   /**
    *
    * @param {Object} opts
-   * @returns {Promise<{data:{tpAmb: string,verAplic: string,cStat: string,xMotivo: string,dhResp: string,ultNSU: string,maxNSU: string, docZip:[{xml: string,json: Object,nsu: string,schema: string}], docZipErrors:[{nsu: string,schema: string,error: string}]}, error: string, reqXml: string, resXml: string, status: number}>}
+   * @returns {Promise<{data:{tpAmb: string,verAplic: string,cStat: string,xMotivo: string,dhResp: string,ultNSU: string,maxNSU: string, docZip:[{xml: string,json: Object,nsu: string,schema: string}], docZipErrors:[{nsu: string,schema: string,error: string}]}, error: string, transportError?: {code: string, message: string}, reqXml: string, resXml: string, status: number}>}
    */
   static async enviar(opts) {
     const data = DistribuicaoHelper.montarRequest(opts)

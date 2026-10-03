@@ -23,7 +23,7 @@ class DistribuicaoDFe {
    * @param {'1' | '2'} config.tpAmb
    * @param {Object} [config.options]
    * @param {import('axios').AxiosRequestConfig} [config.options.requestOptions]
-   * @param {import('https').AgentOptions} [config.options.httpsOptions]
+   * @param {import('https').AgentOptions} [config.options.httpsOptions] Mesclado por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. Informar `ca` substitui a cadeia inteira; para somar uma AC, use `[...CA_PADRAO, minhaCa]`.
    */
   constructor(config) {
     const { requestOptions = {}, httpsOptions = {} } = config.options || {}

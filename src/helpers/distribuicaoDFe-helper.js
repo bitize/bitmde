@@ -1,6 +1,6 @@
 'use strict'
 
-const { CA, DISTRIBUICAO } = require('../env')
+const { CA_PADRAO, DISTRIBUICAO } = require('../env')
 const { DistribuicaoSchema } = require('../schemas')
 const SefazService = require('../services/sefaz-service')
 const { Gzip, Xml } = require('../util')
@@ -21,7 +21,7 @@ class DistribuicaoHelper {
 
     const client = new SefazService({
       baseURL: baseURL,
-      ca: CA,
+      ca: CA_PADRAO,
       cert: opts.cert,
       key: opts.key,
       tpAmb: opts.tpAmb,

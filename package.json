@@ -22,7 +22,7 @@
     "script": "node ./scripts/index.js",
     "release": "git pull && npm run build && npm publish",
     "test": "mocha",
-    "test:ci": "mocha --ignore test/sefaz.test.js",
+    "test:ci": "mocha --ignore test/sefaz.test.js --ignore test/tls-sefaz.test.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "certs:teste": "sh ./scripts/gerar-certificado-teste.sh",

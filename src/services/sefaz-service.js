@@ -14,7 +14,7 @@ class Instance {
         cert: cert,
         key: key,
         ca: ca,
-        rejectUnauthorized: false,
+        rejectUnauthorized: true,
       },
       { ...opts.httpsOptions }
     )
@@ -42,7 +42,10 @@ class Instance {
   }
 
   /**
-   * @returns {Promise<{status: number, data: string}>}
+   * Sem resposta HTTP (cadeia TLS, DNS, conexão recusada, timeout, erro
+   * antes do envio), devolve `status: 0` e o motivo em `transportError`.
+   *
+   * @returns {Promise<{status: number, data: string, transportError?: {code: string, message: string}}>}
    */
   async request(config) {
     try {
@@ -52,34 +55,26 @@ class Instance {
 
       return { status, data }
     } catch (error) {
-      if (error.response) {
+      if (error && error.response) {
         const { status, data } = error.response
 
         return { status, data }
-      } else if (error.request) {
-        if (error.code === 'ECONNABORTED') {
-          const retorno = {
-            status: 504,
-            data: `<error>${error.message || error}</error>`,
-          }
-
-          return retorno
-        }
-
-        const retorno = {
-          status: 502,
-          data: `<error>${error.message || error}</error>`,
-        }
-
-        return retorno
-      } else {
-        const retorno = {
-          status: 500,
-          data: `<error>${error.message || error}</error>`,
-        }
-
-        return retorno
       }
+
+      // Só code e message saem daqui: o AxiosError carrega config.httpsAgent,
+      // e o agente guarda o cert e a key do A1 nas options.
+      const { code, message } = error || {}
+
+      const retorno = {
+        status: 0,
+        data: '',
+        transportError: {
+          code: code ? String(code) : 'ERR_DESCONHECIDO',
+          message: message ? String(message) : String(error),
+        },
+      }
+
+      return retorno
     }
   }
 }
