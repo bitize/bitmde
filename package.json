@@ -1,6 +1,6 @@
 {
   "name": "@bitize/bitmde",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "Biblioteca para consultar notas destinadas e enviar evento de manifestação do destinatário",
   "main": "./lib/index.js",
   "types": "./dist/index.d.ts",

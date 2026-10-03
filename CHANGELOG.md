@@ -2,7 +2,9 @@
 
 ## [Não publicado]
 
-> Versão-alvo: **0.19.0**. Muda o comportamento padrão de transporte; leia [Compatibilidade](#compatibilidade) antes de atualizar.
+## [0.19.0] / 2026-10-03
+
+> Muda o comportamento padrão de transporte e deixa de suportar o Node 20; leia [Compatibilidade](#compatibilidade) antes de atualizar.
 
 ### Modificado
 
