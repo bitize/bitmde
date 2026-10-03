@@ -25,6 +25,7 @@ npm i @bitize/bitmde
 
 - Possuir um **Certificado A1** válido emitido por uma Autoridade Certificadora credenciada pela Infraestrutura de Chaves Públicas Brasileira – **ICP-Brasil**.
 - O certificado pode ser usando no formato **PFX** e **Senha** _OU_ **cert.pem** e **key.pem**
+- **Node.js 22 ou posterior.** O Node 20, sem suporte desde abril de 2026, deixou de ser testado na 0.19.0.
 
 ## Funcionalidades
 
@@ -359,7 +360,7 @@ O certificado do servidor da SEFAZ é **validado por padrão**. Sem `httpsOption
 
 A biblioteca exporta as duas cadeias que usa:
 
-- `CA_PADRAO` — as raízes que o Node usaria por padrão, somadas à cadeia ICP-Brasil. Inclui `NODE_EXTRA_CA_CERTS` e `--use-system-ca` quando o Node oferece `tls.getCACertificates` (22.15 ou posterior); no Node 20, usa o bundle da Mozilla (`tls.rootCertificates`). É montada uma vez, quando o pacote é carregado.
+- `CA_PADRAO` — as raízes que o Node usaria por padrão, somadas à cadeia ICP-Brasil. Inclui `NODE_EXTRA_CA_CERTS` e `--use-system-ca` quando o Node oferece `tls.getCACertificates` (22.15 ou posterior); nas versões do Node 22 anteriores a ela, usa o bundle da Mozilla (`tls.rootCertificates`). É montada uma vez, quando o pacote é carregado.
 - `CA_ICP_BRASIL` — só a cadeia ICP-Brasil embarcada (AC Raiz Brasileira v10 e AC SERPRO SSLv1).
 
 As duas são arrays de PEM congelados. Informar `ca` em `httpsOptions` **substitui** a cadeia inteira. Para acrescentar uma AC, por exemplo a de um proxy corporativo, some à cadeia padrão:

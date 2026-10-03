@@ -52,7 +52,7 @@ Quem não tem um A1 em mãos pode rodar `npm run certs:teste`, que gera um autoa
 
 Dois workflows em push e PR na `main`:
 
-- `.github/workflows/testes.yml` — matriz Node 20/22/24: `npm ci` → `npm run certs:teste` → `npm run test:ci`.
+- `.github/workflows/testes.yml` — matriz Node 22/24: `npm ci` → `npm run certs:teste` → `npm run test:ci`.
 - `.github/workflows/qualidade.yml` — dois jobs paralelos em Node 22: `npm run format:check` (Prettier) e `npm run build`.
 
 Mais um em release publicado, descrito em [Release](#release):
@@ -100,7 +100,7 @@ env/           constantes: endpoints por tpAmb, CA (ICP-Brasil) e CA_PADRAO (ra�
 
 **Imutabilidade.** Praticamente todo módulo exporta `Object.freeze(Classe)`, e as instâncias de `apis/` congelam `this` e `this.config`. Existem testes que asseguram isso (`assert.throws` ao sobrescrever um método estático). Consequência prática: `requestOptions` e `httpsOptions` chegam congelados no `SefazService`, que precisa copiá-los (`{ ...opts.httpsOptions }`) antes de mesclar — foi exatamente a origem do bug #22 (`Cannot add property rejectUnauthorized, object is not extensible`).
 
-**TLS.** O padrão do agente é `{ ca: CA_PADRAO, rejectUnauthorized: true }`, e `httpsOptions` sobrescreve tudo. `CA_PADRAO` soma as raízes do Node (`tls.getCACertificates('default')`, ou `tls.rootCertificates` no Node 20) à ICP-Brasil, porque a opção `ca` do Node **substitui** as raízes padrão. Passar só a ICP-Brasil quebra o handshake com o Ambiente Nacional, cuja cadeia hoje é GlobalSign.
+**TLS.** O padrão do agente é `{ ca: CA_PADRAO, rejectUnauthorized: true }`, e `httpsOptions` sobrescreve tudo. `CA_PADRAO` soma as raízes do Node (`tls.getCACertificates('default')`, ou `tls.rootCertificates` no Node 22 anterior à 22.15) à ICP-Brasil, porque a opção `ca` do Node **substitui** as raízes padrão. Passar só a ICP-Brasil quebra o handshake com o Ambiente Nacional, cuja cadeia hoje é GlobalSign.
 
 **Assinatura digital.** Só a recepção de evento assina. `RecepcaoHelper.montarRequest` assina cada `infEvento` individualmente com `xml-crypto` (referência `//*[local-name(.)='infEvento']`, assinatura inserida _depois_ do nó) e depois faz _splice de string_ nos blocos `<evento versao="1.00">…` para montar o lote dentro de um único `<envEvento>`. Mexer no formato do XML gerado pelo schema pode quebrar esse recorte por `indexOf`.
 

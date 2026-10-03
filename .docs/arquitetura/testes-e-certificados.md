@@ -101,7 +101,7 @@ Duas famílias de teste existem para travar invariantes de arquitetura, e é com
 
 ## Na CI
 
-[.github/workflows/testes.yml](../../.github/workflows/testes.yml), matriz Node 20/22/24:
+[.github/workflows/testes.yml](../../.github/workflows/testes.yml), matriz Node 22/24 — o mínimo declarado em `engines` (`>=22`):
 
 ```text
 npm ci  →  npm run certs:teste  →  npm run test:ci

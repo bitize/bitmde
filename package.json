@@ -56,6 +56,9 @@
     "Carlos Tirabassi Jr. <carlos@bitize.com.br>"
   ],
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "bugs": {
     "url": "https://github.com/bitize/bitmde/issues"
   },

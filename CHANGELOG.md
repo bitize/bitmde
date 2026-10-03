@@ -14,7 +14,12 @@
 
 - `CA_PADRAO` e `CA_ICP_BRASIL` exportados na raiz do pacote, nas três formas (`module.exports`, `.default`, `.mde`): a cadeia que a biblioteca usa por padrão e só a ICP-Brasil embarcada. São arrays de PEM congelados, para compor como `httpsOptions: { ca: [...CA_PADRAO, minhaCa] }`
 - Campo `transportError?: { code, message }` no retorno dos três métodos de consulta e do `enviarEvento`
+- `engines: { node: ">=22" }` no `package.json`
 - Workflow `cadeia-tls.yml`, que confere toda semana o handshake TLS com `www1` e `hom1` usando `CA_PADRAO`, para a próxima troca de cadeia do Ambiente Nacional aparecer antes de chegar a quem consome
+
+### Removido
+
+- **Node 20 deixa de ser suportado**: sem suporte do projeto Node.js desde abril de 2026, sai da matriz de testes da CI. A biblioteca passa a exigir Node 22 ou posterior
 
 ### Compatibilidade
 
@@ -31,6 +36,8 @@ Nenhuma assinatura muda, mas dois comportamentos padrão mudam, daí o bump de m
 ```
 
 Voltar ao comportamento antigo de TLS ainda é possível com `httpsOptions: { rejectUnauthorized: false }`, e não é recomendado.
+
+Quem ainda roda Node 20 recebe um aviso de `engines` na instalação e deve atualizar para o Node 22 ou o 24, ambos LTS.
 
 ## [0.18.0] / 2026-10-01
 

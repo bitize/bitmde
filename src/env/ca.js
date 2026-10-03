@@ -21,7 +21,8 @@ const CA = [
  * somar, então elas precisam entrar explicitamente.
  *
  * `getCACertificates('default')` inclui NODE_EXTRA_CA_CERTS e --use-system-ca;
- * `rootCertificates` é só o bundle da Mozilla (Node 20, que não tem a outra).
+ * `rootCertificates` é só o bundle da Mozilla (Node 22 anterior à 22.15, que
+ * não tem a outra).
  * Composto uma vez, no carregamento: mudar NODE_EXTRA_CA_CERTS depois do
  * require não tem efeito, como no próprio Node.
  */

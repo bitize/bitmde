@@ -21,7 +21,7 @@ Um consumidor que seguiu a recomendação da própria documentação e ligou a v
 
 - Não passar `ca` e deixar o Node usar as raízes padrão. Resolve o AN de hoje, mas descarta a ICP-Brasil, e o pacote quebraria do mesmo jeito se o AN voltasse a uma cadeia ICP-Brasil.
 - `[...tls.rootCertificates, ...CA]`. Passar `ca` explícito desliga `NODE_EXTRA_CA_CERTS` e `--use-system-ca`, e `tls.rootCertificates` é só o bundle da Mozilla. Quem está atrás de proxy corporativo com CA própria quebraria ao atualizar.
-- `[...raízes padrão do runtime, ...CA]`, com `tls.getCACertificates('default')` quando existir e `tls.rootCertificates` quando não existir (Node 20).
+- `[...raízes padrão do runtime, ...CA]`, com `tls.getCACertificates('default')` quando existir e `tls.rootCertificates` quando não existir (Node 22 anterior à 22.15).
 
 **Padrão de `rejectUnauthorized`.** Inverter o padrão; manter `false` com flag de opt-in; inverter com flag de opt-out.
 
@@ -72,7 +72,7 @@ As cadeias saem na raiz do pacote como `CA_PADRAO` e `CA_ICP_BRASIL`, congeladas
 **Fica mais difícil:**
 
 - Servidor com cadeia que não fecha em `CA_PADRAO` é recusado. Quem precisa de outra AC compõe `[...CA_PADRAO, minhaCa]` — informar `ca` substitui a cadeia inteira;
-- No Node 20, sem `getCACertificates`, `NODE_EXTRA_CA_CERTS` continua sem efeito sobre a cadeia padrão;
+- No Node 22 anterior à 22.15, sem `getCACertificates`, `NODE_EXTRA_CA_CERTS` continua sem efeito sobre a cadeia padrão. O Node 20, sem suporte desde abril de 2026, saiu da matriz de testes na mesma versão (`engines: >=22`);
 - `NODE_EXTRA_CA_CERTS` alterado depois do `require` não tem efeito.
 
 **Compromisso de longo prazo:**

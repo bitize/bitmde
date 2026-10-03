@@ -34,7 +34,7 @@ Detalhe que engana: os objetos são declarados com chave **numérica** (`1:` e `
 const RAIZES_PADRAO =
   typeof tls.getCACertificates === 'function'
     ? tls.getCACertificates('default') // inclui NODE_EXTRA_CA_CERTS e --use-system-ca
-    : tls.rootCertificates // Node 20: só o bundle da Mozilla
+    : tls.rootCertificates // Node 22 < 22.15: só o bundle da Mozilla
 
 const CA_PADRAO = [...RAIZES_PADRAO, ...CA]
 ```
