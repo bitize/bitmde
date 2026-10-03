@@ -1,0 +1,37 @@
+name: Cadeia TLS
+
+# Confere toda semana que o handshake com o Ambiente Nacional (www1 e hom1)
+# fecha com CA_PADRAO e com rejectUnauthorized: true. A próxima troca de
+# cadeia da SEFAZ deve aparecer aqui antes de chegar à produção de quem
+# consome. O aviso de falha é o e-mail padrão do GitHub para workflow agendado.
+on:
+  schedule:
+    # Segunda-feira, 09:00 UTC (06:00 em Brasília).
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+# Nenhum job aqui escreve no repositório: leitura basta, e o GITHUB_TOKEN
+# não fica gravado no .git/config dos runners (persist-credentials: false).
+permissions:
+  contents: read
+
+jobs:
+  handshake:
+    name: Handshake com o AN
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      - run: npm ci
+
+      # Não lê certs/: valida só a cadeia do servidor, sem certificado A1.
+      - name: Handshake TLS
+        run: npx mocha test/tls-sefaz.test.js
