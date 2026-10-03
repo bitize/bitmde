@@ -3,13 +3,13 @@
 | Campo                | Valor                                                     |
 | -------------------- | --------------------------------------------------------- |
 | **Issue**            | [GH-14](https://github.com/bitize/bitmde/issues/14)       |
-| **Status**           | specified                                                 |
+| **Status**           | done                                                      |
 | **Prioridade**       | P1 (alto)                                                 |
 | **Tipo**             | correção                                                  |
 | **Camadas afetadas** | apis / controllers / helpers / services / env / test / CI |
 | **Criado em**        | 2026-10-03                                                |
 | **Atualizado em**    | 2026-10-03                                                |
-| **Concluído em**     | —                                                         |
+| **Concluído em**     | 2026-10-03                                                |
 
 ---
 
@@ -241,7 +241,7 @@ Rodar na raiz do repositório:
 - **Contagem de testes**: `test:ci` passou de 76 para 92; o total, de 82 para 103 (92 + 5 de `tls-sefaz.test.js` + 6 de `sefaz.test.js`).
 - **Node 20 simulado**: `tls.getCACertificates = undefined` antes do `require` faz `CA_PADRAO` cair em `tls.rootCertificates` + ICP-Brasil (122 itens no Node 24.19), e `ca.test.js`, `transporte.test.js` e `tls-sefaz.test.js` passam nesse modo. A primeira rodada da CI no PR passou também no Node 20 real.
 - **`sefaz.test.js` não rodou com A1 real**: o `certs/` desta máquina é o descartável. Com ele e a validação ligada, os dois casos "sem informar cert.pem e key.pem" passam (`403`) e os quatro que exigem A1 recebem `403` em vez de `200` — todos com resposta HTTP, ou seja, o handshake com `CA_PADRAO` fechou nos seis. Falta rodar com A1 válido antes do release.
-- **`cadeia-tls.yml` ainda não rodou no GitHub**: `workflow_dispatch` só fica disponível depois que o arquivo chega à `main`. Disparar à mão logo após o merge para confirmar que o runner (fora do Brasil) alcança `www1` e `hom1`. Localmente, `npx mocha test/tls-sefaz.test.js` passou nos quatro casos de host.
+- **`cadeia-tls.yml` ainda não rodou no GitHub**: `workflow_dispatch` só fica disponível depois que o arquivo chega à `main`. Disparar à mão logo após o merge para confirmar que o runner (fora do Brasil) alcança `www1` e `hom1`. Localmente, `npx mocha test/tls-sefaz.test.js` passou nos quatro casos de host. Disparado após o merge (run [37143823035](https://github.com/bitize/bitmde/actions/runs/37143823035)): verde, o runner alcança os dois hosts.
 - **Node 20 removido (fora da especificação original, a pedido no PR)**: sem suporte do projeto Node.js desde abril de 2026, sai da matriz de `testes.yml` (fica 22/24), e o `package.json` ganha `engines: { node: ">=22" }`, com o `package-lock.json` no mesmo commit. O fallback para `tls.rootCertificates` da Decisão 1 continua, agora para o Node 22 anterior à 22.15.
 - **Revisão automática (CodeRabbit)**: `ca.test.js` passou a comparar `CA_PADRAO` com a seleção efetiva do runtime em vez de presumir `tls.rootCertificates` (com `--use-openssl-ca` os dois divergem). Não aplicado: ler o arquivo de `NODE_EXTRA_CA_CERTS` à mão no fallback. A Decisão 1 já aceita essa limitação, que agora só afeta o Node 22 anterior à 22.15, e quem precisa compõe `[...CA_PADRAO, minhaCa]`.
 - **Recepção de evento**: [recepcao-evento.md](../../arquitetura/fluxos/recepcao-evento.md) ganhou um aviso de que timeout não prova que o lote não chegou, porque com `status: 0` fica mais tentador reenviar às cegas.
@@ -250,12 +250,12 @@ Rodar na raiz do repositório:
 
 Executar **após o PR ser mergeado na `main`**:
 
-- [ ] Desvios registrados em "Notas de implementação"
-- [ ] Checklists marcados
-- [ ] Cabeçalho: **Status** = `done` e **Concluído em** preenchido
-- [ ] Arquivo movido: `git mv .docs/tasks/specified/GH-14-tls-validado-e-erro-de-transporte-explicito.md .docs/tasks/done/GH-14-tls-validado-e-erro-de-transporte-explicito.md`
-- [ ] Blockquote de especificação na issue apontando para `.docs/tasks/done/` (era `specified/`)
-- [ ] Issue fechada no GitHub
+- [x] Desvios registrados em "Notas de implementação"
+- [x] Checklists marcados — exceto os dois de `sefaz.test.js` com A1 real, que seguem abertos de propósito (ver Notas de implementação) e precisam rodar antes do release da 0.19.0
+- [x] Cabeçalho: **Status** = `done` e **Concluído em** preenchido
+- [x] Arquivo movido: `git mv .docs/tasks/specified/GH-14-tls-validado-e-erro-de-transporte-explicito.md .docs/tasks/done/GH-14-tls-validado-e-erro-de-transporte-explicito.md`
+- [x] Blockquote de especificação na issue apontando para `.docs/tasks/done/` (era `specified/`)
+- [x] Issue fechada no GitHub (pelo `Closes #14` do PR #15)
 
 ## Referências
 
@@ -272,7 +272,8 @@ Executar **após o PR ser mergeado na `main`**:
 
 ## Histórico de revisões
 
-| Data       | Rev | Descrição                |
-| ---------- | --- | ------------------------ |
-| 2026-10-03 | 1.0 | Criação da especificação |
-| 2026-10-03 | 1.1 | Implementação e notas    |
+| Data       | Rev | Descrição                                                        |
+| ---------- | --- | ---------------------------------------------------------------- |
+| 2026-10-03 | 1.0 | Criação da especificação                                         |
+| 2026-10-03 | 1.1 | Implementação e notas                                            |
+| 2026-10-03 | 1.2 | Entregue no PR #15 (merge `dcaffd9`); tarefa movida para `done/` |
