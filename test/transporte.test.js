@@ -5,7 +5,9 @@ const crypto = require('crypto')
 const https = require('https')
 const net = require('net')
 const forge = require('node-forge')
-const { CA_PADRAO, DistribuicaoDFe } = require('../src')
+const zlib = require('zlib')
+const { CA_PADRAO, DistribuicaoDFe, DistribuicaoNFSe } = require('../src')
+const { VERSION } = require('../src/env')
 const { RetornoHelper } = require('../src/helpers')
 const SefazService = require('../src/services/sefaz-service')
 
@@ -211,6 +213,166 @@ describe('Transporte', function () {
       'code',
       'message',
     ])
+    assert.ok(!serializado.includes('PRIVATE KEY'))
+    assert.ok(!serializado.includes('httpsAgent'))
+  })
+})
+
+describe('Transporte NFS-e', function () {
+  this.timeout(10000)
+
+  const CNPJ = '11111111000191'
+  const CHAVE = '1'.repeat(50)
+
+  // Espaçamento e acento de propósito: resBody tem de ser o corpo byte a byte.
+  const CORPO_LOTE =
+    '{ "StatusProcessamento": "DOCUMENTOS_LOCALIZADOS",\n  "LoteDFe": [{"NSU": 1, "ChaveAcesso": "' +
+    CHAVE +
+    '", "TipoDocumento": "NFSE", "ArquivoXml": "' +
+    zlib
+      .gzipSync(
+        `<NFSe><infNFSe><DPS><infDPS><toma><CNPJ>${CNPJ}</CNPJ></toma></infDPS></DPS></infNFSe></NFSe>`
+      )
+      .toString('base64') +
+    '", "DataHoraGeracao": "2026-10-15T10:00:00"}],\n  "Alertas": [],"Erros": [], "TipoAmbiente": "HOMOLOGACAO", "VersaoAplicativo": "Versão 1" }'
+
+  const CORPO_VAZIO = JSON.stringify({
+    StatusProcessamento: 'NENHUM_DOCUMENTO_LOCALIZADO',
+    LoteDFe: [],
+    Alertas: [],
+    Erros: [{ Mensagem: {}, Codigo: 'E2220', Descricao: 'Nenhum documento.' }],
+    TipoAmbiente: 'HOMOLOGACAO',
+  })
+
+  let certificado
+  let servidor
+  let url
+  let ultimaRequisicao
+  let resposta
+
+  before(async function () {
+    certificado = gerarCertificado()
+
+    servidor = https.createServer(
+      { cert: certificado.cert, key: certificado.key },
+      (req, res) => {
+        ultimaRequisicao = {
+          method: req.method,
+          url: req.url,
+          headers: req.headers,
+        }
+        req.resume()
+        req.on('end', () => {
+          res.writeHead(resposta.status, { 'Content-Type': resposta.tipo })
+          res.end(resposta.corpo)
+        })
+      }
+    )
+
+    url = await escutar(servidor)
+  })
+
+  beforeEach(function () {
+    ultimaRequisicao = undefined
+    resposta = {
+      status: 200,
+      tipo: 'application/json; charset=utf-8',
+      corpo: CORPO_LOTE,
+    }
+  })
+
+  after(async function () {
+    await fechar(servidor)
+  })
+
+  function instanciar(httpsOptions = { ca: [...CA_PADRAO, certificado.cert] }) {
+    return new DistribuicaoNFSe({
+      cert: certificado.cert,
+      key: certificado.key,
+      tpAmb: '2',
+      cnpj: CNPJ,
+      options: { requestOptions: { baseURL: url }, httpsOptions },
+    })
+  }
+
+  it('consultaUltNSU: GET com Accept JSON, User-Agent e params na query', async function () {
+    const retorno = await instanciar().consultaUltNSU('00051')
+
+    assert.strictEqual(ultimaRequisicao.method, 'GET')
+    assert.strictEqual(
+      ultimaRequisicao.url,
+      `/DFe/51?lote=true&cnpjConsulta=${CNPJ}`
+    )
+    assert.strictEqual(ultimaRequisicao.headers.accept, 'application/json')
+    assert.strictEqual(
+      ultimaRequisicao.headers['user-agent'],
+      `bitmde/${VERSION}`
+    )
+
+    assert.strictEqual(retorno.status, 200)
+    assert.strictEqual(retorno.error, undefined)
+    assert.strictEqual(retorno.transportError, undefined)
+    assert.strictEqual(retorno.resBody, CORPO_LOTE)
+    assert.strictEqual(retorno.data.versaoAplicativo, 'Versão 1')
+    assert.strictEqual(retorno.data.documentos[0].nsu, '1')
+    assert.strictEqual(retorno.data.documentos[0].papel, 'tomador')
+  })
+
+  it('consultaNSU pede o NSU anterior com lote=false', async function () {
+    await instanciar().consultaNSU('51')
+
+    assert.strictEqual(
+      ultimaRequisicao.url,
+      `/DFe/50?lote=false&cnpjConsulta=${CNPJ}`
+    )
+  })
+
+  it('consultaChNFSe pede os eventos da chave', async function () {
+    await instanciar().consultaChNFSe(CHAVE)
+
+    assert.strictEqual(ultimaRequisicao.url, `/NFSe/${CHAVE}/Eventos`)
+  })
+
+  it('Fila vazia: 404 sem error', async function () {
+    resposta = { status: 404, tipo: 'application/json', corpo: CORPO_VAZIO }
+
+    const retorno = await instanciar().consultaUltNSU('0')
+
+    assert.strictEqual(retorno.status, 404)
+    assert.strictEqual(retorno.error, undefined)
+    assert.strictEqual(retorno.resBody, CORPO_VAZIO)
+    assert.deepStrictEqual(retorno.data.documentos, [])
+    assert.strictEqual(retorno.data.erros[0].codigo, 'E2220')
+  })
+
+  it('502 com HTML: resposta inesperada, corpo em resBody', async function () {
+    resposta = { status: 502, tipo: 'text/html', corpo: RESPOSTA_502 }
+
+    const retorno = await instanciar().consultaUltNSU('0')
+
+    assert.deepStrictEqual(retorno, {
+      data: {},
+      resBody: RESPOSTA_502,
+      status: 502,
+      error: 'Resposta inesperada do ADN (HTTP 502).',
+    })
+  })
+
+  it('Certificado do servidor fora da cadeia: transportError sem a chave', async function () {
+    const retorno = await instanciar({}).consultaUltNSU('0')
+    const serializado = JSON.stringify(retorno)
+
+    assert.strictEqual(retorno.status, 0)
+    assert.strictEqual(retorno.resBody, '')
+    assert.deepStrictEqual(retorno.data, {})
+    assert.deepStrictEqual(Object.keys(retorno.transportError).sort(), [
+      'code',
+      'message',
+    ])
+    assert.strictEqual(
+      retorno.error,
+      `Falha de transporte (${retorno.transportError.code}): ${retorno.transportError.message}`
+    )
     assert.ok(!serializado.includes('PRIVATE KEY'))
     assert.ok(!serializado.includes('httpsAgent'))
   })
