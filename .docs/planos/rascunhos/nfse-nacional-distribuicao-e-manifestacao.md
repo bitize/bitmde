@@ -14,7 +14,7 @@
 
 ## Objetivo
 
-Com o mesmo certificado A1 que já usa para NF-e, quem consome o bitmde **lista as NFS-e Nacionais em que o CNPJ figura como tomador** (por NSU, com os eventos de cada nota) e **registra Confirmação e Rejeição do tomador** na SEFIN Nacional. As duas APIs seguem o contrato de erro das APIs de NF-e ([ADR 0004](../../arquitetura/decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md), [ADR 0014](../../arquitetura/decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md)). Verificado em produção restrita.
+Com o mesmo e-CNPJ A1 que já usa para NF-e, quem consome o bitmde **consulta por NSU os documentos da NFS-e Nacional visíveis ao certificado** — inclusive quando o CNPJ é tomador — e **registra Confirmação e Rejeição do tomador para NFS-e gerada pela SEFIN Nacional**. As duas APIs preservam a separação entre erro de entrada/configuração e erro de transporte/serviço ([ADR 0004](../../arquitetura/decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md), [ADR 0014](../../arquitetura/decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md)).
 
 ## Contexto e motivação
 
