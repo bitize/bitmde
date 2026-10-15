@@ -1,6 +1,6 @@
 # NFS-e Nacional — distribuição para contribuintes (ADN)
 
-**Fonte**: Swagger "API NFS-e - ADN Contribuinte" v1 (`/contribuintes/swagger/v1/swagger.json`, produção restrita) e [Manual dos Contribuintes — Guia para utilização das APIs do ADN](https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/documentacao-atual/manual-contribuintes-apis-adn-sistema-nacional-nfse.pdf), versão 1.0 de 12/02/2026
+**Fonte**: [Swagger "API NFS-e - ADN Contribuinte" v1](fontes/nfse-nacional/swagger-adn-contribuintes-v1-20261015.json) e [Manual dos Contribuintes — Guia para utilização das APIs do ADN, v1.0 de 12/02/2026](fontes/nfse-nacional/manual-contribuintes-apis-adn-v1.0-20260212.pdf)
 **Consultado em**: 2026-10-15
 
 O Ambiente de Dados Nacional (ADN) da NFS-e distribui ao contribuinte os documentos fiscais de serviço "em que figure como emitente, tomador ou intermediário". É o equivalente, para serviço, do `NFeDistribuicaoDFe` — mas em REST/JSON, não SOAP.
@@ -76,14 +76,17 @@ HTTP 404
 
 - **Fila vazia é HTTP 404**, não 200 — e vem com o corpo completo. Tratar 404 como erro genérico confunde "não há nada novo" com falha.
 - Produção restrita se identifica como `TipoAmbiente: HOMOLOGACAO`.
-- A cadeia TLS de `adn.producaorestrita.nfse.gov.br` fechou com o `CA_PADRAO` (raízes do Node + ICP-Brasil), sem ajuste.
+- A cadeia TLS de `adn.producaorestrita.nfse.gov.br` e de `adn.nfse.gov.br` (produção) fecha com o `CA_PADRAO` (raízes do Node + ICP-Brasil), sem ajuste — conferido com `rejectUnauthorized: true`.
+- O Swagger de contribuintes de produção é idêntico byte a byte ao de produção restrita.
+- **Lote de até 50 documentos.** O Swagger de contribuintes não diz; o da API irmã de municípios, com o mesmo `GET /DFe/{NSU}`, diz "Retorna um lote contendo até 50 Documentos Fiscais de Serviço a partir do NSU informado (inclusive)" ([swagger-adn-municipios](fontes/nfse-nacional/swagger-adn-municipios-v1-20261015.json)). O "inclusive" importa: o próximo pedido parte do último NSU recebido **mais um**, ao contrário do `ultNSU` da NF-e.
+
+Os Swaggers estão versionados em [fontes/nfse-nacional/](fontes/nfse-nacional/README.md).
 
 ## Ainda não confirmado
 
-- Quantos documentos cabem num lote. Bibliotecas de terceiros citam 50; o Swagger não diz.
-- Se o ADN mantém ponteiro por CNPJ e rejeita consulta fora de sequência, como a SEFAZ faz com o `cStat` 656 na NF-e.
+- Se o "inclusive" do Swagger de municípios vale também para o de contribuintes — confirmar com lote real.
+- Se o ADN mantém ponteiro por CNPJ e rejeita consulta fora de sequência, como a SEFAZ faz com o `cStat` 656 na NF-e. Repetir o mesmo NSU com fila vazia não bloqueou (404/`E2220` nas duas vezes); falta testar com documentos.
 - Limite de cadência (rate limit).
-- Cadeia TLS de `adn.nfse.gov.br` (produção).
 
 ## Cobertura
 
