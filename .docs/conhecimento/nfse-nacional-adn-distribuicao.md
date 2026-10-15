@@ -78,15 +78,28 @@ HTTP 404
 - Produção restrita se identifica como `TipoAmbiente: HOMOLOGACAO`.
 - A cadeia TLS de `adn.producaorestrita.nfse.gov.br` e de `adn.nfse.gov.br` (produção) fecha com o `CA_PADRAO` (raízes do Node + ICP-Brasil), sem ajuste — conferido com `rejectUnauthorized: true`.
 - O Swagger de contribuintes de produção é idêntico byte a byte ao de produção restrita.
-- **Lote de até 50 documentos.** O Swagger de contribuintes não diz; o da API irmã de municípios, com o mesmo `GET /DFe/{NSU}`, diz "Retorna um lote contendo até 50 Documentos Fiscais de Serviço a partir do NSU informado (inclusive)" ([swagger-adn-municipios](fontes/nfse-nacional/swagger-adn-municipios-v1-20261015.json)). O "inclusive" importa: o próximo pedido parte do último NSU recebido **mais um**, ao contrário do `ultNSU` da NF-e.
+- O Swagger de contribuintes de produção é idêntico byte a byte ao de produção restrita.
 
 Os Swaggers estão versionados em [fontes/nfse-nacional/](fontes/nfse-nacional/README.md).
 
+### Em produção
+
+Drenagem completa da fila de um CNPJ em 2026-10-15, com `GET /DFe/{NSU}?lote=true` em sequência, partindo de `1` e depois conferindo a partir de `0`:
+
+- **O NSU informado não entra no lote** — a semântica é a do `ultNSU` da NF-e. `GET /DFe/0` devolve a partir do NSU 1; `GET /DFe/51` devolve a partir do 52. O próximo pedido usa o **último NSU recebido**, sem somar 1. O Swagger da API irmã de municípios diz "a partir do NSU informado (inclusive)" ([swagger-adn-municipios](fontes/nfse-nacional/swagger-adn-municipios-v1-20261015.json)) — não vale para a de contribuintes.
+- **Lote de até 50 documentos**, NSUs consecutivos, sem buraco. O último lote veio incompleto (`200`) e o pedido seguinte, a partir do último NSU, deu `404`/`E2220`.
+- **O histórico vem desde o primeiro documento do CNPJ no ADN** — no caso, outubro de 2023, NSU 1. A distribuição não começa na primeira consulta: quem chega agora recebe tudo.
+- **Voltar para um NSU anterior funciona.** Depois de chegar ao fim da fila, `GET /DFe/0` devolveu o primeiro lote normalmente. Não há bloqueio de sequência como o `cStat` 656 da NF-e.
+- **Sem limite de cadência observado** em cerca de 120 chamadas seguidas, sem intervalo.
+- **A fila mistura todos os papéis do CNPJ:** NFS-e em que ele é **tomador**, NFS-e que ele **emitiu**, e eventos de terceiros sobre notas dele — Confirmação e Rejeição do tomador sobre as notas emitidas, cancelamento pelo prestador sobre as recebidas. Quem quer só as recebidas filtra pelo `toma` do XML; o ADN não filtra.
+- Vêm NFS-e geradas pela SEFIN Nacional (`ambGer` 2) e por sistema próprio de município (`ambGer` 1), nas versões de leiaute `1.00` e `1.01` misturadas.
+- `ArquivoXml` é gzip + base64 em todos os itens. NFS-e tem raiz `NFSe`; evento tem raiz `evento`. Em item `NFSE`, `TipoEvento` vem ausente, não `null`.
+- `GET /NFSe/{ChaveAcesso}/Eventos` devolve, além dos eventos, **a própria NFS-e** no `LoteDFe`, com o NSU original de cada item.
+
 ## Ainda não confirmado
 
-- Se o "inclusive" do Swagger de municípios vale também para o de contribuintes — confirmar com lote real.
-- Se o ADN mantém ponteiro por CNPJ e rejeita consulta fora de sequência, como a SEFAZ faz com o `cStat` 656 na NF-e. Repetir o mesmo NSU com fila vazia não bloqueou (404/`E2220` nas duas vezes); falta testar com documentos.
-- Limite de cadência (rate limit).
+- Se a distribuição tem retenção máxima — o histórico observado não mostrou corte.
+- Limite de cadência sob carga maior que a observada.
 
 ## Cobertura
 
