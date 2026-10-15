@@ -3,7 +3,7 @@
 **Status**: Aceito
 **Data**: 2026-10-01
 
-> Complementa a [ADR 0004](0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md), cujo princípio não muda, e encerra a "exceção conhecida" registrada nela: `Gzip.unzip` de um `docZip` corrompido. A 0004 não é editada; este registro é o que a resolve. O número 0010 segue reservado pela [GH-3](../../tasks/specified/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md).
+> Complementa a [ADR 0004](0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md), cujo princípio não muda, e encerra a "exceção conhecida" registrada nela: `Gzip.unzip` de um `docZip` corrompido. A 0004 não é editada; este registro é o que a resolve. O número 0010 segue reservado pela [GH-3](../../tarefas/especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md).
 
 ## Contexto
 

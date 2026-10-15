@@ -3,7 +3,7 @@
 | Campo                | Valor                                                                   |
 | -------------------- | ----------------------------------------------------------------------- |
 | **Issue**            | [GH-3](https://github.com/bitize/bit-mde/issues/3)                      |
-| **Status**           | specified                                                               |
+| **Status**           | especificadas                                                           |
 | **Prioridade**       | P2 (médio)                                                              |
 | **Tipo**             | feature                                                                 |
 | **Camadas afetadas** | apis / validators / controllers / helpers / schemas / env / util / test |
@@ -117,7 +117,7 @@ const DOCUMENTOS = {
 | 4   | O `?wsdl` no fim da URL, herdado do endpoint de NF-e, é inofensivo no CT-e e no MDF-e?                                                          | Testar as duas formas; padronizar a que responder                |
 | 5   | Homologação do CT-e responde em `hom1.cte.fazenda.gov.br`? Do MDF-e, em `mdfe-homologacao.svrs.rs.gov.br`?                                      | `test/sefaz.test.js` estendido                                   |
 
-> As respostas entram nesta seção **antes** de a implementação começar, e a tarefa foi promovida a `specified/` com elas ainda abertas. Enquanto a 1 e a 2 não forem confirmadas em homologação, RF-07 e o descritor do CT-e não têm forma final — quem pegar a tarefa começa por essa confirmação, não pelo código.
+> As respostas entram nesta seção **antes** de a implementação começar, e a tarefa foi promovida a `especificadas/` com elas ainda abertas. Enquanto a 1 e a 2 não forem confirmadas em homologação, RF-07 e o descritor do CT-e não têm forma final — quem pegar a tarefa começa por essa confirmação, não pelo código.
 
 ---
 
@@ -172,7 +172,7 @@ const DOCUMENTOS = {
 
 - `DistribuicaoHelper` e `DistribuicaoController` passam a receber o descritor por `opts` (a classe de `apis/` o injeta junto da config). `montarResponse` lê a resposta pelo nome vindo do descritor (`<doc>DistDFeInteresseResponse` › `<doc>DistDFeInteresseResult` › `retDistDFeInt`), mantendo a desestruturação defensiva com default em cada nível.
 - Alternativa aceitável na implementação, se a parametrização do `montarResponse` ficar ilegível: três controllers finos delegando a **um** helper parametrizado. O que não é aceitável é copiar `montarResponse`.
-- Campos novos no retorno: **nenhum** além dos que a NF-e já tem. `docZip[]` continua com `xml`, `json`, `nsu` e `schema`, `docZipErrors[]` com `nsu`, `schema` e `error` ([GH-11](../done/GH-11-doczip-corrompido-nao-derruba-o-lote.md), [ADR 0013](../../arquitetura/decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md)), e todo escalar continua com `|| ''`. O que muda é o valor de `schema` que a SEFAZ devolve (`procCTe`, `resCTe`, `procEventoCTe`, `procMDFe`…) — a biblioteca segue sem interpretá-lo.
+- Campos novos no retorno: **nenhum** além dos que a NF-e já tem. `docZip[]` continua com `xml`, `json`, `nsu` e `schema`, `docZipErrors[]` com `nsu`, `schema` e `error` ([GH-11](../concluidas/GH-11-doczip-corrompido-nao-derruba-o-lote.md), [ADR 0013](../../arquitetura/decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md)), e todo escalar continua com `|| ''`. O que muda é o valor de `schema` que a SEFAZ devolve (`procCTe`, `resCTe`, `procEventoCTe`, `procMDFe`…) — a biblioteca segue sem interpretá-lo.
 - **Herdado da GH-11:** o tratamento por item de `docZip` (`abrirDocZip`, que nunca rejeita) e a normalização de `loteDistDFeInt` — string vazia vira lote vazio, qualquer outra forma não-lote vira `error: 'loteDistDFeInt inválido.'` — já estão no `montarResponse` da NF-e. Ao parametrizar, **preservar os dois**: são independentes do tipo de documento e valem igual para CT-e e MDF-e. Não reintroduzir `Promise.all` sobre operação que pode rejeitar.
 - `enviarConsulta` precisa repassar `tpAmb` ao `SefazService` também nos documentos novos (o fork da vexta esqueceu).
 - JSDoc do controller a atualizar: é ele que vira o tipo de retorno público dos seis métodos novos.
@@ -245,9 +245,9 @@ Executar **após o PR ser mergeado na `main`**:
 
 - [ ] Desvios registrados em "Notas de implementação"
 - [ ] Checklists marcados
-- [ ] Cabeçalho: **Status** = `done` e **Concluído em** preenchido
-- [ ] Arquivo movido: `git mv .docs/tasks/specified/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md .docs/tasks/done/`
-- [ ] Blockquote de especificação na issue apontando para `.docs/tasks/done/` (era `specified/`)
+- [ ] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [ ] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md .docs/tarefas/concluidas/`
+- [ ] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
 - [ ] Issue fechada no GitHub
 
 ## Referências
@@ -266,8 +266,8 @@ Executar **após o PR ser mergeado na `main`**:
 
 ## Histórico de revisões
 
-| Data       | Rev | Descrição                                                                    |
-| ---------- | --- | ---------------------------------------------------------------------------- |
-| 2026-08-16 | 0.1 | Rascunho inicial, com cinco questões em aberto para confirmar                |
-| 2026-08-16 | 1.0 | Promovida a `specified/` com a issue GH-3; questões em aberto seguem abertas |
-| 2026-10-01 | 1.1 | RF-04 e helpers ajustados ao `docZipErrors` entregue pela GH-11              |
+| Data       | Rev | Descrição                                                                        |
+| ---------- | --- | -------------------------------------------------------------------------------- |
+| 2026-08-16 | 0.1 | Rascunho inicial, com cinco questões em aberto para confirmar                    |
+| 2026-08-16 | 1.0 | Promovida a `especificadas/` com a issue GH-3; questões em aberto seguem abertas |
+| 2026-10-01 | 1.1 | RF-04 e helpers ajustados ao `docZipErrors` entregue pela GH-11                  |

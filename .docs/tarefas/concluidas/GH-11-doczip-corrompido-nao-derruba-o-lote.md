@@ -3,7 +3,7 @@
 | Campo                | Valor                                               |
 | -------------------- | --------------------------------------------------- |
 | **Issue**            | [GH-11](https://github.com/bitize/bitmde/issues/11) |
-| **Status**           | done                                                |
+| **Status**           | concluidas                                          |
 | **Prioridade**       | P1 (alto)                                           |
 | **Tipo**             | correção                                            |
 | **Camadas afetadas** | controllers / helpers / util / test                 |
@@ -145,7 +145,7 @@ Se **todos** os `docZip` falharem, o retorno continua sendo sucesso de transport
   ```
 
 - **Mudança quebra a API pública?** Não. Campo aditivo; `docZip` mantém forma e semântica. Muda o comportamento de um caso que hoje encerra o processo — nenhum consumidor depende disso. Versão: **minor** (0.18.0), por acrescentar campo ao retorno.
-- **Interação com a GH-3:** a [GH-3](../specified/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) parametriza este mesmo `montarResponse` por documento e diz "campos novos no retorno: nenhum". Quem entrar depois rebaseia: se esta tarefa entrar primeiro, a GH-3 herda `docZipErrors` para CT-e e MDF-e sem trabalho extra (o tratamento por item independe do tipo de documento) e precisa ajustar o RF-04 dela.
+- **Interação com a GH-3:** a [GH-3](../especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) parametriza este mesmo `montarResponse` por documento e diz "campos novos no retorno: nenhum". Quem entrar depois rebaseia: se esta tarefa entrar primeiro, a GH-3 herda `docZipErrors` para CT-e e MDF-e sem trabalho extra (o tratamento por item independe do tipo de documento) e precisa ajustar o RF-04 dela.
 
 ---
 
@@ -207,9 +207,9 @@ Executar **após o PR ser mergeado na `main`**:
 
 - [x] Desvios registrados em "Notas de implementação"
 - [x] Checklists marcados
-- [x] Cabeçalho: **Status** = `done` e **Concluído em** preenchido
-- [x] Arquivo movido: `git mv .docs/tasks/specified/GH-11-doczip-corrompido-nao-derruba-o-lote.md .docs/tasks/done/GH-11-doczip-corrompido-nao-derruba-o-lote.md`
-- [x] Blockquote de especificação na issue apontando para `.docs/tasks/done/` (era `specified/`)
+- [x] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [x] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-11-doczip-corrompido-nao-derruba-o-lote.md .docs/tarefas/concluidas/GH-11-doczip-corrompido-nao-derruba-o-lote.md`
+- [x] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
 - [x] Issue fechada no GitHub
 
 ## Referências
@@ -220,7 +220,7 @@ Executar **após o PR ser mergeado na `main`**:
 - [Testes e certificados](../../arquitetura/testes-e-certificados.md)
 - [ADR 0004 — Erro de configuração lança; erro de rede/SEFAZ vira retorno](../../arquitetura/decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md)
 - [ADR 0006 — JS com JSDoc em vez de TypeScript](../../arquitetura/decisoes/0006-js-com-jsdoc-em-vez-de-typescript.md)
-- [GH-3 — Suporte a CT-e e MDF-e na distribuição](../specified/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) — mexe no mesmo `montarResponse`
+- [GH-3 — Suporte a CT-e e MDF-e na distribuição](../especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) — mexe no mesmo `montarResponse`
 - Origem: DEV-987 (rastreador interno da Bitize)
 - Issue: https://github.com/bitize/bitmde/issues/11
 
@@ -231,4 +231,4 @@ Executar **após o PR ser mergeado na `main`**:
 | 2026-10-01 | 1.0 | Criação da especificação                                                                     |
 | 2026-10-01 | 1.1 | Implementação: issue #11, ADR 0013, código, testes e docs; desvios em Notas de implementação |
 | 2026-10-01 | 1.2 | Revisão do PR: `loteDistDFeInt` que não é lote vira `error` em vez de lote vazio             |
-| 2026-10-01 | 1.3 | Entregue no PR #12 (merge `8def983`); tarefa movida para `done/`                             |
+| 2026-10-01 | 1.3 | Entregue no PR #12 (merge `8def983`); tarefa movida para `concluidas/`                       |

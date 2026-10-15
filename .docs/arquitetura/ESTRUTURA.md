@@ -4,7 +4,7 @@ Este documento existe para evitar a pergunta "onde eu escrevo isso?" e, principa
 
 ## A regra de uma linha
 
-> O **README.md** ensina a usar. O **CLAUDE.md** diz o que não pode ser quebrado. O **`.docs/arquitetura/`** explica como funciona. O **`.docs/arquitetura/decisoes/`** explica por que é assim. O **`.docs/tasks/`** registra o que vai mudar.
+> O **README.md** ensina a usar. O **CLAUDE.md** diz o que não pode ser quebrado. O **`.docs/arquitetura/`** explica como funciona. O **`.docs/arquitetura/decisoes/`** explica por que é assim. O **`.docs/tarefas/`** registra o que vai mudar.
 
 ## Fronteiras
 
@@ -42,9 +42,9 @@ Contraexemplo: "usamos 2 espaços de indentação" não é ADR — é configura�
 
 Material que **não é nosso**: manual de orientação do contribuinte, notas técnicas da SEFAZ, XSDs, comportamentos observados do serviço, links. Separado da arquitetura porque tem outro ciclo de vida — muda quando a SEFAZ muda, não quando nosso código muda.
 
-### `.docs/tasks/`
+### `.docs/tarefas/`
 
-Trabalho: especificação antes, registro depois. Fluxo em [../tasks/README.md](../tasks/README.md).
+Trabalho: especificação antes, registro depois. Fluxo em [../tarefas/README.md](../tarefas/README.md).
 
 ## Quando criar arquivo novo
 

@@ -57,7 +57,7 @@ Escolhemos X porque Y.
 | [0013](0013-falha-de-doczip-vira-item-de-doczip-errors.md)             | Falha de `docZip` vira item de `docZipErrors`, sem derrubar o lote da distribuição                             |
 | [0014](0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md) | TLS validado por padrão com raízes do Node + ICP-Brasil; erro de transporte com `status: 0` e `transportError` |
 
-> O **0010** está reservado pela tarefa [GH-3](../../tasks/specified/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md), que já o referencia em texto commitado — daí o salto na tabela. Número de ADR não se reutiliza nem se renumera.
+> O **0010** está reservado pela tarefa [GH-3](../../tarefas/especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md), que já o referencia em texto commitado — daí o salto na tabela. Número de ADR não se reutiliza nem se renumera.
 
 ## Próximos candidatos
 

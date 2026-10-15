@@ -3,7 +3,7 @@
 | Campo                | Valor                                                     |
 | -------------------- | --------------------------------------------------------- |
 | **Issue**            | [GH-14](https://github.com/bitize/bitmde/issues/14)       |
-| **Status**           | done                                                      |
+| **Status**           | concluidas                                                |
 | **Prioridade**       | P1 (alto)                                                 |
 | **Tipo**             | correção                                                  |
 | **Camadas afetadas** | apis / controllers / helpers / services / env / test / CI |
@@ -252,9 +252,9 @@ Executar **após o PR ser mergeado na `main`**:
 
 - [x] Desvios registrados em "Notas de implementação"
 - [x] Checklists marcados — os dois de `sefaz.test.js` com A1 real fecharam antes do release da 0.19.0 (ver Notas de implementação)
-- [x] Cabeçalho: **Status** = `done` e **Concluído em** preenchido
-- [x] Arquivo movido: `git mv .docs/tasks/specified/GH-14-tls-validado-e-erro-de-transporte-explicito.md .docs/tasks/done/GH-14-tls-validado-e-erro-de-transporte-explicito.md`
-- [x] Blockquote de especificação na issue apontando para `.docs/tasks/done/` (era `specified/`)
+- [x] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [x] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-14-tls-validado-e-erro-de-transporte-explicito.md .docs/tarefas/concluidas/GH-14-tls-validado-e-erro-de-transporte-explicito.md`
+- [x] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
 - [x] Issue fechada no GitHub (pelo `Closes #14` do PR #15)
 
 ## Referências
@@ -272,9 +272,9 @@ Executar **após o PR ser mergeado na `main`**:
 
 ## Histórico de revisões
 
-| Data       | Rev | Descrição                                                        |
-| ---------- | --- | ---------------------------------------------------------------- |
-| 2026-10-03 | 1.0 | Criação da especificação                                         |
-| 2026-10-03 | 1.1 | Implementação e notas                                            |
-| 2026-10-03 | 1.2 | Entregue no PR #15 (merge `dcaffd9`); tarefa movida para `done/` |
-| 2026-10-03 | 1.3 | `sefaz.test.js` com A1 real: 6/6; liberado o release da 0.19.0   |
+| Data       | Rev | Descrição                                                              |
+| ---------- | --- | ---------------------------------------------------------------------- |
+| 2026-10-03 | 1.0 | Criação da especificação                                               |
+| 2026-10-03 | 1.1 | Implementação e notas                                                  |
+| 2026-10-03 | 1.2 | Entregue no PR #15 (merge `dcaffd9`); tarefa movida para `concluidas/` |
+| 2026-10-03 | 1.3 | `sefaz.test.js` com A1 real: 6/6; liberado o release da 0.19.0         |

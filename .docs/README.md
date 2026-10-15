@@ -9,7 +9,7 @@ Documentação de desenvolvimento do repositório. **Não** vai no pacote public
 | [arquitetura/](arquitetura/)                   | Como o código é organizado e quais invariantes o sustentam. Fonte da verdade para especificar tarefa. |
 | [arquitetura/decisoes/](arquitetura/decisoes/) | ADRs — o _porquê_ de escolhas que atravessam vários docs.                                             |
 | [conhecimento/](conhecimento/)                 | Material externo: SEFAZ (MOC, notas técnicas, XSD), links e notas de terceiros.                       |
-| [tasks/](tasks/)                               | Tarefas de desenvolvimento versionadas, com ciclo de vida em pastas.                                  |
+| [tarefas/](tarefas/)                           | Tarefas de desenvolvimento versionadas, com ciclo de vida em pastas.                                  |
 
 ## Onde cada coisa é documentada
 
@@ -21,7 +21,7 @@ Documentação de desenvolvimento do repositório. **Não** vai no pacote public
 | Como contribuir / código de conduta          | [CONTRIBUTING.md](../CONTRIBUTING.md), [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) |
 | Estrutura interna, camadas, invariantes      | [arquitetura/](arquitetura/)                                                       |
 | Porquê de uma escolha estrutural             | [arquitetura/decisoes/](arquitetura/decisoes/)                                     |
-| Trabalho planejado, em andamento ou entregue | [tasks/](tasks/)                                                                   |
+| Trabalho planejado, em andamento ou entregue | [tarefas/](tarefas/)                                                               |
 
 O critério de fronteira entre esses destinos está em [arquitetura/ESTRUTURA.md](arquitetura/ESTRUTURA.md).
 

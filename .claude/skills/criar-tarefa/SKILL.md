@@ -1,25 +1,25 @@
 ---
 name: criar-tarefa
-description: Cria e especifica uma tarefa em .docs/tasks/ do bitmde — nome do arquivo, fontes da verdade a ler por camada tocada, preenchimento do template, abertura da issue no GitHub e promoção de drafts/ para specified/. USE WHEN o pedido for criar, especificar, planejar ou promover uma tarefa deste repositório. Trigger words - criar tarefa, nova tarefa, especificar tarefa, promover tarefa, abrir issue, task nova, create task, new task, spec a task, task workflow.
+description: Cria e especifica uma tarefa em .docs/tarefas/ do bitmde — nome do arquivo, fontes da verdade a ler por camada tocada, preenchimento do modelo, abertura da issue no GitHub e promoção de rascunhos/ para especificadas/. USE WHEN o pedido for criar, especificar, planejar ou promover uma tarefa deste repositório. Trigger words - criar tarefa, nova tarefa, especificar tarefa, promover tarefa, abrir issue, task nova, create task, new task, spec a task, task workflow.
 ---
 
 # Criar tarefa — bitmde
 
-Procedimento executável. O **formato** da tarefa (ciclo de vida, nomenclatura, o que preencher ao concluir ou cancelar) é definido em [.docs/tasks/README.md](../../../.docs/tasks/README.md) e no [template](../../../.docs/tasks/_templates/task-template.md) — ler de lá, não reproduzir aqui. Esta skill cobre o que **fazer**, na ordem, e as decisões que costumam sair erradas.
+Procedimento executável. O **formato** da tarefa (ciclo de vida, nomenclatura, o que preencher ao concluir ou cancelar) é definido em [.docs/tarefas/README.md](../../../.docs/tarefas/README.md) e no [modelo](../../../.docs/tarefas/_modelos/modelo-de-tarefa.md) — ler de lá, não reproduzir aqui. Esta skill cobre o que **fazer**, na ordem, e as decisões que costumam sair erradas.
 
-Regra de fronteira, herdada de [ESTRUTURA.md](../../../.docs/arquitetura/ESTRUTURA.md): se a informação já está no README de tasks ou no template, referencie; não copie.
+Regra de fronteira, herdada de [ESTRUTURA.md](../../../.docs/arquitetura/ESTRUTURA.md): se a informação já está no README de tarefas ou no modelo, referencie; não copie.
 
 ---
 
-## Passo 1 — Nascer em `drafts/`
+## Passo 1 — Nascer em `rascunhos/`
 
 ```bash
-cp .docs/tasks/_templates/task-template.md .docs/tasks/drafts/descricao-curta.md
+cp .docs/tarefas/_modelos/modelo-de-tarefa.md .docs/tarefas/rascunhos/descricao-curta.md
 ```
 
-Nome: kebab-case, minúsculo, **sem acento**, até 50 caracteres, descrição em **português**. Em `drafts/` não há prefixo — a issue ainda não existe.
+Nome: kebab-case, minúsculo, **sem acento**, até 50 caracteres, descrição em **português**. Em `rascunhos/` não há prefixo — a issue ainda não existe.
 
-Exceção: tarefa que nasce de issue já aberta por terceiro entra em `drafts/` já com o número (`GH-NN-descricao.md`).
+Exceção: tarefa que nasce de issue já aberta por terceiro entra em `rascunhos/` já com o número (`GH-NN-descricao.md`).
 
 ## Passo 2 — Ler as fontes da verdade **antes** de especificar
 
@@ -46,7 +46,7 @@ Marcar no cabeçalho da tarefa o que foi efetivamente lido, e registrar em **Ref
 
 **Um ADR aceito não se edita.** Se a tarefa contraria uma invariante, ela precisa propor um ADR novo que supersede o antigo — e isso vai na seção Decisões de design, não passa em silêncio.
 
-## Passo 3 — Preencher o template
+## Passo 3 — Preencher o modelo
 
 Sempre: Contexto e motivação, Requisitos, Decisões de design, Testes, Checklist de implementação.
 
@@ -64,7 +64,7 @@ Ao escrever, antecipar as armadilhas que este repositório tem e que a especific
 
 Se a decisão tem alternativa real e reversão custosa, ela merece ADR próprio — não só um parágrafo na tarefa.
 
-## Passo 4 — Promover para `specified/`
+## Passo 4 — Promover para `especificadas/`
 
 Só depois de a especificação estar aceita.
 
@@ -82,14 +82,14 @@ Há um ovo-e-galinha aqui: o corpo da issue precisa apontar para o caminho final
 2. **Mover com `git mv`**, do nome criado no Passo 1 para o nome com prefixo:
 
    ```bash
-   git mv .docs/tasks/drafts/descricao-curta.md \
-     .docs/tasks/specified/GH-$NN-descricao-curta.md
+   git mv .docs/tarefas/rascunhos/descricao-curta.md \
+     .docs/tarefas/especificadas/GH-$NN-descricao-curta.md
    ```
 
-   Se o arquivo já nasceu prefixado, a origem é `.docs/tasks/drafts/GH-$NN-descricao-curta.md` — o `git mv` só troca o diretório.
+   Se o arquivo já nasceu prefixado, a origem é `.docs/tarefas/rascunhos/GH-$NN-descricao-curta.md` — o `git mv` só troca o diretório.
 
-3. **Preencher o cabeçalho** — título `# GH-NN: …` com o número real, campo **Issue**, **Status** `specified`, **Atualizado em**. Título, campo **Issue** e nome do arquivo precisam concordar no mesmo `NN`.
-4. **Escrever o corpo da issue** — resumo de até ~300 palavras, nunca a especificação inteira, no formato de [Integração com o GitHub](../../../.docs/tasks/README.md).
+3. **Preencher o cabeçalho** — título `# GH-NN: …` com o número real, campo **Issue**, **Status** `especificadas`, **Atualizado em**. Título, campo **Issue** e nome do arquivo precisam concordar no mesmo `NN`.
+4. **Escrever o corpo da issue** — resumo de até ~300 palavras, nunca a especificação inteira, no formato de [Integração com o GitHub](../../../.docs/tarefas/README.md).
 
 O comando do passo 4, com o `EOF` na coluna 0 (indentar o terminador impede o heredoc de fechar):
 
@@ -106,12 +106,12 @@ gh issue edit "$NN" --body "$(cat <<EOF
 
 ---
 
-> **Especificação completa:** \`.docs/tasks/specified/GH-$NN-descricao-curta.md\`
+> **Especificação completa:** \`.docs/tarefas/especificadas/GH-$NN-descricao-curta.md\`
 EOF
 )"
 ```
 
-O blockquote é obrigatório e **envelhece a cada `git mv`**: repetir esse `gh issue edit` sempre que a tarefa mudar de diretório, trocando `specified/` por `done/` ou `canceled/`.
+O blockquote é obrigatório e **envelhece a cada `git mv`**: repetir esse `gh issue edit` sempre que a tarefa mudar de diretório, trocando `especificadas/` por `concluidas/` ou `canceladas/`.
 
 > **O repositório é público.** Nada de certificado, CNPJ de cliente, chave de NF-e real ou XML de produção na issue. Anonimizar quando for necessário ao diagnóstico — inclusive `cStat`/`xMotivo` colados de rejeição real.
 
@@ -123,12 +123,12 @@ Tarefa é Markdown em `.docs/`, que **não** está no `.prettierignore` e passa 
 npm run format
 ```
 
-Os demais gates (`certs:teste` + `test:ci`, `sefaz.test.js` à parte, `build`) valem para o PR de **implementação**, e já estão na seção "Validação pré-PR" do template. Não rodar teste para commitar uma especificação.
+Os demais gates (`certs:teste` + `test:ci`, `sefaz.test.js` à parte, `build`) valem para o PR de **implementação**, e já estão na seção "Validação pré-PR" do modelo. Não rodar teste para commitar uma especificação.
 
 ---
 
 ## Fechamento
 
-Concluir ou cancelar segue a checklist que já está na própria tarefa ("Conclusão e entrega") e em [.docs/tasks/README.md](../../../.docs/tasks/README.md). O ponto mais esquecido dos dois fluxos: depois do `git mv`, **corrigir o blockquote de especificação no corpo da issue**, trocando `specified/` por `done/` ou `canceled/`.
+Concluir ou cancelar segue a checklist que já está na própria tarefa ("Conclusão e entrega") e em [.docs/tarefas/README.md](../../../.docs/tarefas/README.md). O ponto mais esquecido dos dois fluxos: depois do `git mv`, **corrigir o blockquote de especificação no corpo da issue**, trocando `especificadas/` por `concluidas/` ou `canceladas/`.
 
 Tarefa cancelada não se apaga — vira registro, com o motivo, e os checklists ficam desmarcados.
