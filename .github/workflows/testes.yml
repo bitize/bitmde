@@ -1,10 +1,16 @@
 name: Testes
 
+# Mudança só de documentação não roda a suíte: nenhum teste lê esses arquivos,
+# e o Prettier que os valida está em qualidade.yml, que roda sempre. Basta um
+# arquivo fora da lista para tudo rodar. Se estes checks virarem obrigatórios
+# na proteção da main, PR só de docs fica esperando um status que nunca vem.
 on:
   push:
     branches: [main]
+    paths-ignore: ['**/*.md', '.docs/**', '.claude/**', 'LICENSE']
   pull_request:
     branches: [main]
+    paths-ignore: ['**/*.md', '.docs/**', '.claude/**', 'LICENSE']
 
 # Nenhum job aqui escreve no repositório: leitura basta, e o GITHUB_TOKEN
 # não fica gravado no .git/config dos runners (persist-credentials: false).

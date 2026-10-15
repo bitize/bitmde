@@ -112,7 +112,11 @@ Duas famílias de teste existem para travar invariantes de arquitetura, e é com
 npm ci  →  npm run certs:teste  →  npm run test:ci
 ```
 
-Em paralelo, [.github/workflows/qualidade.yml](../../.github/workflows/qualidade.yml) roda dois jobs em Node 22: `npm run format:check` (Prettier) e `npm run build`.
+Ele **não roda** quando a mudança é só de documentação: `paths-ignore` com `**/*.md`, `.docs/**`, `.claude/**` e `LICENSE`, em push e em PR. Nenhum teste lê esses arquivos — nem o `README.md` e o `CHANGELOG.md`, que vão no pacote; o tarball é conferido no `publicar.yml`, que não tem filtro e roda a suíte antes de todo release. Basta um arquivo fora da lista para o workflow rodar inteiro.
+
+Em paralelo, [.github/workflows/qualidade.yml](../../.github/workflows/qualidade.yml) roda dois jobs em Node 22: `npm run format:check` (Prettier) e `npm run build`. Esse roda sempre, porque é o Prettier que valida o Markdown de `.docs/`. O Build fica junto mesmo sendo dispensável em PR só de docs: filtro por caminho é por workflow, não por job, e separá-lo custaria um workflow a mais para economizar uns 20 s.
+
+Workflow pulado por `paths-ignore` não reporta status. Como a `main` não tem proteção de branch, isso não trava merge hoje; se os checks do `testes.yml` virarem obrigatórios, PR só de docs fica esperando para sempre, e o filtro precisa virar um job que sempre roda e decide pelos arquivos alterados.
 
 Fora de push e PR, [.github/workflows/cadeia-tls.yml](../../.github/workflows/cadeia-tls.yml) roda toda segunda-feira às 09:00 UTC, e também sob demanda (`workflow_dispatch`), em Node 24: `npm ci` → `npx mocha test/tls-sefaz.test.js`. É ele que avisa da próxima troca de cadeia do Ambiente Nacional antes que ela chegue a quem consome. O aviso de falha é o e-mail padrão do GitHub para workflow agendado; abrir issue automaticamente exigiria `issues: write` e ficou de fora. O GitHub desativa workflow agendado depois de 60 dias sem atividade no repositório — se o aviso sumir, conferir se ele ainda está ativo.
 

@@ -54,8 +54,10 @@ Quem não tem um A1 em mãos pode rodar `npm run certs:teste`, que gera um autoa
 
 Dois workflows em push e PR na `main`:
 
-- `.github/workflows/testes.yml` — matriz Node 22/24: `npm ci` → `npm run certs:teste` → `npm run test:ci`.
-- `.github/workflows/qualidade.yml` — dois jobs paralelos em Node 22: `npm run format:check` (Prettier) e `npm run build`.
+- `.github/workflows/testes.yml` — matriz Node 22/24: `npm ci` → `npm run certs:teste` → `npm run test:ci`. **Não roda** quando todos os arquivos alterados casam com `paths-ignore` (`**/*.md`, `.docs/**`, `.claude/**`, `LICENSE`).
+- `.github/workflows/qualidade.yml` — dois jobs paralelos em Node 22: `npm run format:check` (Prettier) e `npm run build`. Roda sempre, inclusive em PR só de docs: é o Prettier que valida o Markdown.
+
+Check pulado por `paths-ignore` nunca reporta status. Hoje a `main` não tem proteção de branch nem ruleset; se `Node 22.x`/`Node 24.x` virarem checks obrigatórios, PR só de docs fica preso em "Expected — Waiting for status". Nesse caso, trocar o `paths-ignore` por um job que sempre roda e decide pelos arquivos alterados. O `publicar.yml` não tem filtro e roda os testes antes de todo release.
 
 Mais um em release publicado, descrito em [Release](#release):
 
