@@ -15,7 +15,16 @@ Está separado de [../arquitetura/](../arquitetura/) porque tem outro ciclo de v
 
 - Como o nosso código funciona → [../arquitetura/](../arquitetura/);
 - Por que escolhemos algo → [../arquitetura/decisoes/](../arquitetura/decisoes/);
-- Cópia integral de documento da SEFAZ. Resumir o que importa e linkar a fonte; documento fiscal é revisado com frequência e a cópia envelhece em silêncio.
+- Cópia integral de documento da SEFAZ **fora de [fontes/](fontes/)**. Nos resumos, resumir o que importa e linkar a fonte; documento fiscal é revisado com frequência e a cópia envelhece em silêncio.
+
+## Fontes originais (`fontes/`)
+
+Quando um documento oficial é base de uma decisão ou de uma tarefa, o **original** fica versionado em `fontes/<assunto>/`, para que a decisão continue verificável mesmo depois de o portal trocar a versão. Regras:
+
+- **Nome com versão e data de publicação**, como o órgão as informa: `manual-contribuintes-apis-adn-v1.0-20260212.pdf`. Versão nova entra como **arquivo novo**, ao lado da anterior — não sobrescrever: o resumo e as tarefas citam a versão que leram.
+- **Arquivo como baixado**, sem editar. O `README.md` de cada assunto registra, por arquivo, a URL de origem, a data de download e o SHA-256.
+- **Só documento público.** Nada de XML de produção, certificado ou dado de contribuinte — o repositório é público.
+- O original não substitui o resumo: o que a biblioteca usa vai num `.md` aqui ao lado, citando o arquivo de `fontes/`.
 
 ## Convenção
 
