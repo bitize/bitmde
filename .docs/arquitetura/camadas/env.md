@@ -1,17 +1,18 @@
 # Camada `env/` — constantes
 
-[src/env/index.js](../../../src/env/index.js) reexporta oito constantes. Nada aqui lê variável de ambiente do processo, apesar do nome da pasta: são valores fixos, compilados no pacote.
+[src/env/index.js](../../../src/env/index.js) reexporta nove constantes. Nada aqui lê variável de ambiente do processo, apesar do nome da pasta: são valores fixos, compilados no pacote.
 
-| Constante      | Arquivo                                             | Conteúdo                                    |
-| -------------- | --------------------------------------------------- | ------------------------------------------- |
-| `DISTRIBUICAO` | [distribuicao.js](../../../src/env/distribuicao.js) | Endpoint do NFeDistribuicaoDFe por ambiente |
-| `RECEPCAO`     | [recepcao.js](../../../src/env/recepcao.js)         | Endpoint do NFeRecepcaoEvento4 por ambiente |
-| `CA`           | [ca.js](../../../src/env/ca.js)                     | Cadeia de certificados ICP-Brasil           |
-| `CA_PADRAO`    | [ca.js](../../../src/env/ca.js)                     | Raízes do Node + `CA` — o `ca` padrão       |
-| `EVENTOS`      | [evento.js](../../../src/env/evento.js)             | Os quatro eventos de manifestação           |
-| `CODIGOS_UF`   | [uf.js](../../../src/env/uf.js)                     | Códigos IBGE de UF aceitos em `cUFAutor`    |
-| `ZONES`        | [zone.js](../../../src/env/zone.js)                 | Timezones brasileiros aceitos               |
-| `VERSION`      | [version.js](../../../src/env/version.js)           | Versão do pacote — **gerado pelo build**    |
+| Constante      | Arquivo                                             | Conteúdo                                              |
+| -------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| `DISTRIBUICAO` | [distribuicao.js](../../../src/env/distribuicao.js) | Endpoint do NFeDistribuicaoDFe por ambiente           |
+| `RECEPCAO`     | [recepcao.js](../../../src/env/recepcao.js)         | Endpoint do NFeRecepcaoEvento4 por ambiente           |
+| `NFSE_ADN`     | [nfse.js](../../../src/env/nfse.js)                 | URL base da distribuição da NFS-e no ADN por ambiente |
+| `CA`           | [ca.js](../../../src/env/ca.js)                     | Cadeia de certificados ICP-Brasil                     |
+| `CA_PADRAO`    | [ca.js](../../../src/env/ca.js)                     | Raízes do Node + `CA` — o `ca` padrão                 |
+| `EVENTOS`      | [evento.js](../../../src/env/evento.js)             | Os quatro eventos de manifestação                     |
+| `CODIGOS_UF`   | [uf.js](../../../src/env/uf.js)                     | Códigos IBGE de UF aceitos em `cUFAutor`              |
+| `ZONES`        | [zone.js](../../../src/env/zone.js)                 | Timezones brasileiros aceitos                         |
+| `VERSION`      | [version.js](../../../src/env/version.js)           | Versão do pacote — **gerado pelo build**              |
 
 ## Endpoints e `tpAmb`
 
@@ -21,6 +22,15 @@ Os dois serviços rodam no **Ambiente Nacional (AN)**, e o mapa é indexado por 
 | ------- | ----------- | ------------------------- |
 | `'1'`   | Produção    | `www1.nfe.fazenda.gov.br` |
 | `'2'`   | Homologação | `hom1.nfe.fazenda.gov.br` |
+
+A distribuição da NFS-e roda no **Ambiente de Dados Nacional (ADN)**, com o mesmo `tpAmb`:
+
+| `tpAmb` | Ambiente          | URL base                                                 |
+| ------- | ----------------- | -------------------------------------------------------- |
+| `'1'`   | Produção          | `https://adn.nfse.gov.br/contribuintes`                  |
+| `'2'`   | Produção restrita | `https://adn.producaorestrita.nfse.gov.br/contribuintes` |
+
+A produção restrita se identifica como `TipoAmbiente: HOMOLOGACAO` na resposta. `NFSE_ADN` é URL base, não endpoint: o helper acrescenta `/DFe/{NSU}` ou `/NFSe/{chave}/Eventos`. A manifestação do tomador (GH-19) acrescenta `NFSE_SEFIN` no mesmo arquivo.
 
 Detalhe que engana: os objetos são declarados com chave **numérica** (`1:` e `2:`), mas `tpAmb` circula como **string**. Funciona porque chave de objeto em JS é sempre string — `DISTRIBUICAO['1']` acha `DISTRIBUICAO[1]`. Não "arrumar" nem um lado nem o outro sem ver o outro: o `AmbienteValidator` rejeita `tpAmb` numérico, então a string é a forma canônica na fronteira pública.
 
@@ -45,7 +55,7 @@ As duas saem na raiz do pacote, congeladas, como `CA_PADRAO` e `CA_ICP_BRASIL` (
 
 > `ca.js` é uma pequena exceção à regra de "módulo de dado" desta pasta: lê `tls` para montar `CA_PADRAO`. Mantido aqui, e não em `src/util/`, porque o resultado é uma constante como as outras, consultada pelos helpers pelo mesmo caminho de `CA`.
 
-Quem vigia a troca de cadeia é o workflow semanal [cadeia-tls.yml](../../../.github/workflows/cadeia-tls.yml), que roda [test/tls-sefaz.test.js](../../../test/tls-sefaz.test.js) contra `www1` e `hom1`. Ver [testes-e-certificados.md](../testes-e-certificados.md).
+Quem vigia a troca de cadeia é o workflow semanal [cadeia-tls.yml](../../../.github/workflows/cadeia-tls.yml), que roda [test/tls-sefaz.test.js](../../../test/tls-sefaz.test.js) contra `www1`, `hom1` e os dois hosts do ADN. O ADN serve Let's Encrypt (`YR1 ← Root YR`, com cross-sign da `ISRG Root X1`), que também fecha pelas raízes do Node e não pela ICP-Brasil. Ver [testes-e-certificados.md](../testes-e-certificados.md).
 
 Cadeia de AC tem validade. Incluir uma AC ICP-Brasil nova em `CA` só se justifica com um endpoint concreto que precise dela; a cadeia do AN já fecha pelas raízes do Node.
 

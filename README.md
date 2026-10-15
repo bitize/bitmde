@@ -5,9 +5,9 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/bitize/bitmde/blob/main/LICENSE)
 [![Mantido pelo BitERP](https://img.shields.io/badge/mantido%20por-BitERP-0b5fff.svg)](https://www.biterp.ai)
 
-Biblioteca para consumo dos Web Services da Sefaz de Distribuição de DF-e e Evento de Manifestação do Destinatário.
+Biblioteca para consumo dos Web Services da Sefaz de Distribuição de DF-e e Evento de Manifestação do Destinatário, e da distribuição de NFS-e Nacional pelo Ambiente de Dados Nacional (ADN).
 
-Essa biblioteca permite consultar a relação das notas fiscais emitidas contra um determinado CNPJ/CPF e realizar o envio do evento de manifestação, podendo assim, baixar o XML da NF-e.
+Essa biblioteca permite consultar a relação das notas fiscais emitidas contra um determinado CNPJ/CPF e realizar o envio do evento de manifestação, podendo assim, baixar o XML da NF-e. Com o mesmo certificado, consulta as NFS-e em que o CNPJ é tomador, prestador ou intermediário.
 
 Desenvolvida e mantida pela equipe do **[BitERP](https://www.biterp.ai)**, onde é usada em produção para a automação da manifestação do destinatário e do download de XML de NF-e de entrada.
 
@@ -37,6 +37,8 @@ npm i @bitize/bitmde
   - Retorna o Documento Fiscal referente ao NSU informado, podendo ser um `Resumo`, uma `NF-e` ou um `Evento`
 - Envio de evento
   - Registra o evento de manifestação na nota informada (`Confirmação da Operação`, `Ciência da Operação`, `Desconhecimento da Operação` ou `Operação não Realizada`)
+- Distribuição de NFS-e Nacional
+  - Consulta por último NSU, por NSU e por chave de acesso no ADN, com o papel do CNPJ (`tomador`, `prestador` ou `intermediario`) em cada NFS-e
 
 ## Distribuição de DF-e
 
@@ -348,6 +350,139 @@ console.log(manifestacao)
 // }
 ```
 
+## Distribuição de NFS-e Nacional
+
+Consulta, no Ambiente de Dados Nacional (ADN), as NFS-e e os eventos em que o CNPJ figura. A fila traz o histórico inteiro do CNPJ desde a primeira nota no ADN e mistura notas recebidas, notas emitidas e eventos de terceiros sobre umas e outras. A biblioteca **não filtra**: cada NFS-e vem com o `papel` do CNPJ consultado.
+
+> **Cobertura.** Só aparece a NFS-e que chegou ao ADN: as emitidas no Emissor Nacional e as de município cujo sistema próprio compartilha com o ADN. Nota de município que ainda não compartilha não está na distribuição, mesmo com a obrigatoriedade da LC 214/2025.
+
+### Construtor
+
+```js
+new DistribuicaoNFSe(config)
+```
+
+- `config` `<Object>`
+  - `pfx` `<Buffer>` - [OPCIONAL] - Arquivo **.pfx**. Se o `pfx` não for informado, as propriedades `cert` e `key` passam a ser obrigatórias.
+  - `passphrase` `<String>` - [OPCIONAL] - Senha do arquivo **.pfx**.
+  - `cert` `<Buffer | String>` - [OPCIONAL] - Conteúdo do _cert.pem_. Essa propriedade fica obrigatória se o `pfx` não for informado.
+  - `key` `<Buffer | String>` - [OPCIONAL] - Conteúdo do _key.pem_. Essa propriedade fica obrigatória se o `pfx` não for informado.
+  - `cnpj` `<String>` - [OBRIGATÓRIO] - CNPJ consultado, com 14 caracteres e sem pontuação (aceita o alfanumérico). Pode ser o do certificado ou o de outro estabelecimento com a mesma raiz.
+  - `tpAmb` `<String>` - [OBRIGATÓRIO] - Informar `'1'` para **Produção** ou `'2'` para **Produção restrita**.
+  - `options` `<Object>` - [OPCIONAL]
+    - `requestOptions` `<AxiosRequestConfig>` - [OPCIONAL]
+    - `httpsOptions` `<AgentOptions>` - [OPCIONAL] - Opções do `https.Agent`, mescladas por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. Ver [Conexão com a SEFAZ](#conexão-com-a-sefaz).
+
+### Consultas
+
+| Método                   | Argumento                          | Devolve                                        |
+| :----------------------- | :--------------------------------- | :--------------------------------------------- |
+| `consultaUltNSU(ultNSU)` | NSU, 1-15 dígitos; começa em `'0'` | Até 50 documentos **depois** do NSU informado  |
+| `consultaNSU(nsu)`       | NSU, 1-15 dígitos, maior que zero  | O documento daquele NSU                        |
+| `consultaChNFSe(chNFSe)` | Chave de acesso, 50 dígitos        | A NFS-e da chave e os eventos vinculados a ela |
+
+No ADN o NSU é um inteiro, sem zeros à esquerda: `'00051'` e `51` viram `'51'`.
+
+#### Exemplo: drenar a fila
+
+```js
+const { DistribuicaoNFSe } = require('@bitize/bitmde')
+const fs = require('fs')
+
+const distribuicao = new DistribuicaoNFSe({
+  pfx: fs.readFileSync('./certificado.pfx'),
+  passphrase: 'senha',
+  cnpj: '12345678000190',
+  tpAmb: '1',
+})
+
+let ultNSU = '0' // ou o último NSU guardado
+
+while (true) {
+  const consulta = await distribuicao.consultaUltNSU(ultNSU)
+
+  if (consulta.error) {
+    throw new Error(consulta.error)
+  }
+
+  const { documentos, documentosErros } = consulta.data
+
+  // Fim da fila: HTTP 404, NENHUM_DOCUMENTO_LOCALIZADO, sem error.
+  if (documentos.length === 0 && documentosErros.length === 0) {
+    break
+  }
+
+  for (const doc of documentos) {
+    if (doc.tipoDocumento === 'NFSE' && doc.papel === 'tomador') {
+      // NFS-e recebida: doc.xml e doc.json
+    }
+  }
+
+  ultNSU = [...documentos, ...documentosErros]
+    .map((doc) => doc.nsu)
+    .sort((a, b) => Number(a) - Number(b))
+    .pop()
+}
+```
+
+O próximo pedido usa o **último NSU recebido**, sem somar 1. O ADN não bloqueia quem volta a um NSU anterior, como faz a distribuição de NF-e, mas guardar o ponteiro e escolher o intervalo entre as consultas continua sendo de quem consome.
+
+#### Retorno
+
+```js
+console.log(consulta)
+// {
+//   data: {
+//     statusProcessamento: 'DOCUMENTOS_LOCALIZADOS',
+//     tipoAmbiente: 'PRODUCAO',
+//     versaoAplicativo: '1.0.0.0',
+//     dataHoraProcessamento: '2026-10-15T10:35:14.5687887-03:00',
+//     alertas: [],
+//     erros: [],
+//     documentos: [
+//       {
+//         nsu: '1',
+//         chaveAcesso: '41000000000000000000000000000000000000000000000001',
+//         tipoDocumento: 'NFSE',
+//         tipoEvento: '',
+//         dataHoraGeracao: '2026-10-01T09:12:00',
+//         papel: 'tomador',
+//         xml: '<?xml version="1.0" encoding="utf-8"?><NFSe versao="1.01" ... </NFSe>',
+//         json: { NFSe: { ... } },
+//       },
+//       {
+//         nsu: '2',
+//         chaveAcesso: '41000000000000000000000000000000000000000000000001',
+//         tipoDocumento: 'EVENTO',
+//         tipoEvento: 'CANCELAMENTO',
+//         dataHoraGeracao: '2026-10-02T15:40:00',
+//         papel: '',
+//         xml: '<?xml version="1.0" encoding="utf-8"?><evento versao="1.01" ... </evento>',
+//         json: { evento: { ... } },
+//       },
+//     ],
+//     documentosErros: [],
+//   },
+//   resBody: '{"StatusProcessamento":"DOCUMENTOS_LOCALIZADOS", ... }',
+//   status: 200,
+// }
+```
+
+- `papel` vale `'tomador'`, `'prestador'` ou `'intermediario'` quando o `cnpj` da config é o `toma`, o `prest` ou o `interm` da DPS, testados nessa ordem; `''` quando não é nenhum, e sempre `''` em eventos. Para ficar só com as recebidas, filtre por `tipoDocumento === 'NFSE' && papel === 'tomador'`.
+- `resBody` é o corpo cru da resposta do ADN, como veio. Não há `reqXml` nem `resXml`: a consulta é um `GET` sem corpo e a resposta é JSON.
+- `documentosErros` traz, com `nsu`, `chaveAcesso`, `tipoDocumento` e `error`, os itens cujo XML não abriu: `ArquivoXml sem conteúdo.`, `Falha ao descompactar o ArquivoXml: <motivo>` ou `Falha ao interpretar o XML do ArquivoXml: <motivo>`. Eles não derrubam o lote nem preenchem o `error` de topo.
+
+#### Quando há `error`
+
+| Situação                                          | `status` | `data`                       | `error`                                            |
+| :------------------------------------------------ | :------: | :--------------------------- | :------------------------------------------------- |
+| Fila vazia, chave ou NSU sem documento            |   404    | preenchido, `documentos: []` | —                                                  |
+| Rejeição do ADN (ex.: `cnpj` de outra raiz)       |   400    | preenchido, com `erros`      | `E2243: O CNPJ informado na consulta deve ter ...` |
+| Resposta que não é do ADN (ex.: HTML de um proxy) |   real   | `{}`                         | `Resposta inesperada do ADN (HTTP 502).`           |
+| Sem resposta HTTP                                 |    0     | `{}`                         | `Falha de transporte (<code>): <message>`          |
+
+Na rejeição, `data` **não** é esvaziado: `data.erros` traz o diagnóstico em `{ codigo, descricao, complemento }`. `error` e `transportError` têm o mesmo significado da distribuição de DF-e — ver [Erro de transporte](#erro-de-transporte).
+
 ## Conexão com a SEFAZ
 
 ### Validação do certificado do servidor
@@ -401,6 +536,8 @@ Quando não há resposta HTTP (falha na cadeia TLS, DNS, conexão recusada, time
 `transportError.code` é o código do Node ou do axios, sem tradução: `ECONNREFUSED`, `ENOTFOUND`, `ECONNRESET`, `ECONNABORTED` (timeout), `UNABLE_TO_GET_ISSUER_CERT_LOCALLY` (cadeia), entre outros. Sem código, vem `ERR_DESCONHECIDO`. `error` continua preenchido, então `if (retorno.error)` cobre esse caso como antes.
 
 Uma resposta HTTP de erro da SEFAZ, como um `502` ou um `503`, chega com o status real, o corpo em `resXml` e **sem** `transportError`. Então `status: 0` significa sempre "a SEFAZ não respondeu".
+
+Na `DistribuicaoNFSe` o erro de transporte tem a mesma forma, com `resBody: ''` no lugar de `reqXml` e `resXml`. As mesmas regras de `CA_PADRAO` e `httpsOptions` valem para os hosts do ADN, que hoje servem certificado Let's Encrypt.
 
 ## Sobre o BitERP
 
