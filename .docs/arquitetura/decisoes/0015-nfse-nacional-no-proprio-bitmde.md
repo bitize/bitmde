@@ -3,7 +3,7 @@
 **Status**: Aceito
 **Data**: 2026-10-15
 
-> Decisão 1 do plano [GH-17](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md), escrita na filha [GH-18](../../tarefas/especificadas/GH-18-distribuicao-nfse-nacional-adn.md). Não altera a [ADR 0001](0001-fork-e-republicacao-como-bitize-bit-mde.md): a mudança é aditiva.
+> Decisão 1 do plano [GH-17](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md), escrita na filha [GH-18](../../tarefas/concluidas/GH-18-distribuicao-nfse-nacional-adn.md). Não altera a [ADR 0001](0001-fork-e-republicacao-como-bitize-bit-mde.md): a mudança é aditiva.
 
 ## Contexto
 

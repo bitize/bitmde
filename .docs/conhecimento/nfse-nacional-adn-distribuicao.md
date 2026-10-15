@@ -97,7 +97,7 @@ Drenagem completa da fila de um CNPJ em 2026-10-15, com `GET /DFe/{NSU}?lote=tru
 
 ### Consultas avulsas e rejeições
 
-Chamadas de 2026-10-15, só leitura, feitas na implementação da [GH-18](../tarefas/especificadas/GH-18-distribuicao-nfse-nacional-adn.md):
+Chamadas de 2026-10-15, só leitura, feitas na implementação da [GH-18](../tarefas/concluidas/GH-18-distribuicao-nfse-nacional-adn.md):
 
 | Chamada                                               | Ambiente          | HTTP | `StatusProcessamento`          | `Erros`   |
 | ----------------------------------------------------- | ----------------- | ---- | ------------------------------ | --------- |

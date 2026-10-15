@@ -53,10 +53,12 @@ Sem o plano, quem consome — o bitERP, em primeiro lugar — só tem as NFS-e r
 
 | Ordem | Tarefa                                                                                                                       | Status        | Depende de | Entrega                                                                                                                      |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------- | ------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 1     | [GH-18 — Distribuição de NFS-e Nacional pelo ADN](../../tarefas/especificadas/GH-18-distribuicao-nfse-nacional-adn.md)       | especificadas | —          | `DistribuicaoNFSe`: fila do ADN por NSU e consulta por chave, com papel por item; retorno próprio da NFS-e; ADRs 0015 e 0016 |
+| 1     | [GH-18 — Distribuição de NFS-e Nacional pelo ADN](../../tarefas/concluidas/GH-18-distribuicao-nfse-nacional-adn.md)          | concluidas    | —          | `DistribuicaoNFSe`: fila do ADN por NSU e consulta por chave, com papel por item; retorno próprio da NFS-e; ADRs 0015 e 0016 |
 | 2     | [GH-19 — Manifestação do tomador da NFS-e Nacional](../../tarefas/especificadas/GH-19-manifestacao-tomador-nfse-nacional.md) | especificadas | GH-18      | `ManifestacaoNFSe`: Confirmação e Rejeição do tomador na SEFIN Nacional                                                      |
 
 A GH-19 depende da GH-18 pelas decisões 2 a 5: a GH-18 cria o retorno da NFS-e, o transporte REST/JSON, o validator de chave de 50 dígitos e o de CNPJ, que a GH-19 reaproveita.
+
+A GH-18 foi entregue no PR #20 (merge `cce9548`, 2026-10-15), com os dois desvios aprovados registrados nas notas dela: `consultaNSU` pede `nsu - 1` e o `error` sai do HTTP e do `Erros`, não só do `StatusProcessamento`. O segundo afeta a GH-19 pela Decisão 2 abaixo.
 
 ## Decisões transversais
 
@@ -93,12 +95,16 @@ A GH-19 depende da GH-18 pelas decisões 2 a 5: a GH-18 cria o retorno da NFS-e,
 
 > Contrato público com alternativa real: vira o **ADR 0016**, escrito na GH-18.
 
+> **Revisto depois da GH-18.** A [ADR 0016](../../arquitetura/decisoes/0016-retorno-proprio-da-nfse.md) acrescentou duas regras que valem para toda API de NFS-e: na falha com resposta JSON, `data` é **mantido** com os `erros`; e o `error` sai do HTTP e dos `erros`, não do status que o serviço declara, porque o ADN rejeita o E2243 com `StatusProcessamento: DOCUMENTOS_LOCALIZADOS`. O `RetornoNfseHelper` entregue tem regras próprias do ADN — a mensagem `Resposta inesperada do ADN`, o `statusProcessamento` e o caso `NENHUM_DOCUMENTO_LOCALIZADO` —, então a GH-19 precisa parametrizá-lo por serviço, e não só acrescentar o `reqXml`.
+
 ### Decisão 3: transporte pelo `SefazService` existente, sem mudar o default
 
 - **Opções consideradas:** (A) um service novo para REST; (B) o mesmo `SefazService`, com método, `Accept`, `Content-Type` e `responseType` informados por requisição pelo helper.
 - **Escolha:** B.
 - **Justificativa:** o `SefazService` já é genérico no que importa (agente mTLS, `CA_PADRAO`, `request` que nunca lança, só `code` e `message` saindo do erro). O default `application/soap+xml` continua valendo para NF-e. Os headers da NFS-e vão **na requisição**, que o axios mescla com os da instância — não em `requestOptions.headers`, que substitui o objeto inteiro ([services-sefaz.md](../../arquitetura/camadas/services-sefaz.md)). `responseType: 'text'` garante que `resBody` seja o corpo cru, e o `JSON.parse` acontece no helper, protegido.
 - **Filhas afetadas:** GH-18 e GH-19.
+
+> Confirmado na GH-18: o `Content-Type: application/soap+xml` do default vai num `GET` sem corpo e o ADN o ignora. Na GH-19 o `POST` tem corpo JSON, então o `Content-Type: application/json` vai na requisição.
 
 ### Decisão 4: CNPJ vem da config; quem confere contra o certificado é o serviço
 
@@ -114,18 +120,20 @@ A GH-19 depende da GH-18 pelas decisões 2 a 5: a GH-18 cria o retorno da NFS-e,
 
 ## Riscos e questões em aberto
 
-- **Cobertura incompleta.** Nota de município que ainda não compartilha com o ADN não aparece. Não é falha da biblioteca, mas o `README.md` precisa dizer isso — filha 1.
+- ~~**Cobertura incompleta.** Nota de município que ainda não compartilha com o ADN não aparece. Não é falha da biblioteca, mas o `README.md` precisa dizer isso — filha 1.~~ Resolvido na GH-18: ressalva na seção da NFS-e do `README.md`.
 - **Manifestação de nota de município com sistema próprio.** O Anexo II (`E1818`, `E1831`) indica que a SEFIN aceita; não foi exercitado. Se não valer, a filha 2 restringe o escopo às geradas pela SEFIN e o objetivo deste plano é revisado.
-- **Nota de teste para a filha 2.** Produção restrita não tem nenhuma NFS-e com a Bitize como tomadora. Alguém precisa emitir uma lá; manifestação em produção registra evento fiscal irreversível e só sai com decisão explícita sobre nota e evento.
-- **Distribuição em produção nos testes.** O ADN não tem bloqueio de sequência (verificado), então o teste de integração da filha 1 pode ler em produção sem dessincronizar consumidor. Mesmo assim, o bitERP passa a capturar NFS-e depois desta entrega; o teste lê, nunca grava ponteiro.
-- **Cadeia TLS dos hosts novos.** Os quatro fecham com `CA_PADRAO` hoje. Cada filha estende o `test/tls-sefaz.test.js` (e com isso o `cadeia-tls.yml`) para os hosts que toca.
+- **Nota de teste para a filha 2.** Produção restrita não tem nenhuma NFS-e com a Bitize como tomadora (a fila de lá ainda dava 404 em 2026-10-15). Alguém precisa emitir uma lá; manifestação em produção registra evento fiscal irreversível e só sai com decisão explícita sobre nota e evento. O `sefaz.test.js` da GH-18 já aceita a fila de produção restrita com ou sem documentos, então emitir a nota não o quebra.
+- ~~**Distribuição em produção nos testes.** O ADN não tem bloqueio de sequência (verificado), então o teste de integração da filha 1 pode ler em produção sem dessincronizar consumidor. Mesmo assim, o bitERP passa a capturar NFS-e depois desta entrega; o teste lê, nunca grava ponteiro.~~ Resolvido na GH-18: o `sefaz.test.js` só lê, e tira o CNPJ do certificado.
+- **Cadeia TLS dos hosts novos.** Os quatro fecham com `CA_PADRAO` hoje. Cada filha estende o `test/tls-sefaz.test.js` (e com isso o `cadeia-tls.yml`) para os hosts que toca. Os do ADN já entraram na GH-18 (Let's Encrypt, cross-sign da ISRG Root X1); faltam os da SEFIN, na GH-19.
+- **Status declarado pelo serviço não decide o erro.** O ADN rejeitou o E2243 com `StatusProcessamento: DOCUMENTOS_LOCALIZADOS`. A GH-19 confere, em produção restrita, se a SEFIN tem o mesmo comportamento, e decide o `error` pelo HTTP e pelos `erros`, como na ADR 0016.
+- **Intermitência dos testes com A1 real.** A conversão PFX→PEM leva perto de 2 s, o timeout padrão do mocha, e os testes de construtor com PFX estouram com a máquina carregada. Anterior ao plano e fora da CI; anotado no `CLAUDE.md`. Candidato a tarefa própria.
 
 ## Critério de conclusão
 
 - [ ] Nenhuma filha em `rascunhos/` ou `especificadas/`
-- [ ] Ao menos uma filha em `concluidas/`
+- [x] Ao menos uma filha em `concluidas/`
 - [ ] Objetivo verificado: a distribuição drena uma fila real com o contrato da Decisão 2, e uma Confirmação e uma Rejeição do tomador são aceitas pela SEFIN em produção restrita
-- [ ] ADRs 0015 e 0016 aceitos
+- [x] ADRs 0015 e 0016 aceitos
 - [ ] Release de **minor** com as duas APIs — segue [../../arquitetura/release.md](../../arquitetura/release.md), não é filha comum
 
 ## Notas de conclusão
@@ -163,3 +171,4 @@ Executar quando a última filha sair de `especificadas/`:
 | 2026-10-15 | 0.1 | Criação do plano                                                                                                                                 |
 | 2026-10-15 | 0.2 | Decisões revistas com Swaggers, Anexo II e drenagem em produção: retorno próprio da NFS-e, CNPJ da config, papel por item, assinatura confirmada |
 | 2026-10-15 | 1.0 | Promovido a `especificados` com a issue GH-17; filhas GH-18 e GH-19 promovidas junto e vinculadas como sub-issues                                |
+| 2026-10-15 | 1.1 | GH-18 concluída (PR #20): Decisão 2 revista com a ADR 0016 e o `RetornoNfseHelper` a parametrizar na GH-19; riscos atualizados                   |
