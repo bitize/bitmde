@@ -4,6 +4,7 @@
 | -------------------- | --------------------------------------------------- |
 | **Issue**            | [GH-11](https://github.com/bitize/bitmde/issues/11) |
 | **Status**           | concluidas                                          |
+| **Plano**            | —                                                   |
 | **Prioridade**       | P1 (alto)                                           |
 | **Tipo**             | correção                                            |
 | **Camadas afetadas** | controllers / helpers / util / test                 |

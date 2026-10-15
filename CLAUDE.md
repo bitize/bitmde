@@ -19,6 +19,7 @@ Este arquivo é o resumo operacional. O detalhamento vive em `.docs/`, que não 
 - `.docs/arquitetura/decisoes/` — ADRs numerados: o **porquê** das escolhas estruturais. Consultar antes de propor mudança que contrarie uma invariante.
 - `.docs/conhecimento/` — material externo da SEFAZ.
 - `.docs/tarefas/` — tarefas versionadas, ciclo `rascunhos → especificadas → concluidas | canceladas`. Fluxo em [.docs/tarefas/README.md](.docs/tarefas/README.md), modelo em [.docs/tarefas/\_modelos/modelo-de-tarefa.md](.docs/tarefas/_modelos/modelo-de-tarefa.md). Para criar ou promover uma tarefa, usar a skill [criar-tarefa](.claude/skills/criar-tarefa/SKILL.md).
+- `.docs/planos/` — objetivo que se decompõe em duas ou mais tarefas filhas, mesmo ciclo (`rascunhos → especificados → concluidos | cancelados`). As filhas ficam em `.docs/tarefas/`, com o campo **Plano** no cabeçalho, e no GitHub são sub-issues da issue do plano. Fluxo em [.docs/planos/README.md](.docs/planos/README.md). Para criar ou promover um plano, usar a skill [criar-plano](.claude/skills/criar-plano/SKILL.md).
 
 Regra de fronteira: aqui ficam as regras que, ignoradas, quebram build/teste/release; em `.docs/arquitetura/` fica a explicação de como as coisas funcionam. Não duplicar — critério completo em [.docs/arquitetura/ESTRUTURA.md](.docs/arquitetura/ESTRUTURA.md).
 

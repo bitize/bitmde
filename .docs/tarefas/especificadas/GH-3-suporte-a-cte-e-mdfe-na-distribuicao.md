@@ -4,6 +4,7 @@
 | -------------------- | ----------------------------------------------------------------------- |
 | **Issue**            | [GH-3](https://github.com/bitize/bit-mde/issues/3)                      |
 | **Status**           | especificadas                                                           |
+| **Plano**            | —                                                                       |
 | **Prioridade**       | P2 (médio)                                                              |
 | **Tipo**             | feature                                                                 |
 | **Camadas afetadas** | apis / validators / controllers / helpers / schemas / env / util / test |

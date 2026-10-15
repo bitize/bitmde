@@ -4,6 +4,8 @@ Tarefas de desenvolvimento versionadas no repositório, com rastreabilidade por 
 
 A especificação mora aqui; a issue no GitHub serve de rastreador e de canal com quem é de fora. O arquivo é a fonte da verdade — issue não guarda especificação completa.
 
+Trabalho grande demais para uma tarefa vira um [plano](../planos/README.md), com duas ou mais tarefas filhas. As filhas continuam aqui, com o mesmo ciclo de vida das avulsas; o que as distingue é o campo **Plano** do cabeçalho, que leva o `GH-NN` do plano (ou `—` na tarefa avulsa).
+
 ## Estrutura
 
 ```text
@@ -121,6 +123,8 @@ Regras: até ~300 palavras no resumo, sem duplicar o conteúdo do arquivo, e o b
 
 Issue aberta por terceiro segue o mesmo caminho: vira arquivo em `rascunhos/` quando for trabalhada, e o arquivo nasce já com o número dela.
 
+**Tarefa filha de plano**, ao ser promovida, ganha mais dois passos: vincular a issue dela como sub-issue da issue do plano — se o plano ainda não tem issue, o vínculo é feito quando ele for promovido — e atualizar a linha dela na tabela de filhas do plano, no mesmo commit do `git mv`. Comando em [Integração com o GitHub dos planos](../planos/README.md#integração-com-o-github).
+
 ## Ao concluir a tarefa
 
 O arquivo em `concluidas/` deve ser um retrato fiel do que foi entregue — é registro auditável, não cópia da especificação.
@@ -131,7 +135,8 @@ O arquivo em `concluidas/` deve ser um retrato fiel do que foi entregue — é r
 4. **Histórico de revisões** — nova linha descrevendo a entrega;
 5. **Mover para `concluidas/`** com `git mv`;
 6. **Corrigir o blockquote de especificação na issue** — trocar `.docs/tarefas/especificadas/` por `.docs/tarefas/concluidas/`;
-7. **Fechar a issue** no GitHub.
+7. **Fechar a issue** no GitHub;
+8. **Se tem Plano**, atualizar link e status desta tarefa na tabela de filhas do plano. Se era a última filha aberta, [concluir o plano](../planos/README.md#ao-concluir-o-plano).
 
 ## Ao cancelar a tarefa
 
@@ -142,7 +147,8 @@ O arquivo **não** se apaga — ele registra a decisão.
 3. **Histórico de revisões** — linha com o cancelamento;
 4. **Mover para `canceladas/`** com `git mv`;
 5. **Corrigir o blockquote de especificação na issue** — trocar `.docs/tarefas/especificadas/` por `.docs/tarefas/canceladas/`;
-6. **Fechar a issue** como `not planned`.
+6. **Fechar a issue** como `not planned`;
+7. **Se tem Plano**, atualizar link e status desta tarefa na tabela de filhas do plano e registrar o cancelamento nas notas de conclusão dele. Se todas as filhas acabaram canceladas, o plano é [cancelado](../planos/README.md#ao-cancelar-o-plano).
 
 > Os checklists de implementação ficam **como estão**, desmarcados: o arquivo em `canceladas/` é o retrato da especificação que não foi executada, não um relatório de entrega.
 

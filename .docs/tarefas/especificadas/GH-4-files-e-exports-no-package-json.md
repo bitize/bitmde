@@ -4,6 +4,7 @@
 | -------------------- | -------------------------------------------------- |
 | **Issue**            | [GH-4](https://github.com/bitize/bit-mde/issues/4) |
 | **Status**           | especificadas                                      |
+| **Plano**            | —                                                  |
 | **Prioridade**       | P1 (alto)                                          |
 | **Tipo**             | infraestrutura                                     |
 | **Camadas afetadas** | empacotamento / release / CI                       |

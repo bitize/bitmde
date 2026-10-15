@@ -4,7 +4,7 @@ Este documento existe para evitar a pergunta "onde eu escrevo isso?" e, principa
 
 ## A regra de uma linha
 
-> O **README.md** ensina a usar. O **CLAUDE.md** diz o que não pode ser quebrado. O **`.docs/arquitetura/`** explica como funciona. O **`.docs/arquitetura/decisoes/`** explica por que é assim. O **`.docs/tarefas/`** registra o que vai mudar.
+> O **README.md** ensina a usar. O **CLAUDE.md** diz o que não pode ser quebrado. O **`.docs/arquitetura/`** explica como funciona. O **`.docs/arquitetura/decisoes/`** explica por que é assim. O **`.docs/planos/`** agrupa tarefas sob um objetivo comum. O **`.docs/tarefas/`** registra o que vai mudar.
 
 ## Fronteiras
 
@@ -41,6 +41,10 @@ Contraexemplo: "usamos 2 espaços de indentação" não é ADR — é configura�
 ### `.docs/conhecimento/`
 
 Material que **não é nosso**: manual de orientação do contribuinte, notas técnicas da SEFAZ, XSDs, comportamentos observados do serviço, links. Separado da arquitetura porque tem outro ciclo de vida — muda quando a SEFAZ muda, não quando nosso código muda.
+
+### `.docs/planos/`
+
+Objetivo grande demais para uma tarefa: escopo, decomposição em duas ou mais tarefas filhas e decisões que atravessam mais de uma delas. Não especifica implementação — isso fica nas filhas, que moram em `tarefas/`. Fluxo em [../planos/README.md](../planos/README.md).
 
 ### `.docs/tarefas/`
 

@@ -4,6 +4,7 @@
 | -------------------- | --------------------------------------------------------- |
 | **Issue**            | [GH-14](https://github.com/bitize/bitmde/issues/14)       |
 | **Status**           | concluidas                                                |
+| **Plano**            | —                                                         |
 | **Prioridade**       | P1 (alto)                                                 |
 | **Tipo**             | correção                                                  |
 | **Camadas afetadas** | apis / controllers / helpers / services / env / test / CI |

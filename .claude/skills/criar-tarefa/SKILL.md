@@ -21,6 +21,8 @@ Nome: kebab-case, minúsculo, **sem acento**, até 50 caracteres, descrição em
 
 Exceção: tarefa que nasce de issue já aberta por terceiro entra em `rascunhos/` já com o número (`GH-NN-descricao.md`).
 
+Campo **Plano** do cabeçalho: `—` na tarefa avulsa; `GH-NN` se ela é filha de um plano já promovido; `rascunho: descricao-curta` se o plano ainda está em `rascunhos/`. Trabalho grande demais para uma tarefa vira plano — usar a skill [criar-plano](../criar-plano/SKILL.md), que cria as filhas por este passo.
+
 ## Passo 2 — Ler as fontes da verdade **antes** de especificar
 
 Este passo não é burocracia: o repositório tem invariantes que quebram teste quando ignoradas, e quase toda tarefa mal especificada aqui é uma que não leu a camada que ia tocar.
@@ -113,6 +115,18 @@ EOF
 
 O blockquote é obrigatório e **envelhece a cada `git mv`**: repetir esse `gh issue edit` sempre que a tarefa mudar de diretório, trocando `especificadas/` por `concluidas/` ou `canceladas/`.
 
+5. **Se a tarefa é filha de plano** (campo **Plano** = `GH-NN`):
+   - vincular a issue como sub-issue da issue do plano — a API recebe o `id` interno, não o número:
+
+     ```bash
+     ID=$(gh api repos/bitize/bitmde/issues/$NN --jq .id)
+     gh api repos/bitize/bitmde/issues/$PLANO/sub_issues -F sub_issue_id=$ID
+     ```
+
+   - atualizar link e status desta tarefa na tabela de filhas do plano, no mesmo commit do `git mv`.
+
+   Se o plano ainda está em `rascunhos/` (campo **Plano** = `rascunho: …`), só a tabela é atualizada; o vínculo de sub-issue é feito quando o plano for promovido.
+
 > **O repositório é público.** Nada de certificado, CNPJ de cliente, chave de NF-e real ou XML de produção na issue. Anonimizar quando for necessário ao diagnóstico — inclusive `cStat`/`xMotivo` colados de rejeição real.
 
 ## Passo 5 — Validar antes de commitar a tarefa
@@ -132,3 +146,5 @@ Os demais gates (`certs:teste` + `test:ci`, `sefaz.test.js` à parte, `build`) v
 Concluir ou cancelar segue a checklist que já está na própria tarefa ("Conclusão e entrega") e em [.docs/tarefas/README.md](../../../.docs/tarefas/README.md). O ponto mais esquecido dos dois fluxos: depois do `git mv`, **corrigir o blockquote de especificação no corpo da issue**, trocando `especificadas/` por `concluidas/` ou `canceladas/`.
 
 Tarefa cancelada não se apaga — vira registro, com o motivo, e os checklists ficam desmarcados.
+
+Tarefa filha de plano: ao concluir ou cancelar, atualizar link e status dela na tabela de filhas do plano. Se era a última filha aberta, o plano fecha junto — seguir o Fechamento da skill [criar-plano](../criar-plano/SKILL.md).
