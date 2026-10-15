@@ -256,6 +256,8 @@ Rodar na raiz do repositório:
 
 **Testes:** `test:ci` de 92 para 152 passando; suíte inteira, com `sefaz.test.js` e `tls-sefaz.test.js`, 171 passando com o A1 real.
 
+**Revisão automática (CodeRabbit, PR #20):** aplicado o único comentário. O teste de `sefaz.test.js` em produção restrita exigia fila vazia e quebraria quando a NFS-e de teste da GH-19 fosse emitida lá. Passou a aceitar `NENHUM_DOCUMENTO_LOCALIZADO` (404) ou `DOCUMENTOS_LOCALIZADOS` (200), sempre sem `error`. O contrato da fila vazia continua coberto com resposta controlada nos testes do helper e de transporte.
+
 **Intermitência anterior a esta tarefa:** com o A1 real em `certs/`, `Certificado.p12ToPem` leva de 1,7 s a 2,2 s, perto do timeout padrão de 2 s do mocha, e testes de construtor com PFX de `distribuicao.test.js` e `recepcao.test.js` estouram em algumas rodadas (já na linha de base, antes de qualquer mudança). Com `--timeout 15000` passam todos. Na CI, com o certificado descartável em 3DES, não acontece. Não corrigido aqui; anotado no `CLAUDE.md`.
 
 ## Conclusão e entrega

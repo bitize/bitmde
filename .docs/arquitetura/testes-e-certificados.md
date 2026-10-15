@@ -80,7 +80,7 @@ Há ainda `MSYS_NO_PATHCONV=1`, que impede o Git Bash de converter o argumento d
 
 Teste de integração de verdade: bate nos endpoints de **produção e homologação** da SEFAZ com mTLS, com a validação do servidor ligada e `ca: CA_PADRAO`. Falha sem rede, com certificado vencido ou com o certificado autoassinado do gerador — com ele, os dois casos "sem informar cert.pem e key.pem" passam (`403`) e os quatro que exigem A1 recebem `403` no lugar de `200`. Fica fora da CI, via `npm run test:ci`.
 
-O bloco da `DistribuicaoNFSe` lê o ADN: `consultaUltNSU('0')` em produção restrita (404 sem `error`) e em produção (`DOCUMENTOS_LOCALIZADOS`), `consultaNSU('1')` em produção e um `cnpj` de outra raiz em produção restrita (`E2243`). É só leitura, e o ADN não tem bloqueio de sequência, então não dessincroniza ninguém. O CNPJ consultado sai do CN do `certs/cert.pem` durante o teste, para não ficar escrito no repositório; com o certificado descartável, esses testes falham.
+O bloco da `DistribuicaoNFSe` lê o ADN: `consultaUltNSU('0')` em produção restrita (sem `error`, com fila vazia ou não) e em produção (`DOCUMENTOS_LOCALIZADOS`), `consultaNSU('1')` em produção e um `cnpj` de outra raiz em produção restrita (`E2243`). É só leitura, e o ADN não tem bloqueio de sequência, então não dessincroniza ninguém. O CNPJ consultado sai do CN do `certs/cert.pem` durante o teste, para não ficar escrito no repositório; com o certificado descartável, esses testes falham.
 
 Rodar antes de um release é recomendável quando a mudança tocou transporte, certificado ou assinatura — é o único teste que prova que a ponta ainda funciona.
 

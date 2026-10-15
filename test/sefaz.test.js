@@ -178,17 +178,25 @@ describe('DistribuicaoNFSe', function () {
     })
   }
 
-  it('consultaUltNSU("0") em produção restrita: fila vazia, 404 sem error', async function () {
+  // A fila de produção restrita hoje está vazia, mas deixa de estar quando
+  // alguém emitir lá uma NFS-e de teste (a GH-19 precisa de uma). O contrato
+  // da fila vazia é coberto com resposta controlada nos testes do helper e
+  // de transporte; aqui vale qualquer um dos dois estados de sucesso.
+  it('consultaUltNSU("0") em produção restrita: sucesso sem error, com ou sem documentos', async function () {
     const retorno = await instanciar('2').consultaUltNSU('0')
+    const { statusProcessamento, documentos } = retorno.data
 
-    assert.strictEqual(retorno.status, 404, retorno.error)
     assert.strictEqual(retorno.error, undefined)
-    assert.strictEqual(
-      retorno.data.statusProcessamento,
-      'NENHUM_DOCUMENTO_LOCALIZADO'
-    )
     assert.strictEqual(retorno.data.tipoAmbiente, 'HOMOLOGACAO')
-    assert.deepStrictEqual(retorno.data.documentos, [])
+
+    if (statusProcessamento === 'NENHUM_DOCUMENTO_LOCALIZADO') {
+      assert.strictEqual(retorno.status, 404)
+      assert.deepStrictEqual(documentos, [])
+    } else {
+      assert.strictEqual(statusProcessamento, 'DOCUMENTOS_LOCALIZADOS')
+      assert.strictEqual(retorno.status, 200)
+      assert.ok(documentos.length > 0)
+    }
   })
 
   it('cnpj de outra raiz em produção restrita: error com E2243', async function () {
