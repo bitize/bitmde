@@ -14,6 +14,10 @@
 
 Nada muda em `DistribuicaoDFe` nem em `RecepcaoEvento`.
 
+### Modificado
+
+- Workflow `testes.yml` deixa de rodar em push e PR que só mexem em documentação (`**/*.md`, `.docs/**`, `.claude/**`, `LICENSE`). O `qualidade.yml`, com o Prettier que valida o Markdown, continua rodando sempre, e o `publicar.yml` roda a suíte antes de todo release
+
 ## [0.19.0] / 2026-10-03
 
 > Muda o comportamento padrão de transporte e deixa de suportar o Node 20; leia [Compatibilidade](#compatibilidade) antes de atualizar.
