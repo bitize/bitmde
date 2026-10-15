@@ -93,6 +93,20 @@ Leitura adotada até prova em contrário: **pela API, o pedido vai assinado**. O
 ## Ainda não confirmado
 
 - Se a SEFIN aceita manifestação de NFS-e gerada por município com sistema próprio (ver "Onde o tomador manifesta").
-- Algoritmos de assinatura aceitos: C14N e digest/assinatura SHA-1 ou SHA-256.
 - Status e corpo reais de uma rejeição de negócio (`400` com `erro`, ou outro).
-- Se `eventoXmlGZipB64` traz o evento completo (`evento/infEvento` com o `pedRegEvento` dentro).
+
+## Evidência: eventos de tomador reais
+
+Eventos `CONFIRMACAO_TOMADOR` e `REJEICAO_TOMADOR` aceitos pela SEFIN, recebidos pela distribuição do ADN em 2026-10-15, feitos por terceiros sobre notas de um mesmo CNPJ. Contando só os algoritmos de cada assinatura:
+
+| `pedRegEvento` dentro do evento | Assinatura do pedido                                 | Assinatura do evento (SEFIN)   |
+| ------------------------------- | ---------------------------------------------------- | ------------------------------ |
+| Sem `Signature` (maioria)       | —                                                    | RSA-SHA256, C14N with comments |
+| Com `Signature`                 | **RSA-SHA1, digest SHA1, C14N 20010315** (enveloped) | RSA-SHA256                     |
+| Com `Signature` (a Rejeição)    | RSA-SHA256, digest SHA256                            | RSA-SHA256                     |
+
+Conclusões:
+
+- A SEFIN **aceita** pedido assinado com a mesma configuração que o `Assinatura.assinarXml` já usa na NF-e (RSA-SHA1, SHA1, C14N) e também com SHA-256.
+- Existe pedido aceito **sem assinatura** — coerente com o "Não" da aba "TIPO EVENTOS", provavelmente gerado pelo emissor web. Não muda a leitura de que pela API a `E1989` exige assinatura; quem integra por API deve assinar.
+- O item `EVENTO` da distribuição traz o **evento completo** (`evento/infEvento`) com o `pedRegEvento` original dentro. Que o `eventoXmlGZipB64` da resposta do `POST` tenha o mesmo formato ainda é suposição.
