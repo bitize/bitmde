@@ -1,6 +1,7 @@
 const { CA, CA_PADRAO } = require('./ca')
 const { DISTRIBUICAO } = require('./distribuicao')
 const { EVENTOS } = require('./evento')
+const { NFSE_ADN } = require('./nfse')
 const { RECEPCAO } = require('./recepcao')
 const { CODIGOS_UF } = require('./uf')
 const { VERSION } = require('./version')
@@ -12,6 +13,7 @@ module.exports = {
   CODIGOS_UF: CODIGOS_UF,
   DISTRIBUICAO: DISTRIBUICAO,
   EVENTOS: EVENTOS,
+  NFSE_ADN: NFSE_ADN,
   RECEPCAO: RECEPCAO,
   VERSION: VERSION,
   ZONES: ZONES,
