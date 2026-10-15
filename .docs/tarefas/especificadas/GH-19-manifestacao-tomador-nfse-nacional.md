@@ -24,7 +24,7 @@ O tomador manifesta-se sobre uma NFS-e com dois eventos, enviados à **SEFIN Nac
 - `pedRegEvento` versão `1.01`, `infPedReg Id="PRE{chave 50}{código 6}"`, e o grupo `e203202` (só `xDesc`) ou `e203206` (`xDesc`, `cMotivo`, `xMotivo` opcional — obrigatório com `cMotivo` 9, `E1949`).
 - **Pela API, o pedido vai assinado** (`E1989`), com o certificado do autor (`E1991`), e `CNPJAutor` na raiz do certificado (`E0812`). Eventos reais aceitos pela SEFIN mostram pedidos assinados com **RSA-SHA1, digest SHA1 e C14N** — a configuração que o `Assinatura.assinarXml` já usa — e também com SHA-256.
 
-Depende da [GH-18](GH-18-distribuicao-nfse-nacional-adn.md), que cria o retorno próprio da NFS-e (`RetornoNfseHelper`), o transporte REST/JSON, o `ChaveNfseValidator`, o `CnpjValidator` e `src/env/nfse.js`.
+Depende da [GH-18](../concluidas/GH-18-distribuicao-nfse-nacional-adn.md), entregue no PR #20, que cria o retorno próprio da NFS-e (`RetornoNfseHelper`), o transporte REST/JSON, o `ChaveNfseValidator`, o `CnpjValidator` e `src/env/nfse.js`.
 
 ## Fontes da verdade (`.docs/arquitetura`)
 
@@ -88,6 +88,8 @@ As que valem também para a filha 1 estão no plano (Decisões 1 a 5). As daqui:
 
 O `erro` único da SEFIN é normalizado para `erros: [...]`, como no ADN (Decisão 2 do plano). Em todos os casos `reqXml` leva o pedido assinado: é o que se audita numa rejeição.
 
+> **Revisto depois da GH-18** ([ADR 0016](../../arquitetura/decisoes/0016-retorno-proprio-da-nfse.md)): o `error` sai do HTTP e dos `erros`, não de um status declarado pelo serviço — o ADN rejeita o E2243 com `StatusProcessamento: DOCUMENTOS_LOCALIZADOS`. Conferir em produção restrita se a SEFIN faz algo parecido (questão 3).
+
 ### Questões em aberto — resolver em produção restrita antes de implementar
 
 | #   | Questão                                                                                                          | Como resolver                                                                   |
@@ -150,6 +152,7 @@ O `erro` único da SEFIN é normalizado para `erros: [...]`, como no ADN (Decis�
   - `montarRequest(opts)`: schema → `Xml.jsonToXml` → `Assinatura.assinarXml(cert, key, xml, 'infPedReg')` → `Gzip.zip` → base64. Devolve `{ reqXml, config }`, com `config` = `method: 'POST'`, `url: '/nfse/{chNFSe}/eventos'`, `data: JSON.stringify({ pedidoRegistroEventoXmlGZipB64 })`, `headers: { Accept: 'application/json', 'Content-Type': 'application/json' }`, `responseType: 'text'`.
   - `montarResponse(corpo)`: assíncrono, nunca lança; normaliza `tipoAmbiente` para string (`'1'`/`'2'`, como o `tpAmb`) e `erro` para `erros: [...]`.
 - `RetornoNfseHelper` da filha 1 ganha o `reqXml` opcional — presente aqui, ausente na distribuição.
+- **Revisto depois da GH-18:** o `RetornoNfseHelper` entregue tem regras próprias do ADN — a mensagem `Resposta inesperada do ADN (HTTP <status>).`, a leitura de `statusProcessamento` e o caso `NENHUM_DOCUMENTO_LOCALIZADO`, que nunca é erro. Para servir à SEFIN, ele precisa ser parametrizado por serviço: o nome na mensagem de resposta inesperada e a falha ao abrir o `eventoXmlGZipB64` da linha 2 da Decisão 4. O comportamento da distribuição não muda, e os testes do `RetornoNfseHelper` em `test/distribuicaoNFSe-helper.test.js` são a regressão.
 
 ### [env] (`src/env/`)
 
@@ -242,3 +245,4 @@ Executar **após o PR ser mergeado na `main`**:
 | 2026-10-15 | 0.1 | Rascunho criado como filha 2 do plano NFS-e                                                                               |
 | 2026-10-15 | 1.0 | Especificada com o Swagger da SEFIN, o Anexo II e a evidência de assinatura; questões de produção restrita seguem abertas |
 | 2026-10-15 | 1.1 | Promovida a `especificadas` com a issue GH-19, filha do plano GH-17                                                       |
+| 2026-10-15 | 1.2 | Revista depois da GH-18: `RetornoNfseHelper` a parametrizar por serviço e `error` pelo HTTP e pelos `erros` (ADR 0016)    |

@@ -3,14 +3,14 @@
 | Campo                | Valor                                                                                  |
 | -------------------- | -------------------------------------------------------------------------------------- |
 | **Issue**            | [GH-18](https://github.com/bitize/bitmde/issues/18)                                    |
-| **Status**           | especificadas                                                                          |
+| **Status**           | concluidas                                                                             |
 | **Plano**            | [GH-17](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md) |
 | **Prioridade**       | P2 (médio)                                                                             |
 | **Tipo**             | feature                                                                                |
 | **Camadas afetadas** | apis / validators / controllers / helpers / services / env / util / test               |
 | **Criado em**        | 2026-10-15                                                                             |
 | **Atualizado em**    | 2026-10-15                                                                             |
-| **Concluído em**     | —                                                                                      |
+| **Concluído em**     | 2026-10-15                                                                             |
 
 ---
 
@@ -218,7 +218,7 @@ Mensagens (texto exato — comparadas literalmente nos testes):
 - [x] `CLAUDE.md`: "O que é" passa a citar a distribuição do ADN; `src/index.js` exporta `DistribuicaoNFSe`
 - [x] `.docs/arquitetura/`: [README](../../arquitetura/README.md) (invariante 1 cita os dois retornos), [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md), [testes-e-certificados](../../arquitetura/testes-e-certificados.md) e fluxo novo `fluxos/distribuicao-nfse.md`
 - [x] ADR 0015 e ADR 0016, com as linhas na tabela de [decisoes/README.md](../../arquitetura/decisoes/README.md)
-- [ ] Versão: bump de **minor** no release que fechar o plano
+- [ ] Versão: bump de **minor** no release que fechar o plano — pendente: o release sai com a GH-19, no fechamento do plano GH-17
 
 ## Validação pré-PR (obrigatório)
 
@@ -264,13 +264,13 @@ Rodar na raiz do repositório:
 
 Executar **após o PR ser mergeado na `main`**:
 
-- [ ] Desvios registrados em "Notas de implementação"
-- [ ] Checklists marcados
-- [ ] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
-- [ ] Arquivo movido para `.docs/tarefas/concluidas/`
-- [ ] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
-- [ ] Issue fechada no GitHub e no Linear
-- [ ] Link e status desta tarefa atualizados na tabela de filhas do plano
+- [x] Desvios registrados em "Notas de implementação"
+- [x] Checklists marcados — ficam desmarcados de propósito: schemas e build/release (não tocados), `certs:teste` (não se aplica) e o bump de minor (pendente para o release do plano)
+- [x] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [x] Arquivo movido para `.docs/tarefas/concluidas/`
+- [x] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
+- [x] Issue fechada no GitHub e no Linear
+- [x] Link e status desta tarefa atualizados na tabela de filhas do plano
 
 ## Referências
 
@@ -291,3 +291,4 @@ Executar **após o PR ser mergeado na `main`**:
 | 2026-10-15 | 1.0 | Especificada com o Swagger, a drenagem em produção e as decisões do plano: retorno próprio, papel por item, CNPJ da config |
 | 2026-10-15 | 1.1 | Promovida a `especificadas` com a issue GH-18, filha do plano GH-17                                                        |
 | 2026-10-15 | 1.2 | Implementação e notas: RF-03 e Decisão 4 revistas com as respostas das questões em aberto, aprovadas pelo usuário          |
+| 2026-10-15 | 2.0 | Entregue no PR #20 (merge `cce9548`); tarefa movida para `concluidas/`                                                     |
