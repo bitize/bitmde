@@ -45,21 +45,21 @@ Esta filha também escreve os **ADRs 0015 e 0016** (Decisões 1 e 2 do plano) e 
 
 ## Requisitos
 
-| ID    | Requisito                                                                                                                                                                                                     | Prioridade |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| RF-01 | Classe pública `DistribuicaoNFSe`, exportada nas três formas por `src/index.js`, com config `pfx`/`passphrase` ou `cert`/`key`, `cnpj`, `tpAmb` e `options`                                                   | Must       |
-| RF-02 | `consultaUltNSU(ultNSU)` → `GET /DFe/{ultNSU}?lote=true&cnpjConsulta={cnpj}`: até 50 documentos depois do NSU                                                                                                 | Must       |
-| RF-03 | `consultaNSU(nsu)` → `GET /DFe/{nsu}?lote=false&cnpjConsulta={cnpj}`: o documento daquele NSU                                                                                                                 | Must       |
-| RF-04 | `consultaChNFSe(chNFSe)` → `GET /NFSe/{chNFSe}/Eventos`: a NFS-e e os eventos dela                                                                                                                            | Must       |
-| RF-05 | Retorno `{ data, resBody, status, error?, transportError? }` da Decisão 2 do plano, montado por um `RetornoNfseHelper` novo                                                                                   | Must       |
-| RF-06 | Fila vazia (HTTP 404 + `NENHUM_DOCUMENTO_LOCALIZADO`) devolvida com `documentos: []` e **sem** `error`                                                                                                        | Must       |
-| RF-07 | Cada `ArquivoXml` devolvido como `xml` e `json`; falha de um item vai para `documentosErros`, sem esvaziar `data` ([ADR 0013](../../arquitetura/decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md)) | Must       |
-| RF-08 | Cada documento `NFSE` traz `papel` do CNPJ consultado: `'tomador'`, `'prestador'`, `'intermediario'` ou `''`. A biblioteca marca, não filtra                                                                  | Must       |
-| RF-09 | `DistribuicaoDFe` e `RecepcaoEvento` inalteradas em assinatura e comportamento; `RetornoHelper` da NF-e intocado                                                                                              | Must       |
-| RF-10 | Endpoints de produção e produção restrita em `src/env/nfse.js`, indexados por `tpAmb`                                                                                                                         | Must       |
-| RF-11 | `test/tls-sefaz.test.js` cobre `adn.nfse.gov.br` e `adn.producaorestrita.nfse.gov.br`                                                                                                                         | Must       |
-| RF-12 | ADR 0015 (NFS-e no bitmde) e ADR 0016 (retorno próprio da NFS-e)                                                                                                                                              | Must       |
-| RF-13 | `README.md`, `CHANGELOG.md`, `CLAUDE.md` e `.docs/arquitetura/` atualizados, incluindo a ressalva de cobertura do ADN                                                                                         | Must       |
+| ID    | Requisito                                                                                                                                                                                                                 | Prioridade |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| RF-01 | Classe pública `DistribuicaoNFSe`, exportada nas três formas por `src/index.js`, com config `pfx`/`passphrase` ou `cert`/`key`, `cnpj`, `tpAmb` e `options`                                                               | Must       |
+| RF-02 | `consultaUltNSU(ultNSU)` → `GET /DFe/{ultNSU}?lote=true&cnpjConsulta={cnpj}`: até 50 documentos depois do NSU                                                                                                             | Must       |
+| RF-03 | `consultaNSU(nsu)` → `GET /DFe/{nsu - 1}?lote=false&cnpjConsulta={cnpj}`: o documento daquele NSU. O ADN devolve o documento **seguinte** ao NSU do caminho também com `lote=false` (revisto na implementação, ver Notas) | Must       |
+| RF-04 | `consultaChNFSe(chNFSe)` → `GET /NFSe/{chNFSe}/Eventos`: a NFS-e e os eventos dela                                                                                                                                        | Must       |
+| RF-05 | Retorno `{ data, resBody, status, error?, transportError? }` da Decisão 2 do plano, montado por um `RetornoNfseHelper` novo                                                                                               | Must       |
+| RF-06 | Fila vazia (HTTP 404 + `NENHUM_DOCUMENTO_LOCALIZADO`) devolvida com `documentos: []` e **sem** `error`                                                                                                                    | Must       |
+| RF-07 | Cada `ArquivoXml` devolvido como `xml` e `json`; falha de um item vai para `documentosErros`, sem esvaziar `data` ([ADR 0013](../../arquitetura/decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md))             | Must       |
+| RF-08 | Cada documento `NFSE` traz `papel` do CNPJ consultado: `'tomador'`, `'prestador'`, `'intermediario'` ou `''`. A biblioteca marca, não filtra                                                                              | Must       |
+| RF-09 | `DistribuicaoDFe` e `RecepcaoEvento` inalteradas em assinatura e comportamento; `RetornoHelper` da NF-e intocado                                                                                                          | Must       |
+| RF-10 | Endpoints de produção e produção restrita em `src/env/nfse.js`, indexados por `tpAmb`                                                                                                                                     | Must       |
+| RF-11 | `test/tls-sefaz.test.js` cobre `adn.nfse.gov.br` e `adn.producaorestrita.nfse.gov.br`                                                                                                                                     | Must       |
+| RF-12 | ADR 0015 (NFS-e no bitmde) e ADR 0016 (retorno próprio da NFS-e)                                                                                                                                                          | Must       |
+| RF-13 | `README.md`, `CHANGELOG.md`, `CLAUDE.md` e `.docs/arquitetura/` atualizados, incluindo a ressalva de cobertura do ADN                                                                                                     | Must       |
 
 ## Decisões de design
 
@@ -86,21 +86,24 @@ As decisões que valem também para a filha 2 estão no plano (Decisões 1 a 5).
 
 | Situação                                                | `status` | `data`                       | `error`                                               |
 | ------------------------------------------------------- | -------- | ---------------------------- | ----------------------------------------------------- |
-| `DOCUMENTOS_LOCALIZADOS`                                | 200      | preenchido                   | —                                                     |
-| `NENHUM_DOCUMENTO_LOCALIZADO` (404)                     | 404      | preenchido, `documentos: []` | —                                                     |
-| `REJEICAO` (400/404)                                    | real     | preenchido (com `erros`)     | `<codigo>: <descricao>` de cada erro, unidos por `; ` |
+| `DOCUMENTOS_LOCALIZADOS`, 2xx e sem `Erros`             | 200      | preenchido                   | —                                                     |
+| `NENHUM_DOCUMENTO_LOCALIZADO`, com qualquer status      | 404      | preenchido, `documentos: []` | —                                                     |
+| HTTP fora de 2xx, `REJEICAO` ou `Erros` não vazio       | real     | preenchido (com `erros`)     | `<codigo>: <descricao>` de cada erro, unidos por `; ` |
+| O mesmo, sem nenhum item em `Erros`                     | real     | preenchido                   | `Resposta inesperada do ADN (HTTP <status>).`         |
 | Corpo que não é JSON, ou JSON sem `StatusProcessamento` | real     | `{}`                         | `Resposta inesperada do ADN (HTTP <status>).`         |
 | Sem resposta HTTP                                       | 0        | `{}`                         | `Falha de transporte (<code>): <message>`             |
+
+> Revista na implementação: a rejeição `E2243` (`cnpjConsulta` de outra raiz) vem com HTTP 400 e `StatusProcessamento: DOCUMENTOS_LOCALIZADOS`, então o `StatusProcessamento` sozinho não decide. Ver Notas.
 
 Na rejeição, `data` **não** é esvaziado: `erros` e `tipoAmbiente` são o diagnóstico. É diferente da NF-e de propósito — lá a rejeição vem dentro de um `retDistDFeInt` que o consumidor lê por `cStat`; aqui o status já diz que falhou, e esconder `erros` só tiraria informação.
 
 ### Questões em aberto — confirmar na implementação
 
-| #   | Questão                                                                                         | Como resolver                                                     |
-| --- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| 1   | `lote=false` devolve exatamente o NSU informado (inclusive), num `LoteDFe` de um item?          | Uma chamada em produção com NSU conhecido                         |
-| 2   | `cnpjConsulta` igual ao CNPJ do certificado é aceito sem efeito colateral?                      | A drenagem de 2026-10-15 foi **sem** o parâmetro; repetir com ele |
-| 3   | Status e `Codigo` de `REJEICAO` — `cnpjConsulta` de outra raiz, NSU negativo, chave inexistente | Provocar cada caso em produção restrita                           |
+| #   | Questão                                                                                         | Resposta (2026-10-15)                                                                                                                                                                                                    |
+| --- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `lote=false` devolve exatamente o NSU informado (inclusive), num `LoteDFe` de um item?          | **Não.** Devolve um item, mas o **seguinte**: `/DFe/0` → NSU 1, `/DFe/5` → NSU 6. `consultaNSU` passou a pedir `nsu - 1` (RF-03)                                                                                         |
+| 2   | `cnpjConsulta` igual ao CNPJ do certificado é aceito sem efeito colateral?                      | Sim, mesmo resultado de omitir o parâmetro                                                                                                                                                                               |
+| 3   | Status e `Codigo` de `REJEICAO` — `cnpjConsulta` de outra raiz, NSU negativo, chave inexistente | Outra raiz: HTTP 400, `E2243`, com `StatusProcessamento` **`DOCUMENTOS_LOCALIZADOS`**. NSU `-1`: 404 `E2220`. Chave inexistente: 404 `E2240`. NSU inexistente com `lote=false`: 404 `E2230`. Nenhum veio como `REJEICAO` |
 
 ---
 
@@ -121,11 +124,11 @@ Na rejeição, `data` **não** é esvaziado: `erros` e `tipoAmbiente` são o dia
 
 Três validators novos, registrados em ordem alfabética em [src/validators/index.js](../../../src/validators/index.js):
 
-| Validator            | Entrada | Valida                                                 | Normaliza em `isValid()`                    | `getValues()` |
-| -------------------- | ------- | ------------------------------------------------------ | ------------------------------------------- | ------------- |
-| `CnpjValidator`      | config  | `cnpj` presente, 14 caracteres, `[0-9A-Z]{12}[0-9]{2}` | `String(...)`, maiúsculas                   | `{ cnpj }`    |
-| `NsuNfseValidator`   | escalar | presente, só dígitos, até 15 dígitos                   | sem zeros à esquerda (`'0'` continua `'0'`) | string        |
-| `ChaveNfseValidator` | escalar | presente, exatamente 50 dígitos                        | `String(...)`                               | string        |
+| Validator            | Entrada | Valida                                                                                               | Normaliza em `isValid()`                    | `getValues()` |
+| -------------------- | ------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------- |
+| `CnpjValidator`      | config  | `cnpj` presente, 14 caracteres, `[0-9A-Z]{12}[0-9]{2}`                                               | `String(...)`, maiúsculas                   | `{ cnpj }`    |
+| `NsuNfseValidator`   | escalar | presente, só dígitos, até 15 dígitos; com `{ positivo: true }` (só na `consultaNSU`), maior que zero | sem zeros à esquerda (`'0'` continua `'0'`) | string        |
+| `ChaveNfseValidator` | escalar | presente, exatamente 50 dígitos                                                                      | `String(...)`                               | string        |
 
 O CNPJ aceita o formato alfanumérico, que a IN RFB nº 2.229/2024 introduz a partir de julho/2026, embora o XSD 1.01 da NFS-e ainda só aceite numérico. Quem rejeita, se for o caso, é o serviço (Decisão 4 do plano).
 
@@ -138,6 +141,7 @@ Mensagens (texto exato — comparadas literalmente nos testes):
 | NSU ausente                    | `NSU não informado.`                    | `NsuNfseValidator`   |
 | NSU com mais de 15 dígitos     | `NSU com tamanho incorreto.`            | `NsuNfseValidator`   |
 | NSU com caractere não numérico | `NSU deve conter apenas números.`       | `NsuNfseValidator`   |
+| NSU `0` na `consultaNSU`       | `NSU deve ser maior que zero.`          | `NsuNfseValidator`   |
 | Chave ausente                  | `Chave da NFS-e não informada.`         | `ChaveNfseValidator` |
 | Chave diferente de 50 dígitos  | `Chave da NFS-e com tamanho incorreto.` | `ChaveNfseValidator` |
 
@@ -195,44 +199,66 @@ Mensagens (texto exato — comparadas literalmente nos testes):
 
 ## Testes
 
-- [ ] `test/distribuicaoNFSe.test.js`: construtor sem cert, sem key, sem `tpAmb`, `tpAmb` inválido, sem `cnpj`, `cnpj` em formato inválido — cada mensagem com `assert.strictEqual`
-- [ ] Validators: cada mensagem nova da tabela acima; normalização do NSU (`'00051'` → `'51'`, `0` → `'0'`, `51` número → `'51'`) e do CNPJ
-- [ ] Imutabilidade: instância, `config`, `requestOptions` e `httpsOptions` congelados; `assert.throws` ao sobrescrever método estático dos módulos novos
-- [ ] Helper com **fixtures sintéticas** (gzip + base64 de XML inventado, nada de produção): lote com NFS-e de tomador, de prestador e de intermediário (`papel`), evento (`papel: ''`, `tipoEvento` preenchido), item `NFSE` sem `TipoEvento` (vira `''`), `ArquivoXml` vazio, base64 que não é gzip e XML inválido (cada um em `documentosErros`, sem esvaziar o lote)
-- [ ] `RetornoNfseHelper`: as cinco linhas da Decisão 4, incluindo 404 de fila vazia **sem** `error` e corpo HTML num 502
-- [ ] Transporte com servidor HTTPS local, no molde de [test/transporte.test.js](../../../test/transporte.test.js): `GET` com `Accept: application/json`, `User-Agent` preservado, `params` na query, `resBody` igual ao corpo servido byte a byte, e o retorno serializado sem `PRIVATE KEY` nem `httpsAgent`
-- [ ] `test/tls-sefaz.test.js` com os dois hosts do ADN — ambos fecham por `CA_PADRAO` (Let's Encrypt, ISRG Root X1) e **não** pela ICP-Brasil sozinha, como os hosts atuais
-- [ ] `test/sefaz.test.js` estendido com `consultaUltNSU('0')` em produção restrita (404 sem `error`) e em produção (`DOCUMENTOS_LOCALIZADOS`), só leitura — rodado manualmente: a tarefa toca transporte
+- [x] `test/distribuicaoNFSe.test.js`: construtor sem cert, sem key, sem `tpAmb`, `tpAmb` inválido, sem `cnpj`, `cnpj` em formato inválido — cada mensagem com `assert.strictEqual`
+- [x] Validators: cada mensagem nova da tabela acima; normalização do NSU (`'00051'` → `'51'`, `0` → `'0'`, `51` número → `'51'`) e do CNPJ
+- [x] Imutabilidade: instância, `config`, `requestOptions` e `httpsOptions` congelados; `assert.throws` ao sobrescrever método estático dos módulos novos
+- [x] Helper com **fixtures sintéticas** (gzip + base64 de XML inventado, nada de produção): lote com NFS-e de tomador, de prestador e de intermediário (`papel`), evento (`papel: ''`, `tipoEvento` preenchido), item `NFSE` sem `TipoEvento` (vira `''`), `ArquivoXml` vazio, base64 que não é gzip e XML inválido (cada um em `documentosErros`, sem esvaziar o lote)
+- [x] `RetornoNfseHelper`: as linhas da Decisão 4, incluindo 404 de fila vazia **sem** `error`, corpo HTML num 502 e o HTTP 400 com `DOCUMENTOS_LOCALIZADOS` + `Erros`
+- [x] Transporte com servidor HTTPS local, no molde de [test/transporte.test.js](../../../test/transporte.test.js): `GET` com `Accept: application/json`, `User-Agent` preservado, `params` na query, `resBody` igual ao corpo servido byte a byte, e o retorno serializado sem `PRIVATE KEY` nem `httpsAgent`
+- [x] `test/tls-sefaz.test.js` com os dois hosts do ADN — ambos fecham por `CA_PADRAO` (Let's Encrypt, ISRG Root X1) e **não** pela ICP-Brasil sozinha, como os hosts atuais
+- [x] `test/sefaz.test.js` estendido com `consultaUltNSU('0')` em produção restrita (404 sem `error`) e em produção (`DOCUMENTOS_LOCALIZADOS`), só leitura — rodado manualmente: a tarefa toca transporte. Mais dois casos: `consultaNSU('1')` em produção e `cnpj` de outra raiz em produção restrita (`E2243`)
 
 ## Checklist de implementação
 
-- [ ] Código em `src/` (apis, validators, controllers, helpers, env)
-- [ ] Testes em `test/`
-- [ ] JSDoc da `DistribuicaoNFSe` e do controller
-- [ ] [README.md](../../../README.md): seção nova da NFS-e no formato das existentes, exemplo de drenagem (`ultNSU` começando em `'0'`, 404 como fim da fila), filtro por `papel`, ressalva de cobertura do ADN, e a lista de **Funcionalidades**
-- [ ] `CHANGELOG.md` em `[Não publicado]`
-- [ ] `CLAUDE.md`: "O que é" passa a citar a distribuição do ADN; `src/index.js` exporta `DistribuicaoNFSe`
-- [ ] `.docs/arquitetura/`: [README](../../arquitetura/README.md) (invariante 1 cita os dois retornos), [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md), [testes-e-certificados](../../arquitetura/testes-e-certificados.md) e fluxo novo `fluxos/distribuicao-nfse.md`
-- [ ] ADR 0015 e ADR 0016, com as linhas na tabela de [decisoes/README.md](../../arquitetura/decisoes/README.md)
+- [x] Código em `src/` (apis, validators, controllers, helpers, env)
+- [x] Testes em `test/`
+- [x] JSDoc da `DistribuicaoNFSe` e do controller
+- [x] [README.md](../../../README.md): seção nova da NFS-e no formato das existentes, exemplo de drenagem (`ultNSU` começando em `'0'`, 404 como fim da fila), filtro por `papel`, ressalva de cobertura do ADN, e a lista de **Funcionalidades**
+- [x] `CHANGELOG.md` em `[Não publicado]`
+- [x] `CLAUDE.md`: "O que é" passa a citar a distribuição do ADN; `src/index.js` exporta `DistribuicaoNFSe`
+- [x] `.docs/arquitetura/`: [README](../../arquitetura/README.md) (invariante 1 cita os dois retornos), [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md), [testes-e-certificados](../../arquitetura/testes-e-certificados.md) e fluxo novo `fluxos/distribuicao-nfse.md`
+- [x] ADR 0015 e ADR 0016, com as linhas na tabela de [decisoes/README.md](../../arquitetura/decisoes/README.md)
 - [ ] Versão: bump de **minor** no release que fechar o plano
 
 ## Validação pré-PR (obrigatório)
 
 Rodar na raiz do repositório:
 
-- [ ] `npm run format` (ou conferir com `npm run format:check`)
-- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real)
-- [ ] `npm run test:ci` — tudo menos `test/sefaz.test.js` e `test/tls-sefaz.test.js`
-- [ ] `test/sefaz.test.js` e `test/tls-sefaz.test.js` rodados à parte — exigem rede, e o primeiro, certificado A1 válido
-- [ ] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
-- [ ] Conferir no `dist/index.d.ts` que `DistribuicaoNFSe` aparece com os três métodos e o tipo de retorno
-- [ ] `git status` limpo, exceto o que a tarefa mudou de propósito
+- [x] `npm run format` (ou conferir com `npm run format:check`)
+- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real) — não se aplica: `certs/` já tem um A1 real, e o script não foi rodado
+- [x] `npm run test:ci` — tudo menos `test/sefaz.test.js` e `test/tls-sefaz.test.js` — 152 passando (eram 92). Rodado junto com build e `npm pack`, estourou timeout de 2 s nos testes de construtor com PFX (ver Notas); sozinho, passou inteiro
+- [x] `test/sefaz.test.js` e `test/tls-sefaz.test.js` rodados à parte — exigem rede, e o primeiro, certificado A1 válido — 19 passando com o A1 real (10 + 9)
+- [x] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
+- [x] Conferir no `dist/index.d.ts` que `DistribuicaoNFSe` aparece com os três métodos e o tipo de retorno
+- [x] `git status` limpo, exceto o que a tarefa mudou de propósito
 
 ## Notas de implementação
 
 > Preenchido durante ou após a implementação. Registrar os **desvios** em relação a esta especificação e a justificativa de cada um. Se não houve, escrever "Sem desvios".
 
--
+**Desvios aprovados pelo usuário** (2026-10-15, depois de responder as questões em aberto com chamadas de leitura em produção e produção restrita):
+
+- **RF-03 — `consultaNSU` pede `nsu - 1`.** Com `lote=false` o ADN devolve o documento seguinte ao NSU do caminho, e não o próprio. Para o método fazer o que o nome diz, como o `consNSU` da NF-e, o helper pede `/DFe/{nsu - 1}?lote=false` (conta com `BigInt`). Consequência: mensagem nova `NSU deve ser maior que zero.` para `consultaNSU('0')`, pela opção `{ positivo: true }` do `NsuNfseValidator`. Alternativas descartadas: repassar o NSU e documentar que vem o seguinte; tirar o método.
+- **Decisão 4 — o `error` não sai só do `StatusProcessamento`.** O `E2243` vem com HTTP 400 e `StatusProcessamento: DOCUMENTOS_LOCALIZADOS`, e a regra escrita o daria como sucesso com lote vazio. Regra entregue: `NENHUM_DOCUMENTO_LOCALIZADO` nunca é erro; fora isso, há `error` quando o HTTP sai de 2xx, quando vem `REJEICAO` ou quando `Erros` não está vazio. Sem itens em `Erros`, o texto é `Resposta inesperada do ADN (HTTP <status>).`, com `data` mantido. Registrado na [ADR 0016](../../arquitetura/decisoes/0016-retorno-proprio-da-nfse.md).
+
+**Decisões de implementação** (a especificação não fixava):
+
+- `montarResponse(corpo, cnpj)` recebe o CNPJ para o `papel` e devolve `null` quando o corpo não é resposta do ADN; o `RetornoNfseHelper` transforma o `null` em `Resposta inesperada do ADN (HTTP <status>).`. O helper ganhou `enviarConsulta(config, opts)`, como o da NF-e, e `calcularPapel`.
+- `consultaChNFSe` não manda `params`: o Swagger não declara `cnpjConsulta` nesse caminho.
+- `ChaveNfseValidator` exige só dígitos, além dos 50 caracteres, porque a chave vai no caminho da URL. Chave com letra cai em `Chave da NFS-e com tamanho incorreto.`.
+- `NsuNfseValidator` testa só dígitos antes do tamanho, e trata `0` número como informado (o `NsuValidator` usa `!this.nsu`).
+- Os tipos dos arrays do retorno saem como `Array<…>` no JSDoc do controller. O idioma do controller da NF-e (`docZip:[{…}]`) vira tupla de um elemento no `.d.ts`; não foi mexido lá, fora do escopo.
+- `package.json`: `description` e `keywords` passam a citar a NFS-e, como a ADR 0015 promete. Não afeta o lockfile.
+- `test/sefaz.test.js` tira o CNPJ do CN do certificado, em vez de tê-lo escrito no teste.
+- `.docs/conhecimento/nfse-nacional-adn-distribuicao.md` recebeu os achados das questões em aberto e perdeu uma linha duplicada.
+
+**Afeta a GH-19:** a mensagem `Resposta inesperada do ADN (HTTP <status>).` está no `RetornoNfseHelper`, que a manifestação reaproveita. A SEFIN precisa de outro nome de serviço na mensagem e de normalizar seu `erro` único para `erros`; ver a ADR 0016. Sobe para o plano no Passo 4.
+
+**Testes:** `test:ci` de 92 para 152 passando; suíte inteira, com `sefaz.test.js` e `tls-sefaz.test.js`, 171 passando com o A1 real.
+
+**Revisão automática (CodeRabbit, PR #20):** aplicado o único comentário. O teste de `sefaz.test.js` em produção restrita exigia fila vazia e quebraria quando a NFS-e de teste da GH-19 fosse emitida lá. Passou a aceitar `NENHUM_DOCUMENTO_LOCALIZADO` (404) ou `DOCUMENTOS_LOCALIZADOS` (200), sempre sem `error`. O contrato da fila vazia continua coberto com resposta controlada nos testes do helper e de transporte.
+
+**Intermitência anterior a esta tarefa:** com o A1 real em `certs/`, `Certificado.p12ToPem` leva de 1,7 s a 2,2 s, perto do timeout padrão de 2 s do mocha, e testes de construtor com PFX de `distribuicao.test.js` e `recepcao.test.js` estouram em algumas rodadas (já na linha de base, antes de qualquer mudança). Com `--timeout 15000` passam todos. Na CI, com o certificado descartável em 3DES, não acontece. Não corrigido aqui; anotado no `CLAUDE.md`.
 
 ## Conclusão e entrega
 
@@ -264,3 +290,4 @@ Executar **após o PR ser mergeado na `main`**:
 | 2026-10-15 | 0.1 | Rascunho criado como filha 1 do plano NFS-e                                                                                |
 | 2026-10-15 | 1.0 | Especificada com o Swagger, a drenagem em produção e as decisões do plano: retorno próprio, papel por item, CNPJ da config |
 | 2026-10-15 | 1.1 | Promovida a `especificadas` com a issue GH-18, filha do plano GH-17                                                        |
+| 2026-10-15 | 1.2 | Implementação e notas: RF-03 e Decisão 4 revistas com as respostas das questões em aberto, aprovadas pelo usuário          |

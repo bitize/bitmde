@@ -1,7 +1,7 @@
 {
   "name": "@bitize/bitmde",
   "version": "0.19.0",
-  "description": "Biblioteca para consultar notas destinadas e enviar evento de manifestação do destinatário",
+  "description": "Biblioteca para consultar notas destinadas e enviar evento de manifestação do destinatário, e para a distribuição de NFS-e Nacional pelo ADN",
   "main": "./lib/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -48,7 +48,10 @@
     "mde",
     "soap",
     "manifestacaonfe",
-    "distribuicaodfe"
+    "distribuicaodfe",
+    "nfse",
+    "nfse-nacional",
+    "adn"
   ],
   "author": "Bitize",
   "contributors": [

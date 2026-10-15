@@ -2,6 +2,18 @@
 
 ## [Não publicado]
 
+### Adicionado
+
+- **`DistribuicaoNFSe`: distribuição de NFS-e Nacional pelo Ambiente de Dados Nacional (ADN)**, exportada nas três formas (`module.exports`, `.default`, `.mde`). Usa o mesmo certificado A1 da NF-e e consulta as NFS-e e os eventos em que o CNPJ figura:
+  - `consultaUltNSU(ultNSU)` — até 50 documentos depois do NSU informado, começando em `'0'`; fila vazia é HTTP 404 sem `error`
+  - `consultaNSU(nsu)` — o documento daquele NSU
+  - `consultaChNFSe(chNFSe)` — a NFS-e da chave de 50 dígitos e os eventos dela
+- Campo `papel` em cada NFS-e distribuída: `'tomador'`, `'prestador'` ou `'intermediario'`, conforme o CNPJ consultado apareça como `toma`, `prest` ou `interm` da DPS, nessa ordem; `''` se não aparecer e em eventos. A biblioteca marca, não filtra
+- Retorno próprio da NFS-e, `{ data, resBody, status, error?, transportError? }`: `resBody` é o corpo cru do ADN, e `status`, `error` e `transportError` têm o mesmo significado das APIs de NF-e. Ver [ADR 0016](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0016-retorno-proprio-da-nfse.md)
+- Hosts do ADN, de produção e produção restrita, no `test/tls-sefaz.test.js` e com isso no workflow semanal `cadeia-tls.yml`
+
+Nada muda em `DistribuicaoDFe` nem em `RecepcaoEvento`.
+
 ## [0.19.0] / 2026-10-03
 
 > Muda o comportamento padrão de transporte e deixa de suportar o Node 20; leia [Compatibilidade](#compatibilidade) antes de atualizar.

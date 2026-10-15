@@ -78,7 +78,6 @@ HTTP 404
 - Produção restrita se identifica como `TipoAmbiente: HOMOLOGACAO`.
 - A cadeia TLS de `adn.producaorestrita.nfse.gov.br` e de `adn.nfse.gov.br` (produção) fecha com o `CA_PADRAO` (raízes do Node + ICP-Brasil), sem ajuste — conferido com `rejectUnauthorized: true`.
 - O Swagger de contribuintes de produção é idêntico byte a byte ao de produção restrita.
-- O Swagger de contribuintes de produção é idêntico byte a byte ao de produção restrita.
 
 Os Swaggers estão versionados em [fontes/nfse-nacional/](fontes/nfse-nacional/README.md).
 
@@ -95,6 +94,33 @@ Drenagem completa da fila de um CNPJ em 2026-10-15, com `GET /DFe/{NSU}?lote=tru
 - Vêm NFS-e geradas pela SEFIN Nacional (`ambGer` 2) e por sistema próprio de município (`ambGer` 1), nas versões de leiaute `1.00` e `1.01` misturadas.
 - `ArquivoXml` é gzip + base64 em todos os itens. NFS-e tem raiz `NFSe`; evento tem raiz `evento`. Em item `NFSE`, `TipoEvento` vem ausente, não `null`.
 - `GET /NFSe/{ChaveAcesso}/Eventos` devolve, além dos eventos, **a própria NFS-e** no `LoteDFe`, com o NSU original de cada item.
+
+### Consultas avulsas e rejeições
+
+Chamadas de 2026-10-15, só leitura, feitas na implementação da [GH-18](../tarefas/especificadas/GH-18-distribuicao-nfse-nacional-adn.md):
+
+| Chamada                                               | Ambiente          | HTTP | `StatusProcessamento`          | `Erros`   |
+| ----------------------------------------------------- | ----------------- | ---- | ------------------------------ | --------- |
+| `/DFe/0?lote=false`                                   | Produção          | 200  | `DOCUMENTOS_LOCALIZADOS`       | — (NSU 1) |
+| `/DFe/5?lote=false`                                   | Produção          | 200  | `DOCUMENTOS_LOCALIZADOS`       | — (NSU 6) |
+| `/DFe/999999999?lote=false`                           | Produção          | 404  | `NENHUM_DOCUMENTO_LOCALIZADO`  | `E2230`   |
+| `/DFe/0?lote=true&cnpjConsulta=<CNPJ do certificado>` | Produção          | 200  | `DOCUMENTOS_LOCALIZADOS`       | —         |
+| `/DFe/0?lote=true&cnpjConsulta=<CNPJ de outra raiz>`  | Ambos             | 400  | **`DOCUMENTOS_LOCALIZADOS`**   | `E2243`   |
+| `/DFe/-1?lote=true`                                   | Produção restrita | 404  | `NENHUM_DOCUMENTO_LOCALIZADO`  | `E2220`   |
+| `/DFe/abc`                                            | Produção restrita | 400  | — (`application/problem+json`) | —         |
+| `/NFSe/<chave inexistente>/Eventos`                   | Ambos             | 404  | `NENHUM_DOCUMENTO_LOCALIZADO`  | `E2240`   |
+| `/NFSe/<chave existente>/Eventos`                     | Produção          | 200  | `DOCUMENTOS_LOCALIZADOS`       | —         |
+
+O que muda em relação ao Swagger:
+
+- **`lote=false` também devolve o documento seguinte ao NSU do caminho**, não o próprio NSU. O Swagger diz "o Documento Fiscal de Serviço correspondente ao NSU informado". Para obter o NSU `n`, pedir `/DFe/{n-1}?lote=false`.
+- **Rejeição não vem necessariamente como `REJEICAO`.** `cnpjConsulta` de outra raiz volta com HTTP 400, `E2243` ("O CNPJ informado na consulta deve ter o mesmo CNPJ Base do Contribuinte solicitante.") e `StatusProcessamento: DOCUMENTOS_LOCALIZADOS`, com `LoteDFe` vazio. Quem decide se falhou é o HTTP e o `Erros`, não só o status.
+- `Erros[].Mensagem` vem como `{}` e `Parametros` não vem; `Codigo` e `Descricao` são o que importa.
+- NSU fora do formato `int64` nem chega à aplicação: o roteador responde `application/problem+json` (`type`, `title`, `status`, `errors`, `traceId`), sem `StatusProcessamento`.
+- `cnpjConsulta` igual ao CNPJ do certificado é aceito, com o mesmo resultado de omitir o parâmetro.
+- `Content-Type: application/soap+xml` num `GET` sem corpo é ignorado.
+
+A cadeia TLS dos dois hosts é `Let's Encrypt YR1 ← ISRG Root YR ← ISRG Root X1` (cross-sign), por isso fecha pelas raízes do Node e não pela ICP-Brasil.
 
 ## Ainda não confirmado
 

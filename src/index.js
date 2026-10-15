@@ -1,6 +1,7 @@
 'use strict'
 
 const DistribuicaoDFe = require('./apis/distribuicaoDFe-api')
+const DistribuicaoNFSe = require('./apis/distribuicaoNFSe-api')
 const RecepcaoEvento = require('./apis/recepcaoEvento-api')
 const env = require('./env')
 
@@ -13,17 +14,20 @@ module.exports = {
   CA_ICP_BRASIL: CA_ICP_BRASIL,
   CA_PADRAO: CA_PADRAO,
   DistribuicaoDFe: DistribuicaoDFe,
+  DistribuicaoNFSe: DistribuicaoNFSe,
   RecepcaoEvento: RecepcaoEvento,
 }
 module.exports.default = {
   CA_ICP_BRASIL: CA_ICP_BRASIL,
   CA_PADRAO: CA_PADRAO,
   DistribuicaoDFe: DistribuicaoDFe,
+  DistribuicaoNFSe: DistribuicaoNFSe,
   RecepcaoEvento: RecepcaoEvento,
 }
 module.exports.mde = {
   CA_ICP_BRASIL: CA_ICP_BRASIL,
   CA_PADRAO: CA_PADRAO,
   DistribuicaoDFe: DistribuicaoDFe,
+  DistribuicaoNFSe: DistribuicaoNFSe,
   RecepcaoEvento: RecepcaoEvento,
 }
