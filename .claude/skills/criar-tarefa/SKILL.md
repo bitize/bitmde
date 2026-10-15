@@ -143,7 +143,7 @@ Os demais gates (`certs:teste` + `test:ci`, `sefaz.test.js` à parte, `build`) v
 
 ## Fechamento
 
-Concluir ou cancelar segue a checklist que já está na própria tarefa ("Conclusão e entrega") e em [.docs/tarefas/README.md](../../../.docs/tarefas/README.md). O ponto mais esquecido dos dois fluxos: depois do `git mv`, **corrigir o blockquote de especificação no corpo da issue**, trocando `especificadas/` por `concluidas/` ou `canceladas/`.
+A implementação e a conclusão passo a passo estão na skill [executar-tarefa](../executar-tarefa/SKILL.md). Concluir ou cancelar segue a checklist que já está na própria tarefa ("Conclusão e entrega") e em [.docs/tarefas/README.md](../../../.docs/tarefas/README.md). O ponto mais esquecido dos dois fluxos: depois do `git mv`, **corrigir o blockquote de especificação no corpo da issue**, trocando `especificadas/` por `concluidas/` ou `canceladas/`.
 
 Tarefa cancelada não se apaga — vira registro, com o motivo, e os checklists ficam desmarcados.
 

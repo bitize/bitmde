@@ -133,7 +133,7 @@ Commitar o plano junto com as filhas que ele criou ou alterou — o campo **Plan
 
 ## Fechamento
 
-Concluir ou cancelar segue [.docs/planos/README.md](../../../.docs/planos/README.md) e a checklist "Conclusão e entrega" do próprio plano. Os pontos mais esquecidos:
+A condução das filhas e o fechamento passo a passo estão na skill [executar-plano](../executar-plano/SKILL.md). Concluir ou cancelar segue [.docs/planos/README.md](../../../.docs/planos/README.md) e a checklist "Conclusão e entrega" do próprio plano. Os pontos mais esquecidos:
 
 - **O GitHub não fecha a issue do plano** quando a última sub-issue fecha — fechar à mão.
 - **Corrigir o blockquote** da issue do plano depois do `git mv` (`especificados/` → `concluidos/` ou `cancelados/`).

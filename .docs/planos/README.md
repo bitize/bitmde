@@ -145,8 +145,9 @@ Quando a última filha sair de `especificadas/` e o objetivo estiver verificado:
 3. **Cabeçalho** — **Status**: `concluidos`, **Concluído em** e **Atualizado em**;
 4. **Histórico de revisões** — linha com o encerramento;
 5. **Mover para `concluidos/`** com `git mv`;
-6. **Corrigir o blockquote** da issue para `.docs/planos/concluidos/`;
-7. **Fechar a issue** do plano — o GitHub não fecha a mãe quando as sub-issues fecham.
+6. **Corrigir o campo Plano das filhas** — é link para o caminho do plano, que mudou com o `git mv`; trocar `especificados/` por `concluidos/` em cada uma, no mesmo commit;
+7. **Corrigir o blockquote** da issue para `.docs/planos/concluidos/`;
+8. **Fechar a issue** do plano — o GitHub não fecha a mãe quando as sub-issues fecham.
 
 ## Ao cancelar o plano
 
@@ -162,7 +163,7 @@ O arquivo **não** se apaga. Para cada filha ainda aberta (em `rascunhos/` ou `e
 
 Filhas já concluídas ficam como estão, com o campo **Plano** preservado — é registro histórico.
 
-Depois: **Status** `cancelados` e **Cancelado em** no cabeçalho, bloco **Motivo** logo após o cabeçalho, linha no histórico, `git mv` para `cancelados/`, blockquote da issue corrigido e issue fechada como `not planned`.
+Depois: **Status** `cancelados` e **Cancelado em** no cabeçalho, bloco **Motivo** logo após o cabeçalho, linha no histórico, `git mv` para `cancelados/`, link do campo **Plano** das filhas que continuam vinculadas corrigido para `cancelados/`, blockquote da issue corrigido e issue fechada como `not planned`.
 
 ## Por que as filhas ficam em `tarefas/`
 

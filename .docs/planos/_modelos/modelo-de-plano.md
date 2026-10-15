@@ -79,6 +79,7 @@ Executar quando a última filha sair de `especificadas/`:
 - [ ] Desvios registrados em "Notas de conclusão"
 - [ ] Cabeçalho: **Status** = `concluidos` e **Concluído em** preenchido
 - [ ] Arquivo movido: `git mv .docs/planos/especificados/GH-NN-descricao.md .docs/planos/concluidos/GH-NN-descricao.md`
+- [ ] Campo **Plano** das filhas apontando para `../../planos/concluidos/` (era `especificados/`)
 - [ ] Blockquote do plano na issue apontando para `.docs/planos/concluidos/` (era `especificados/`)
 - [ ] Issue do plano fechada no GitHub
 

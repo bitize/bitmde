@@ -142,6 +142,7 @@ Executar quando a última filha sair de `especificadas/`:
 - [ ] Desvios registrados em "Notas de conclusão"
 - [ ] Cabeçalho: **Status** = `concluidos` e **Concluído em** preenchido
 - [ ] Arquivo movido: `git mv .docs/planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md .docs/planos/concluidos/`
+- [ ] Campo **Plano** da GH-18 e da GH-19 apontando para `../../planos/concluidos/` (era `especificados/`)
 - [ ] Blockquote do plano na issue apontando para `.docs/planos/concluidos/` (era `especificados/`)
 - [ ] Issue do plano fechada no GitHub e no Linear
 
