@@ -650,7 +650,7 @@ Quando não há resposta HTTP (falha na cadeia TLS, DNS, conexão recusada, time
 
 Uma resposta HTTP de erro da SEFAZ, como um `502` ou um `503`, chega com o status real, o corpo em `resXml` e **sem** `transportError`. Então `status: 0` significa sempre "a SEFAZ não respondeu".
 
-Na `DistribuicaoNFSe` o erro de transporte tem a mesma forma, com `resBody: ''` no lugar de `reqXml` e `resXml`. As mesmas regras de `CA_PADRAO` e `httpsOptions` valem para os hosts do ADN, que hoje servem certificado Let's Encrypt.
+Nas APIs da NFS-e o erro de transporte tem a mesma forma, com `resBody: ''` no lugar de `resXml`. A `DistribuicaoNFSe` não tem `reqXml`; a `ManifestacaoNFSe` mantém o `reqXml` com o pedido assinado, para saber o que foi enviado. As mesmas regras de `CA_PADRAO` e `httpsOptions` valem para os hosts do ADN, que hoje servem certificado Let's Encrypt, e para os da SEFIN Nacional, que servem a mesma cadeia GlobalSign do Ambiente Nacional da NF-e.
 
 ## Sobre o BitERP
 
