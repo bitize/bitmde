@@ -3,14 +3,14 @@
 | Campo                | Valor                                                                                  |
 | -------------------- | -------------------------------------------------------------------------------------- |
 | **Issue**            | [GH-19](https://github.com/bitize/bitmde/issues/19)                                    |
-| **Status**           | especificadas                                                                          |
+| **Status**           | concluidas                                                                             |
 | **Plano**            | [GH-17](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md) |
 | **Prioridade**       | P2 (médio)                                                                             |
 | **Tipo**             | feature                                                                                |
 | **Camadas afetadas** | apis / validators / controllers / helpers / schemas / env / util / test                |
 | **Criado em**        | 2026-10-15                                                                             |
 | **Atualizado em**    | 2026-10-16                                                                             |
-| **Concluído em**     | —                                                                                      |
+| **Concluído em**     | 2026-10-16                                                                             |
 
 ---
 
@@ -204,7 +204,7 @@ Respostas, em 2026-10-16:
 - [x] `CLAUDE.md`: "O que é" e exports de `src/index.js`
 - [x] `.docs/arquitetura/`: [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [schemas-xml](../../arquitetura/camadas/schemas-xml.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md) e fluxo novo [fluxos/manifestacao-nfse.md](../../arquitetura/fluxos/manifestacao-nfse.md); também [services-sefaz](../../arquitetura/camadas/services-sefaz.md), [testes-e-certificados](../../arquitetura/testes-e-certificados.md), [fluxos/recepcao-evento](../../arquitetura/fluxos/recepcao-evento.md) e [conhecimento/nfse-nacional-sefin-eventos.md](../../conhecimento/nfse-nacional-sefin-eventos.md)
 - [x] Questões em aberto respondidas nesta seção, com data, antes do PR
-- [ ] Versão: bump de **minor** no release que fechar o plano
+- [ ] Versão: bump de **minor** no release que fechar o plano — fica para o release, disparado pelo usuário
 
 ## Validação pré-PR (obrigatório)
 
@@ -256,13 +256,13 @@ Rodar na raiz do repositório:
 
 Executar **após o PR ser mergeado na `main`**:
 
-- [ ] Desvios registrados em "Notas de implementação"
-- [ ] Checklists marcados
-- [ ] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
-- [ ] Arquivo movido para `.docs/tarefas/concluidas/`
-- [ ] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
-- [ ] Issue fechada no GitHub e no Linear
-- [ ] Link e status desta tarefa atualizados na tabela de filhas do plano; se era a última filha aberta, concluir o plano
+- [x] Desvios registrados em "Notas de implementação"
+- [x] Checklists marcados
+- [x] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [x] Arquivo movido para `.docs/tarefas/concluidas/`
+- [x] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
+- [x] Issue fechada no GitHub e no Linear
+- [x] Link e status desta tarefa atualizados na tabela de filhas do plano. Era a última filha aberta, mas o plano só fecha com o release de minor
 
 ## Referências
 
@@ -285,3 +285,4 @@ Executar **após o PR ser mergeado na `main`**:
 | 2026-10-15 | 1.2 | Revista depois da GH-18: `RetornoNfseHelper` a parametrizar por serviço e `error` pelo HTTP e pelos `erros` (ADR 0016)        |
 | 2026-10-16 | 1.3 | Implementação e notas: testes reais em produção por decisão do usuário; declaração XML e `erro` em array descobertos na SEFIN |
 | 2026-10-16 | 1.4 | Confirmação real aceita em produção, sobre nota de município: questões 2 e 3 respondidas                                      |
+| 2026-10-16 | 2.0 | Entregue no PR #23 (merge `3e8c976`); tarefa movida para `concluidas/`                                                        |
