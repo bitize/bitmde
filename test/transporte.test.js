@@ -6,10 +6,16 @@ const https = require('https')
 const net = require('net')
 const forge = require('node-forge')
 const zlib = require('zlib')
-const { CA_PADRAO, DistribuicaoDFe, DistribuicaoNFSe } = require('../src')
+const {
+  CA_PADRAO,
+  DistribuicaoDFe,
+  DistribuicaoNFSe,
+  ManifestacaoNFSe,
+} = require('../src')
 const { VERSION } = require('../src/env')
 const { RetornoHelper } = require('../src/helpers')
 const SefazService = require('../src/services/sefaz-service')
+const { Gzip } = require('../src/util')
 
 const RESPOSTA_137 =
   '<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"><soap:Body><nfeDistDFeInteresseResponse xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe"><nfeDistDFeInteresseResult><retDistDFeInt versao="1.01" xmlns="http://www.portalfiscal.inf.br/nfe"><tpAmb>2</tpAmb><cStat>137</cStat><xMotivo>Nenhum documento localizado</xMotivo><ultNSU>000000000000000</ultNSU><maxNSU>000000000000000</maxNSU></retDistDFeInt></nfeDistDFeInteresseResult></nfeDistDFeInteresseResponse></soap:Body></soap:Envelope>'
@@ -369,6 +375,176 @@ describe('Transporte NFS-e', function () {
       'code',
       'message',
     ])
+    assert.strictEqual(
+      retorno.error,
+      `Falha de transporte (${retorno.transportError.code}): ${retorno.transportError.message}`
+    )
+    assert.ok(!serializado.includes('PRIVATE KEY'))
+    assert.ok(!serializado.includes('httpsAgent'))
+  })
+})
+
+describe('Transporte da manifestação NFS-e', function () {
+  this.timeout(10000)
+
+  const CNPJ = '11111111000191'
+  const CHAVE = '1'.repeat(50)
+
+  const XML_EVENTO =
+    '<evento versao="1.01" xmlns="http://www.sped.fazenda.gov.br/nfse">' +
+    `<infEvento Id="EVT${CHAVE}203206001"><nSeqEvento>1</nSeqEvento></infEvento></evento>`
+
+  const CORPO_SUCESSO = JSON.stringify({
+    tipoAmbiente: 2,
+    versaoAplicativo: 'SefinNacional_1.0',
+    dataHoraProcessamento: '2026-10-15T10:00:01-03:00',
+    eventoXmlGZipB64: zlib.gzipSync(XML_EVENTO).toString('base64'),
+  })
+
+  const CORPO_ERRO = JSON.stringify({
+    tipoAmbiente: 2,
+    versaoAplicativo: 'SefinNacional_1.0',
+    dataHoraProcessamento: '2026-10-15T10:00:01-03:00',
+    erro: [{ codigo: 'E1831', descricao: 'NFS-e não existe no ADN.' }],
+  })
+
+  let certificado
+  let servidor
+  let url
+  let ultimaRequisicao
+  let resposta
+
+  before(async function () {
+    certificado = gerarCertificado()
+
+    servidor = https.createServer(
+      { cert: certificado.cert, key: certificado.key },
+      (req, res) => {
+        const partes = []
+        req.on('data', (parte) => partes.push(parte))
+        req.on('end', () => {
+          ultimaRequisicao = {
+            method: req.method,
+            url: req.url,
+            headers: req.headers,
+            corpo: Buffer.concat(partes).toString('utf8'),
+          }
+          res.writeHead(resposta.status, { 'Content-Type': resposta.tipo })
+          res.end(resposta.corpo)
+        })
+      }
+    )
+
+    url = await escutar(servidor)
+  })
+
+  beforeEach(function () {
+    ultimaRequisicao = undefined
+    resposta = {
+      status: 201,
+      tipo: 'application/json',
+      corpo: CORPO_SUCESSO,
+    }
+  })
+
+  after(async function () {
+    await fechar(servidor)
+  })
+
+  function instanciar(httpsOptions = { ca: [...CA_PADRAO, certificado.cert] }) {
+    return new ManifestacaoNFSe({
+      cert: certificado.cert,
+      key: certificado.key,
+      tpAmb: '2',
+      cnpj: CNPJ,
+      options: { requestOptions: { baseURL: url }, httpsOptions },
+    })
+  }
+
+  it('rejeitar: POST JSON com o pedido assinado gzipado, 201 sem error', async function () {
+    const retorno = await instanciar().rejeitar(CHAVE, {
+      cMotivo: '9',
+      xMotivo: 'Serviço não foi prestado.',
+    })
+
+    assert.strictEqual(ultimaRequisicao.method, 'POST')
+    assert.strictEqual(ultimaRequisicao.url, `/nfse/${CHAVE}/eventos`)
+    assert.strictEqual(ultimaRequisicao.headers.accept, 'application/json')
+    assert.strictEqual(
+      ultimaRequisicao.headers['content-type'],
+      'application/json'
+    )
+    assert.strictEqual(
+      ultimaRequisicao.headers['user-agent'],
+      `bitmde/${VERSION}`
+    )
+
+    const corpo = JSON.parse(ultimaRequisicao.corpo)
+    assert.deepStrictEqual(Object.keys(corpo), [
+      'pedidoRegistroEventoXmlGZipB64',
+    ])
+    assert.strictEqual(
+      await Gzip.unzip(corpo.pedidoRegistroEventoXmlGZipB64),
+      retorno.reqXml
+    )
+
+    assert.ok(retorno.reqXml.includes(`<infPedReg Id="PRE${CHAVE}203206">`))
+    assert.ok(retorno.reqXml.includes(`<CNPJAutor>${CNPJ}</CNPJAutor>`))
+    assert.ok(
+      retorno.reqXml.includes(
+        '<cMotivo>9</cMotivo><xMotivo>Serviço não foi prestado.</xMotivo>'
+      )
+    )
+    assert.ok(
+      /<dhEvento>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-03:00<\/dhEvento>/.test(
+        retorno.reqXml
+      ),
+      retorno.reqXml
+    )
+    assert.ok(retorno.reqXml.includes(`<verAplic>bitmde/${VERSION}</verAplic>`))
+
+    assert.strictEqual(retorno.status, 201)
+    assert.strictEqual(retorno.error, undefined)
+    assert.strictEqual(retorno.transportError, undefined)
+    assert.strictEqual(retorno.resBody, CORPO_SUCESSO)
+    assert.strictEqual(retorno.data.tipoAmbiente, '2')
+    assert.strictEqual(retorno.data.evento.xml, XML_EVENTO)
+  })
+
+  it('confirmar: 400 com erro vira error, data e reqXml mantidos', async function () {
+    resposta = { status: 400, tipo: 'application/json', corpo: CORPO_ERRO }
+
+    const retorno = await instanciar().confirmar(CHAVE)
+
+    assert.ok(retorno.reqXml.includes(`<infPedReg Id="PRE${CHAVE}203202">`))
+    assert.strictEqual(retorno.status, 400)
+    assert.strictEqual(retorno.error, 'E1831: NFS-e não existe no ADN.')
+    assert.strictEqual(retorno.data.erros[0].codigo, 'E1831')
+    assert.strictEqual(retorno.resBody, CORPO_ERRO)
+  })
+
+  it('502 com HTML: resposta inesperada da SEFIN', async function () {
+    resposta = { status: 502, tipo: 'text/html', corpo: RESPOSTA_502 }
+
+    const retorno = await instanciar().confirmar(CHAVE)
+
+    assert.strictEqual(retorno.status, 502)
+    assert.deepStrictEqual(retorno.data, {})
+    assert.strictEqual(retorno.resBody, RESPOSTA_502)
+    assert.strictEqual(
+      retorno.error,
+      'Resposta inesperada da SEFIN (HTTP 502).'
+    )
+  })
+
+  it('Certificado do servidor fora da cadeia: transportError sem a chave', async function () {
+    const retorno = await instanciar({}).confirmar(CHAVE)
+    const serializado = JSON.stringify(retorno)
+
+    assert.strictEqual(retorno.status, 0)
+    assert.strictEqual(retorno.resBody, '')
+    assert.deepStrictEqual(retorno.data, {})
+    assert.ok(retorno.reqXml.includes('<pedRegEvento'))
     assert.strictEqual(
       retorno.error,
       `Falha de transporte (${retorno.transportError.code}): ${retorno.transportError.message}`

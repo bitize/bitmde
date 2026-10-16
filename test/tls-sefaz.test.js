@@ -1,13 +1,13 @@
 'use strict'
 
-// Handshake real contra o Ambiente Nacional da NF-e e o ADN da NFS-e, sem
+// Handshake real contra o Ambiente Nacional da NF-e e o ADN e a SEFIN da NFS-e, sem
 // certificado A1: só valida a cadeia do servidor. Exige rede, por isso fica fora do test:ci e roda no
 // workflow agendado .github/workflows/cadeia-tls.yml.
 
 const assert = require('assert')
 const tls = require('tls')
 const { CA_ICP_BRASIL, CA_PADRAO } = require('../src')
-const { DISTRIBUICAO, NFSE_ADN, RECEPCAO } = require('../src/env')
+const { DISTRIBUICAO, NFSE_ADN, NFSE_SEFIN, RECEPCAO } = require('../src/env')
 
 const HOSTS = [
   ...new Set(
@@ -15,6 +15,7 @@ const HOSTS = [
       ...Object.values(DISTRIBUICAO),
       ...Object.values(RECEPCAO),
       ...Object.values(NFSE_ADN),
+      ...Object.values(NFSE_SEFIN),
     ].map((url) => new URL(url).hostname)
   ),
 ]
@@ -39,14 +40,16 @@ function handshake(host, ca) {
   })
 }
 
-describe('Cadeia TLS do Ambiente Nacional e do ADN', function () {
+describe('Cadeia TLS do Ambiente Nacional, do ADN e da SEFIN', function () {
   this.timeout(30000)
 
-  it('Os endpoints usam www1, hom1 e os dois hosts do ADN', function () {
+  it('Os endpoints usam www1, hom1 e os dois hosts do ADN e da SEFIN', function () {
     assert.deepStrictEqual(HOSTS.sort(), [
       'adn.nfse.gov.br',
       'adn.producaorestrita.nfse.gov.br',
       'hom1.nfe.fazenda.gov.br',
+      'sefin.nfse.gov.br',
+      'sefin.producaorestrita.nfse.gov.br',
       'www1.nfe.fazenda.gov.br',
     ])
   })
@@ -59,7 +62,7 @@ describe('Cadeia TLS do Ambiente Nacional e do ADN', function () {
     })
 
     // Se isto passar a fechar, o host voltou a uma cadeia ICP-Brasil (o AN
-    // serve GlobalSign; o ADN, Let's Encrypt): falhar alto para alguém rever
+    // e a SEFIN servem GlobalSign; o ADN, Let's Encrypt): falhar alto para alguém rever
     // a Decisão 1 do ADR 0014.
     it(`${host} não fecha só com CA_ICP_BRASIL`, async function () {
       await assert.rejects(handshake(host, CA_ICP_BRASIL), (erro) => {

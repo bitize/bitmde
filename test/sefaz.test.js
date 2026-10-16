@@ -3,9 +3,16 @@
 const assert = require('assert')
 const crypto = require('crypto')
 const fs = require('fs')
-const { DistribuicaoNFSe } = require('../src')
+const { DistribuicaoNFSe, ManifestacaoNFSe } = require('../src')
 const SefazService = require('../src/services/sefaz-service')
-const { CA_PADRAO, DISTRIBUICAO, RECEPCAO } = require('../src/env')
+const {
+  CA_PADRAO,
+  DISTRIBUICAO,
+  EVENTOS_NFSE,
+  RECEPCAO,
+} = require('../src/env')
+const { ManifestacaoNFSeHelper } = require('../src/helpers')
+const { Gzip } = require('../src/util')
 
 const certificado = {
   cert: fs.readFileSync('certs/cert.pem', 'utf8'),
@@ -243,5 +250,79 @@ describe('DistribuicaoNFSe', function () {
       retorno.data.documentos.map((d) => d.nsu),
       ['1']
     )
+  })
+})
+
+// Só pedidos que a SEFIN rejeita: a chave é inventada, então nenhum evento
+// pode ser registrado. Confirmação e Rejeição aceitas não entram na suíte —
+// cada uma registra um evento fiscal, e a segunda execução seria duplicidade.
+describe('ManifestacaoNFSe', function () {
+  this.timeout(30000)
+
+  const CHAVE_INEXISTENTE = '1'.repeat(50)
+
+  function instanciar(tpAmb, cnpj = cnpjDoCertificado()) {
+    return new ManifestacaoNFSe({
+      cert: certificado.cert,
+      key: certificado.key,
+      cnpj: cnpj,
+      tpAmb: tpAmb,
+    })
+  }
+
+  function assertE1831(retorno, tipoAmbiente) {
+    assert.strictEqual(retorno.status, 400, retorno.error)
+    assert.ok(retorno.error.startsWith('E1831: '), retorno.error)
+    assert.strictEqual(retorno.data.erros[0].codigo, 'E1831')
+    assert.strictEqual(retorno.data.tipoAmbiente, tipoAmbiente)
+    assert.deepStrictEqual(retorno.data.evento, {})
+    assert.ok(retorno.reqXml.includes('</infPedReg><Signature'))
+  }
+
+  // A SEFIN confere a assinatura antes da existência da nota (ver o teste
+  // da assinatura adulterada): chegar ao E1831 prova que ela foi aceita.
+  it('confirmar em produção, chave inexistente: E1831', async function () {
+    assertE1831(await instanciar('1').confirmar(CHAVE_INEXISTENTE), '1')
+  })
+
+  it('rejeitar em produção, chave inexistente: E1831', async function () {
+    const retorno = await instanciar('1').rejeitar(CHAVE_INEXISTENTE, {
+      cMotivo: '9',
+      xMotivo: 'Teste de integração do bitmde.',
+    })
+
+    assertE1831(retorno, '1')
+  })
+
+  it('confirmar em produção restrita, chave inexistente: E1831', async function () {
+    assertE1831(await instanciar('2').confirmar(CHAVE_INEXISTENTE), '2')
+  })
+
+  it('Assinatura adulterada em produção: E0714, antes da existência da nota', async function () {
+    const opts = {
+      cert: certificado.cert,
+      key: certificado.key,
+      tpAmb: '1',
+      cnpj: cnpjDoCertificado(),
+      chNFSe: CHAVE_INEXISTENTE,
+      evento: EVENTOS_NFSE[203202],
+      verAplic: 'bitmde/teste',
+      dhEvento: '2026-10-16T09:30:00-03:00',
+    }
+
+    const { reqXml, config } = await ManifestacaoNFSeHelper.montarRequest(opts)
+    const adulterado = reqXml.replace('09:30:00', '09:31:00')
+    const pedido = await Gzip.zip(adulterado)
+
+    const retorno = await ManifestacaoNFSeHelper.enviarEvento(
+      {
+        ...config,
+        data: JSON.stringify({ pedidoRegistroEventoXmlGZipB64: pedido }),
+      },
+      opts
+    )
+
+    assert.strictEqual(retorno.status, 400)
+    assert.strictEqual(JSON.parse(retorno.data).erro[0].codigo, 'E0714')
   })
 })
