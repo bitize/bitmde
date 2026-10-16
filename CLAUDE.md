@@ -55,10 +55,10 @@ Quem não tem um A1 em mãos pode rodar `npm run certs:teste`, que gera um autoa
 
 Dois workflows em push e PR na `main`:
 
-- `.github/workflows/testes.yml` — matriz Node 22/24: `npm ci` → `npm run certs:teste` → `npm run test:ci`. **Não roda** quando todos os arquivos alterados casam com `paths-ignore` (`**/*.md`, `.docs/**`, `.claude/**`, `LICENSE`).
+- `.github/workflows/testes.yml` — matriz Node 22/24: `npm ci` → `npm run certs:teste` → `npm run test:ci`. A matriz é pulada quando todos os arquivos alterados são `**/*.md`, `.docs/**`, `.claude/**` ou `LICENSE`; o job `Testes` roda sempre e consolida o resultado.
 - `.github/workflows/qualidade.yml` — dois jobs paralelos em Node 22: `npm run format:check` (Prettier) e `npm run build`. Roda sempre, inclusive em PR só de docs: é o Prettier que valida o Markdown.
 
-Check pulado por `paths-ignore` nunca reporta status. Hoje a `main` não tem proteção de branch nem ruleset; se `Node 22.x`/`Node 24.x` virarem checks obrigatórios, PR só de docs fica preso em "Expected — Waiting for status". Nesse caso, trocar o `paths-ignore` por um job que sempre roda e decide pelos arquivos alterados. O `publicar.yml` não tem filtro e roda os testes antes de todo release.
+A `main` é protegida por dois rulesets: um sem bypass que bloqueia deleção e force-push, e outro que exige PR e os checks `Prettier`, `Build` e `Testes`, com bypass para admin (é por ele que o commit de release vai direto na `main`). **Não voltar a usar `paths-ignore` no `testes.yml`**: workflow pulado por filtro de caminho não reporta status, e PR só de docs ficaria preso em "Expected — Waiting for status". Pelo mesmo motivo, o check obrigatório é `Testes`, e não `Node 22.x`/`Node 24.x` — job de matriz pulado reporta o nome sem expandir. Renomear um job obrigatório exige atualizar o ruleset junto. Detalhes em [testes-e-certificados.md](.docs/arquitetura/testes-e-certificados.md#proteção-da-main). O `publicar.yml` não tem filtro e roda os testes antes de todo release.
 
 Mais um em release publicado, descrito em [Release](#release):
 
