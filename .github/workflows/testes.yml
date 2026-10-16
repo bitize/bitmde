@@ -36,13 +36,15 @@ jobs:
       # No PR compara a base com a cabeça; no push, o topo anterior da main com
       # o novo. Se a comparação falhar (push que cria a branch, commit anterior
       # inexistente), erra para o lado seguro e roda a suíte inteira.
+      # --no-renames: com detecção de renomeação o diff lista só o destino, e
+      # mover src/x.js para .docs/ pareceria mudança só de documentação.
       - name: Filtrar arquivos de código
         id: filtro
         env:
           BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           CABECA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
-          if ! ALTERADOS=$(git diff --name-only "$BASE...$CABECA" 2>/dev/null); then
+          if ! ALTERADOS=$(git diff --no-renames --name-only "$BASE...$CABECA" 2>/dev/null); then
             echo "::notice::Não foi possível comparar $BASE com $CABECA — a suíte roda inteira."
             echo "codigo=true" >> "$GITHUB_OUTPUT"
             exit 0
