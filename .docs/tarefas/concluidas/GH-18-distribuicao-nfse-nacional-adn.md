@@ -1,22 +1,22 @@
 # GH-18: Distribuição de NFS-e Nacional pelo ADN
 
-| Campo                | Valor                                                                                  |
-| -------------------- | -------------------------------------------------------------------------------------- |
-| **Issue**            | [GH-18](https://github.com/bitize/bitmde/issues/18)                                    |
-| **Status**           | concluidas                                                                             |
-| **Plano**            | [GH-17](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md) |
-| **Prioridade**       | P2 (médio)                                                                             |
-| **Tipo**             | feature                                                                                |
-| **Camadas afetadas** | apis / validators / controllers / helpers / services / env / util / test               |
-| **Criado em**        | 2026-10-15                                                                             |
-| **Atualizado em**    | 2026-10-15                                                                             |
-| **Concluído em**     | 2026-10-15                                                                             |
+| Campo                | Valor                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| **Issue**            | [GH-18](https://github.com/bitize/bitmde/issues/18)                                 |
+| **Status**           | concluidas                                                                          |
+| **Plano**            | [GH-17](../../planos/concluidos/GH-17-nfse-nacional-distribuicao-e-manifestacao.md) |
+| **Prioridade**       | P2 (médio)                                                                          |
+| **Tipo**             | feature                                                                             |
+| **Camadas afetadas** | apis / validators / controllers / helpers / services / env / util / test            |
+| **Criado em**        | 2026-10-15                                                                          |
+| **Atualizado em**    | 2026-10-15                                                                          |
+| **Concluído em**     | 2026-10-15                                                                          |
 
 ---
 
 ## Contexto e motivação
 
-Primeira filha do plano [NFS-e Nacional: distribuição e manifestação do tomador](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md). Entrega o lado de leitura: o equivalente, para serviço, do que a `DistribuicaoDFe` faz para NF-e.
+Primeira filha do plano [NFS-e Nacional: distribuição e manifestação do tomador](../../planos/concluidos/GH-17-nfse-nacional-distribuicao-e-manifestacao.md). Entrega o lado de leitura: o equivalente, para serviço, do que a `DistribuicaoDFe` faz para NF-e.
 
 O ADN expõe a distribuição para contribuintes em REST/JSON com mTLS. Contrato e comportamento — inclusive o observado numa drenagem completa em produção — estão em [conhecimento/nfse-nacional-adn-distribuicao.md](../../conhecimento/nfse-nacional-adn-distribuicao.md). O essencial para esta tarefa:
 
@@ -218,7 +218,7 @@ Mensagens (texto exato — comparadas literalmente nos testes):
 - [x] `CLAUDE.md`: "O que é" passa a citar a distribuição do ADN; `src/index.js` exporta `DistribuicaoNFSe`
 - [x] `.docs/arquitetura/`: [README](../../arquitetura/README.md) (invariante 1 cita os dois retornos), [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md), [testes-e-certificados](../../arquitetura/testes-e-certificados.md) e fluxo novo `fluxos/distribuicao-nfse.md`
 - [x] ADR 0015 e ADR 0016, com as linhas na tabela de [decisoes/README.md](../../arquitetura/decisoes/README.md)
-- [ ] Versão: bump de **minor** no release que fechar o plano — pendente: o release sai com a GH-19, no fechamento do plano GH-17
+- [x] Versão: bump de **minor** no release que fechar o plano — [0.20.0](https://github.com/bitize/bitmde/releases/tag/v0.20.0), publicada em 2026-10-16
 
 ## Validação pré-PR (obrigatório)
 
@@ -274,7 +274,7 @@ Executar **após o PR ser mergeado na `main`**:
 
 ## Referências
 
-- Plano: [NFS-e Nacional: distribuição e manifestação do tomador](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md)
+- Plano: [NFS-e Nacional: distribuição e manifestação do tomador](../../planos/concluidos/GH-17-nfse-nacional-distribuicao-e-manifestacao.md)
 - [conhecimento/nfse-nacional-adn-distribuicao.md](../../conhecimento/nfse-nacional-adn-distribuicao.md) — contrato e comportamento observado em produção
 - Originais: [Swagger ADN Contribuinte](../../conhecimento/fontes/nfse-nacional/swagger-adn-contribuintes-v1-20261015.json), [Manual dos Contribuintes — APIs do ADN v1.0](../../conhecimento/fontes/nfse-nacional/manual-contribuintes-apis-adn-v1.0-20260212.pdf), [XSDs v1.01](../../conhecimento/fontes/nfse-nacional/nfse-esquemas-xsd-v1.01-20260209.zip)
 - [camadas/apis.md](../../arquitetura/camadas/apis.md), [camadas/validators.md](../../arquitetura/camadas/validators.md), [camadas/controllers-helpers.md](../../arquitetura/camadas/controllers-helpers.md), [camadas/services-sefaz.md](../../arquitetura/camadas/services-sefaz.md), [camadas/env.md](../../arquitetura/camadas/env.md), [testes-e-certificados.md](../../arquitetura/testes-e-certificados.md)
