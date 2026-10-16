@@ -3,7 +3,8 @@
 | Campo                | Valor                                              |
 | -------------------- | -------------------------------------------------- |
 | **Issue**            | [GH-4](https://github.com/bitize/bit-mde/issues/4) |
-| **Status**           | specified                                          |
+| **Status**           | especificadas                                      |
+| **Plano**            | —                                                  |
 | **Prioridade**       | P1 (alto)                                          |
 | **Tipo**             | infraestrutura                                     |
 | **Camadas afetadas** | empacotamento / release / CI                       |
@@ -197,9 +198,9 @@ Executar **após o PR ser mergeado na `main`**:
 
 - [ ] Desvios registrados em "Notas de implementação"
 - [ ] Checklists marcados
-- [ ] Cabeçalho: **Status** = `done` e **Concluído em** preenchido
-- [ ] Arquivo movido para `.docs/tasks/done/`
-- [ ] Blockquote de especificação na issue apontando para `.docs/tasks/done/` (era `specified/`)
+- [ ] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [ ] Arquivo movido para `.docs/tarefas/concluidas/`
+- [ ] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
 - [ ] Issue fechada no GitHub
 - [ ] Release `v0.16.0` criado no GitHub — é o que dispara a publicação no npm
 

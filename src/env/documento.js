@@ -4,6 +4,18 @@ const {
   DISTRIBUICAO_MDFE,
 } = require('./distribuicao')
 
+/**
+ * Descritores da distribuição de DF-e: tudo o que muda entre NF-e, CT-e e
+ * MDF-e. Conferidos contra o WSDL e a homologação de cada serviço.
+ *
+ * - `operacao`: elemento que embrulha o `dadosMsg` no Body. `null` no MDF-e,
+ *   cujo WSDL é "bare": o `mdfeDadosMsg` vai direto no Body, e com o
+ *   invólucro o SVRS devolve HTTP 500.
+ * - `resposta.response`: idem na volta; `null` quando o `result` vem direto
+ *   no Body.
+ * - `cUFAutor`: o `distDFeInt` do MDF-e não tem o campo (rejeição 215).
+ * - `consChave`: CT-e e MDF-e só aceitam `distNSU` e `consNSU`.
+ */
 const DOCUMENTOS = {
   NFE: {
     endpoints: DISTRIBUICAO,
@@ -12,13 +24,12 @@ const DOCUMENTOS = {
     versao: '1.01',
     operacao: 'nfeDistDFeInteresse',
     dadosMsg: 'nfeDadosMsg',
-    consChave: { bloco: 'consChNFe', campo: 'chNFe' },
     resposta: {
       response: 'nfeDistDFeInteresseResponse',
       result: 'nfeDistDFeInteresseResult',
     },
-    cabecMsg: null,
-    cabecMsgXmlns: null,
+    cUFAutor: true,
+    consChave: { bloco: 'consChNFe', campo: 'chNFe' },
   },
   CTE: {
     endpoints: DISTRIBUICAO_CTE,
@@ -27,29 +38,26 @@ const DOCUMENTOS = {
     versao: '1.00',
     operacao: 'cteDistDFeInteresse',
     dadosMsg: 'cteDadosMsg',
-    consChave: { bloco: 'consChCTe', campo: 'chCTe' },
     resposta: {
       response: 'cteDistDFeInteresseResponse',
       result: 'cteDistDFeInteresseResult',
     },
-    cabecMsg: null,
-    cabecMsgXmlns: null,
+    cUFAutor: true,
+    consChave: null,
   },
   MDFE: {
     endpoints: DISTRIBUICAO_MDFE,
     xmlns: 'http://www.portalfiscal.inf.br/mdfe',
     xmlnsWsdl: 'http://www.portalfiscal.inf.br/mdfe/wsdl/MDFeDistribuicaoDFe',
     versao: '1.00',
-    operacao: 'mdfeDistDFeInteresse',
+    operacao: null,
     dadosMsg: 'mdfeDadosMsg',
-    consChave: { bloco: 'consChMDFe', campo: 'chMDFe' },
     resposta: {
-      response: 'mdfeDistDFeInteresseResponse',
+      response: null,
       result: 'mdfeDistDFeInteresseResult',
     },
-    cabecMsg: 'mdfeCabecMsg',
-    cabecMsgXmlns:
-      'http://www.portalfiscal.inf.br/mdfe/wsdl/MDFeDistribuicaoDFe',
+    cUFAutor: false,
+    consChave: null,
   },
 }
 

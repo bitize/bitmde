@@ -153,7 +153,7 @@ describe('DistribuicaoCTe', function () {
       const distribuicao = new DistribuicaoCTe(config)
 
       assert.ok(distribuicao.config)
-      assert.ok(distribuicao.consultaChCTe)
+      assert.strictEqual(distribuicao.consultaChCTe, undefined)
       assert.ok(distribuicao.consultaNSU)
       assert.ok(distribuicao.consultaUltNSU)
 
@@ -161,7 +161,7 @@ describe('DistribuicaoCTe', function () {
         distribuicao.config = {}
       })
       assert.throws(function () {
-        distribuicao.consultaChCTe = null
+        distribuicao.consultaNSU = null
       })
 
       assert.equal(distribuicao.config.cnpj, '12345678901234')
@@ -169,55 +169,6 @@ describe('DistribuicaoCTe', function () {
       assert.equal(distribuicao.config.cUFAutor, '41')
       assert.equal(distribuicao.config.cert, certificado.cert)
       assert.equal(distribuicao.config.key, certificado.key)
-    })
-  })
-
-  describe('#consultaChCTe()', function () {
-    it('Chave do CT-e não informada', async function () {
-      const config = {
-        pfx: certificado.pfx,
-        passphrase: certificado.passphrase,
-        tpAmb: '2',
-        cnpj: '12345678901234',
-        cUFAutor: '41',
-      }
-
-      const distribuicao = new DistribuicaoCTe(config)
-
-      await assert.rejects(
-        async () => {
-          distribuicao.consultaChCTe()
-        },
-        (err) => {
-          assert.strictEqual(err.message, 'Chave do CT-e não informada.')
-          return true
-        }
-      )
-    })
-
-    it('Chave do CT-e com tamanho incorreto', async function () {
-      const config = {
-        pfx: certificado.pfx,
-        passphrase: certificado.passphrase,
-        tpAmb: '2',
-        cnpj: '12345678901234',
-        cUFAutor: '41',
-      }
-
-      const distribuicao = new DistribuicaoCTe(config)
-
-      await assert.rejects(
-        async () => {
-          distribuicao.consultaChCTe('41')
-        },
-        (err) => {
-          assert.strictEqual(
-            err.message,
-            'Chave do CT-e com tamanho incorreto.'
-          )
-          return true
-        }
-      )
     })
   })
 

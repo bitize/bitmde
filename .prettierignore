@@ -7,3 +7,6 @@ certs
 
 # Gerado pelo npm; reformatar brigaria com o próprio npm a cada install.
 package-lock.json
+
+# Originais de terceiros, versionados como baixados (os .md da pasta seguem formatados).
+.docs/conhecimento/fontes/**/*.json

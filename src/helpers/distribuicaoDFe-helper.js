@@ -1,6 +1,6 @@
 'use strict'
 
-const { CA } = require('../env')
+const { CA_PADRAO, DOCUMENTOS } = require('../env')
 const { DistribuicaoSchema } = require('../schemas')
 const SefazService = require('../services/sefaz-service')
 const { Gzip, Xml } = require('../util')
@@ -21,7 +21,7 @@ class DistribuicaoHelper {
 
     const client = new SefazService({
       baseURL: baseURL,
-      ca: CA,
+      ca: CA_PADRAO,
       cert: opts.cert,
       key: opts.key,
       tpAmb: opts.tpAmb,
@@ -40,22 +40,9 @@ class DistribuicaoHelper {
    * @returns {string}
    */
   static montarRequest(opts) {
-    const documento = opts.documento
     const schema = DistribuicaoSchema.montarSchema(opts)
     const xml = Xml.jsonToXml(schema)
-    let cabecalho = null
-
-    if (documento.cabecMsg) {
-      cabecalho = Xml.jsonToXml({
-        [documento.cabecMsg]: {
-          cUF: opts.cUFAutor,
-          versaoDados: documento.versao,
-          '@_xmlns': documento.cabecMsgXmlns,
-        },
-      })
-    }
-
-    const data = Xml.envelopar(xml, cabecalho)
+    const data = Xml.envelopar(xml)
 
     return data
   }
@@ -63,10 +50,10 @@ class DistribuicaoHelper {
   /**
    *
    * @param {string} data
-   * @param {Object} documento
-   * @returns {Promise<{tpAmb: string,verAplic: string,cStat: string,xMotivo: string,dhResp: string,ultNSU: string,maxNSU: string, docZip:[{xml: string,json: Object,nsu: string,schema: string}], error: string}>}
+   * @param {Object} [documento] descritor de `DOCUMENTOS`; NF-e quando omitido
+   * @returns {Promise<{tpAmb: string,verAplic: string,cStat: string,xMotivo: string,dhResp: string,ultNSU: string,maxNSU: string, docZip:[{xml: string,json: Object,nsu: string,schema: string}], docZipErrors:[{nsu: string,schema: string,error: string}], error: string}>}
    */
-  static async montarResponse(data, documento) {
+  static async montarResponse(data, documento = DOCUMENTOS.NFE) {
     const retorno = {}
 
     const json = Xml.xmlToJson(data)
@@ -75,12 +62,26 @@ class DistribuicaoHelper {
       retorno['error'] = json.error
     }
 
+    // No MDF-e o result vem direto no Body, sem o elemento `Response`.
+    const { response, result } = documento.resposta
     const body = json['soap:Envelope']?.['soap:Body'] ?? {}
-    const response = body[documento.resposta.response] ?? {}
-    const result = response[documento.resposta.result] ?? {}
-    const retDistDFeInt = result.retDistDFeInt ?? {}
+    const envelopeResposta = response ? (body[response] ?? {}) : body
+    const { retDistDFeInt = {} } = envelopeResposta[result] ?? {}
 
-    const { loteDistDFeInt = {} } = retDistDFeInt
+    let { loteDistDFeInt = {} } = retDistDFeInt
+
+    // <loteDistDFeInt/> vazio chega do parser como string, não como objeto.
+    // Qualquer outra forma não é um lote: vira `error`, e não lote vazio,
+    // para o chamador não avançar o ultNSU sobre documentos que não viu.
+    if (loteDistDFeInt === '') {
+      loteDistDFeInt = {}
+    } else if (
+      typeof loteDistDFeInt !== 'object' ||
+      Array.isArray(loteDistDFeInt)
+    ) {
+      retorno['error'] = 'loteDistDFeInt inválido.'
+      loteDistDFeInt = {}
+    }
 
     if (loteDistDFeInt.docZip) {
       if (!Array.isArray(loteDistDFeInt.docZip)) {
@@ -90,18 +91,20 @@ class DistribuicaoHelper {
       loteDistDFeInt['docZip'] = []
     }
 
-    const docZip = await Promise.all(
-      loteDistDFeInt['docZip'].map(async (doc) => {
-        const notaXml = await Gzip.unzip(doc.value)
-        const notaJson = Xml.xmlToJson(notaXml)
-        return {
-          xml: notaXml,
-          json: notaJson,
-          nsu: doc['@_NSU'],
-          schema: doc['@_schema'],
-        }
-      })
+    const resultados = await Promise.all(
+      loteDistDFeInt['docZip'].map((doc) => DistribuicaoHelper.abrirDocZip(doc))
     )
+
+    const docZip = []
+    const docZipErrors = []
+
+    for (const resultado of resultados) {
+      if (resultado.error) {
+        docZipErrors.push(resultado)
+      } else {
+        docZip.push(resultado)
+      }
+    }
 
     retorno['tpAmb'] = retDistDFeInt.tpAmb || ''
     retorno['verAplic'] = retDistDFeInt.verAplic || ''
@@ -112,8 +115,49 @@ class DistribuicaoHelper {
     retorno['maxNSU'] = retDistDFeInt.maxNSU || ''
 
     retorno['docZip'] = docZip
+    retorno['docZipErrors'] = docZipErrors
 
     return retorno
+  }
+
+  /**
+   * Descompacta e interpreta um docZip sem nunca rejeitar: a falha vira
+   * um item com `error`, para não derrubar o restante do lote.
+   *
+   * @param {Object} doc
+   * @returns {Promise<{xml: string,json: Object,nsu: string,schema: string} | {nsu: string,schema: string,error: string}>}
+   */
+  static async abrirDocZip(doc) {
+    const nsu = doc['@_NSU'] || ''
+    const schema = doc['@_schema'] || ''
+
+    if (!doc.value) {
+      return { nsu, schema, error: 'docZip sem conteúdo.' }
+    }
+
+    let notaXml
+    try {
+      notaXml = await Gzip.unzip(doc.value)
+    } catch (err) {
+      return {
+        nsu,
+        schema,
+        error: `Falha ao descompactar o docZip: ${err.message}`,
+      }
+    }
+
+    let notaJson
+    try {
+      notaJson = Xml.xmlToJson(notaXml)
+    } catch (err) {
+      return {
+        nsu,
+        schema,
+        error: `Falha ao interpretar o XML do docZip: ${err.message}`,
+      }
+    }
+
+    return { xml: notaXml, json: notaJson, nsu, schema }
   }
 }
 

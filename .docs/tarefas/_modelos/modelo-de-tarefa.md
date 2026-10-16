@@ -3,7 +3,8 @@
 | Campo                | Valor                                                                                        |
 | -------------------- | -------------------------------------------------------------------------------------------- |
 | **Issue**            | GH-NN                                                                                        |
-| **Status**           | drafts                                                                                       |
+| **Status**           | rascunhos                                                                                    |
+| **Plano**            | — (tarefa avulsa) ou GH-NN do plano a que pertence                                           |
 | **Prioridade**       | P0 (crítico) / P1 (alto) / P2 (médio) / P3 (baixo)                                           |
 | **Tipo**             | feature / correção / dependências / documentação / infraestrutura                            |
 | **Camadas afetadas** | apis / validators / controllers / helpers / schemas / services / env / util / scripts / test |
@@ -11,7 +12,7 @@
 | **Atualizado em**    | AAAA-MM-DD                                                                                   |
 | **Concluído em**     | —                                                                                            |
 
-> **Como usar este template:** as seções Contexto, Requisitos, Decisões, Testes e Conclusão valem para qualquer tarefa. Os blocos de **impacto por camada** só devem ser preenchidos para as camadas realmente tocadas — apagar os que não se aplicam. Apagar também estes blocos de instrução.
+> **Como usar este modelo:** as seções Contexto, Requisitos, Decisões, Testes e Conclusão valem para qualquer tarefa. Os blocos de **impacto por camada** só devem ser preenchidos para as camadas realmente tocadas — apagar os que não se aplicam. Apagar também estes blocos de instrução.
 
 ---
 
@@ -142,10 +143,11 @@ Executar **após o PR ser mergeado na `main`**:
 
 - [ ] Desvios registrados em "Notas de implementação"
 - [ ] Checklists marcados
-- [ ] Cabeçalho: **Status** = `done` e **Concluído em** preenchido
-- [ ] Arquivo movido: `git mv .docs/tasks/specified/GH-NN-descricao.md .docs/tasks/done/GH-NN-descricao.md`
-- [ ] Blockquote de especificação na issue apontando para `.docs/tasks/done/` (era `specified/`)
+- [ ] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [ ] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-NN-descricao.md .docs/tarefas/concluidas/GH-NN-descricao.md`
+- [ ] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
 - [ ] Issue fechada no GitHub
+- [ ] Se tem **Plano**: link e status desta tarefa atualizados na tabela de filhas do plano; se era a última filha aberta, concluir o plano ([fluxo de planos](../../planos/README.md#ao-concluir-o-plano))
 
 ## Referências
 

@@ -24,7 +24,7 @@ class RecepcaoEvento {
    * @param {'America/Araguaina' | 'America/Bahia' | 'America/Belem' | 'America/Boa_Vista' | 'America/Campo_Grande' | 'America/Cuiaba' | 'America/Fortaleza' | 'America/Maceio' | 'America/Manaus' | 'America/Noronha' | 'America/Porto_Velho' | 'America/Recife' | 'America/Rio_Branco' | 'America/Sao_Paulo'} [config.timezone = 'America/Sao_Paulo']
    * @param {Object} [config.options]
    * @param {import('axios').AxiosRequestConfig} [config.options.requestOptions]
-   * @param {import('https').AgentOptions} [config.options.httpsOptions]
+   * @param {import('https').AgentOptions} [config.options.httpsOptions] Mesclado por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. Informar `ca` substitui a cadeia inteira; para somar uma AC, use `[...CA_PADRAO, minhaCa]`.
    */
   constructor(config) {
     const { requestOptions = {}, httpsOptions = {} } = config.options || {}

@@ -5,12 +5,14 @@ const { DOCUMENTOS } = require('../env')
 const {
   AmbienteValidator,
   CertificadoValidator,
-  ChaveMdfeValidator,
   CnpjCpfValidator,
   NsuValidator,
-  UfValidator,
 } = require('../validators')
 
+/**
+ * Distribuição de MDF-e de interesse do CNPJ/CPF, na SVRS. O `distDFeInt` do
+ * MDF-e não tem `cUFAutor` nem consulta por chave: só `distNSU` e `consNSU`.
+ */
 class DistribuicaoMDFe {
   /**
    * @param {Object} config
@@ -18,13 +20,12 @@ class DistribuicaoMDFe {
    * @param {string} [config.passphrase]
    * @param {Buffer | string} [config.cert]
    * @param {Buffer | string} [config.key]
-   * @param {'11' | '12' | '13' | '14' | '15' | '16' | '17' | '21' | '22' | '23' | '24' | '25' | '26' | '27' | '28' | '29' | '31' | '32' | '33' | '35' | '41' | '42' | '43' | '50' | '51' | '52' | '53'} config.cUFAutor
    * @param {string} [config.cnpj]
    * @param {string} [config.cpf]
    * @param {'1' | '2'} config.tpAmb
    * @param {Object} [config.options]
    * @param {import('axios').AxiosRequestConfig} [config.options.requestOptions]
-   * @param {import('https').AgentOptions} [config.options.httpsOptions]
+   * @param {import('https').AgentOptions} [config.options.httpsOptions] Mesclado por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. Informar `ca` substitui a cadeia inteira; para somar uma AC, use `[...CA_PADRAO, minhaCa]`.
    */
   constructor(config) {
     const { requestOptions = {}, httpsOptions = {} } = config.options || {}
@@ -32,7 +33,6 @@ class DistribuicaoMDFe {
     const certificadoValidator = new CertificadoValidator(config)
     const ambienteValidator = new AmbienteValidator(config)
     const cnpjCpfValidator = new CnpjCpfValidator(config)
-    const ufValidator = new UfValidator(config)
 
     if (!certificadoValidator.isValid()) {
       throw new Error(certificadoValidator.getError())
@@ -46,17 +46,11 @@ class DistribuicaoMDFe {
       throw new Error(cnpjCpfValidator.getError())
     }
 
-    if (!ufValidator.isValid()) {
-      throw new Error(ufValidator.getError())
-    }
-
     const { cert, key } = certificadoValidator.getValues()
     const { tpAmb } = ambienteValidator.getValues()
     const { cnpj, cpf } = cnpjCpfValidator.getValues()
-    const { cUFAutor } = ufValidator.getValues()
 
     this.config = Object.freeze({
-      cUFAutor: cUFAutor,
       cnpj: cnpj,
       cpf: cpf,
       tpAmb: tpAmb,
@@ -67,27 +61,6 @@ class DistribuicaoMDFe {
     })
 
     Object.freeze(this)
-  }
-
-  /**
-   * @param {string} chMDFe
-   */
-  consultaChMDFe(chMDFe) {
-    const chaveValidator = new ChaveMdfeValidator(chMDFe)
-
-    if (!chaveValidator.isValid()) {
-      throw new Error(chaveValidator.getError())
-    }
-
-    const value = chaveValidator.getValues()
-
-    const opts = {
-      ...this.config,
-      chMDFe: value,
-      documento: DOCUMENTOS.MDFE,
-    }
-
-    return DistribuicaoController.enviar(opts)
   }
 
   /**

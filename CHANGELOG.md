@@ -4,13 +4,94 @@
 
 ### Adicionado
 
-- `DistribuicaoCTe` e `DistribuicaoMDFe` — consulta de CT-e e MDF-e destinados (`consultaUltNSU`, `consultaNSU`, `consultaChCTe` / `consultaChMDFe`), com a mesma configuração de `DistribuicaoDFe` e o mesmo formato de retorno
-- Descritores `DOCUMENTOS` e endpoints `DISTRIBUICAO_CTE` / `DISTRIBUICAO_MDFE` em `env/`
-- Cabeçalho SOAP `mdfeCabecMsg` na distribuição de MDF-e via `Xml.envelopar(xml, cabecalho)`
+- **`DistribuicaoCTe` e `DistribuicaoMDFe`: distribuição de CT-e (Ambiente Nacional) e de MDF-e (SVRS)**, exportadas nas três formas (`module.exports`, `.default`, `.mde`), com `consultaUltNSU(ultNSU)` e `consultaNSU(nsu)` e o mesmo retorno da `DistribuicaoDFe`, `docZipErrors` incluído. Não há consulta por chave: o leiaute dos dois serviços só aceita `distNSU` e `consNSU`
+- A `DistribuicaoMDFe` não recebe `cUFAutor`, que o `distDFeInt` do MDF-e não tem; a `DistribuicaoCTe` recebe a mesma `config` da `DistribuicaoDFe`
+- Hosts do CT-e e do MDF-e no `test/tls-sefaz.test.js` e com isso no workflow semanal `cadeia-tls.yml`. Os da SVRS servem cadeia ICP-Brasil, e o teste confere que continuam fechando com `CA_PADRAO`
+
+Nada muda em `DistribuicaoDFe`: o XML da NF-e sai byte a byte igual, conferido por teste. Ver [ADR 0010](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0010-distribuicao-parametrizada-por-documento.md).
+
+### Corrigido
+
+- README: a seção "Conexão com a SEFAZ" passa a cobrir a `ManifestacaoNFSe` — o erro de transporte mantém o `reqXml`, e os hosts da SEFIN Nacional servem a cadeia GlobalSign
+
+## [0.20.0] / 2026-10-16
+
+> Acrescenta a NFS-e Nacional: distribuição pelo ADN e manifestação do tomador na SEFIN. Nada muda nas APIs de NF-e.
+
+### Adicionado
+
+- **`DistribuicaoNFSe`: distribuição de NFS-e Nacional pelo Ambiente de Dados Nacional (ADN)**, exportada nas três formas (`module.exports`, `.default`, `.mde`). Usa o mesmo certificado A1 da NF-e e consulta as NFS-e e os eventos em que o CNPJ figura:
+  - `consultaUltNSU(ultNSU)` — até 50 documentos depois do NSU informado, começando em `'0'`; fila vazia é HTTP 404 sem `error`
+  - `consultaNSU(nsu)` — o documento daquele NSU
+  - `consultaChNFSe(chNFSe)` — a NFS-e da chave de 50 dígitos e os eventos dela
+- Campo `papel` em cada NFS-e distribuída: `'tomador'`, `'prestador'` ou `'intermediario'`, conforme o CNPJ consultado apareça como `toma`, `prest` ou `interm` da DPS, nessa ordem; `''` se não aparecer e em eventos. A biblioteca marca, não filtra
+- Retorno próprio da NFS-e, `{ data, resBody, status, error?, transportError? }`: `resBody` é o corpo cru do ADN, e `status`, `error` e `transportError` têm o mesmo significado das APIs de NF-e. Ver [ADR 0016](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0016-retorno-proprio-da-nfse.md)
+- Hosts do ADN, de produção e produção restrita, no `test/tls-sefaz.test.js` e com isso no workflow semanal `cadeia-tls.yml`
+- **`ManifestacaoNFSe`: manifestação do tomador da NFS-e Nacional na SEFIN Nacional**, exportada nas três formas. Com o mesmo certificado A1, registra um evento por chamada:
+  - `confirmar(chNFSe)` — Confirmação do Tomador (`e203202`)
+  - `rejeitar(chNFSe, { cMotivo, xMotivo? })` — Rejeição do Tomador (`e203206`), com `cMotivo` `'1'` a `'5'` ou `'9'`; `xMotivo` de 15 a 255 caracteres, obrigatório no motivo `'9'`
+- Retorno da manifestação `{ data, reqXml, resBody, status, error?, transportError? }`, no formato da ADR 0016: `reqXml` é o `pedRegEvento` assinado e `data.evento` traz o evento registrado, em `xml` e `json`
+- Hosts da SEFIN Nacional, de produção e produção restrita, no `test/tls-sefaz.test.js` e no `cadeia-tls.yml`
+
+Nada muda em `DistribuicaoDFe` nem em `RecepcaoEvento`: o XML assinado da recepção de evento sai byte a byte igual, conferido por teste.
 
 ### Modificado
 
-- Schema, helper e controller de distribuição parametrizados por descritor de documento; `DistribuicaoDFe` permanece inalterada na API pública
+- Workflow `testes.yml` deixa de rodar em push e PR que só mexem em documentação (`**/*.md`, `.docs/**`, `.claude/**`, `LICENSE`). O `qualidade.yml`, com o Prettier que valida o Markdown, continua rodando sempre, e o `publicar.yml` roda a suíte antes de todo release
+
+## [0.19.0] / 2026-10-03
+
+> Muda o comportamento padrão de transporte e deixa de suportar o Node 20; leia [Compatibilidade](#compatibilidade) antes de atualizar.
+
+### Modificado
+
+- **O certificado do servidor da SEFAZ passa a ser validado por padrão** (`rejectUnauthorized: true`). Até a 0.18.0 o padrão era `false`: a biblioteca aceitava qualquer servidor, inclusive um intermediário malicioso, e apresentava a ele o certificado A1 no mTLS
+- **A cadeia padrão passa a somar as raízes do Node à ICP-Brasil, em vez de substituí-las.** A cadeia embarcada (AC Raiz Brasileira v10 e AC SERPRO SSLv1) não valida mais o Ambiente Nacional, que hoje serve `AC SERPRO AR46 OV TLS CA 2025 ← GlobalSign Root R46`, e a opção `ca` do Node descarta as raízes padrão. Quem ligava `rejectUnauthorized: true`, como esta documentação recomendava, recebia sempre `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`. As raízes respeitam `NODE_EXTRA_CA_CERTS` e `--use-system-ca` quando o Node oferece `tls.getCACertificates`
+- **Erro de transporte deixa de se disfarçar de status HTTP.** Sem resposta da SEFAZ, o retorno vinha com `status` 500, 502 ou 504 sintético e `resXml: '<error>mensagem</error>'`, e o código do erro se perdia. Agora vem com `status: 0`, `resXml: ''`, `transportError: { code, message }` e `error: 'Falha de transporte (<code>): <message>'`. Resposta HTTP real da SEFAZ, inclusive 5xx, não muda. Ver [ADR 0014](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md)
+
+### Adicionado
+
+- `CA_PADRAO` e `CA_ICP_BRASIL` exportados na raiz do pacote, nas três formas (`module.exports`, `.default`, `.mde`): a cadeia que a biblioteca usa por padrão e só a ICP-Brasil embarcada. São arrays de PEM congelados, para compor como `httpsOptions: { ca: [...CA_PADRAO, minhaCa] }`
+- Campo `transportError?: { code, message }` no retorno dos três métodos de consulta e do `enviarEvento`
+- `engines: { node: ">=22" }` no `package.json`
+- Workflow `cadeia-tls.yml`, que confere toda semana o handshake TLS com `www1` e `hom1` usando `CA_PADRAO`, para a próxima troca de cadeia do Ambiente Nacional aparecer antes de chegar a quem consome
+
+### Removido
+
+- **Node 20 deixa de ser suportado**: sem suporte do projeto Node.js desde abril de 2026, sai da matriz de testes da CI. A biblioteca passa a exigir Node 22 ou posterior
+
+### Compatibilidade
+
+Nenhuma assinatura muda, mas dois comportamentos padrão mudam, daí o bump de minor (`^0.18.0` não resolve para a 0.19.0):
+
+1. **Servidor cuja cadeia não fecha em `CA_PADRAO` passa a ser recusado.** Para os endpoints do Ambiente Nacional, que são os únicos que a biblioteca chama, nada muda. Atrás de um proxy que reassina TLS, acrescente a CA dele com `NODE_EXTRA_CA_CERTS` ou com `httpsOptions: { ca: [...CA_PADRAO, caDoProxy] }`. Quem já passava `ca` próprio continua no controle, porque `httpsOptions` sobrescreve o padrão.
+2. **Erro de transporte muda de forma.** Quem testa só `if (retorno.error)` não precisa mudar nada. Quem lia `status` 500/502/504 ou procurava `<error>` em `resXml` passa a usar `transportError`:
+
+```diff
+-if (retorno.status === 502 && /^<error>/.test(retorno.resXml)) {
++if (retorno.transportError) {
++  log(retorno.transportError.code, retorno.transportError.message)
+ }
+```
+
+Voltar ao comportamento antigo de TLS ainda é possível com `httpsOptions: { rejectUnauthorized: false }`, e não é recomendado.
+
+Quem ainda roda Node 20 recebe um aviso de `engines` na instalação e deve atualizar para o Node 22 ou o 24, ambos LTS.
+
+## [0.18.0] / 2026-10-01
+
+### Corrigido
+
+- **Um `docZip` corrompido na distribuição DF-e encerrava o processo de quem consome a biblioteca.** `Gzip.unzip` rejeitava a Promise mas seguia executando e lançava um `TypeError` fora dela, como `uncaughtException`, antes de qualquer `.catch` do chamador
+- Um documento ilegível no lote deixa de derrubar a consulta inteira. Antes, `consultaUltNSU`, `consultaNSU` e `consultaChNFe` perderiam os documentos válidos e o `ultNSU`/`maxNSU`, e a varredura ficaria presa no mesmo NSU. Ver [ADR 0013](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md)
+- `<loteDistDFeInt/>` vazio na resposta deixa de lançar `TypeError` e vira lote sem documentos. Um `loteDistDFeInt` em qualquer outra forma que não seja um lote — texto no lugar dos `docZip`, elemento repetido — passa a devolver `error: 'loteDistDFeInt inválido.'` em vez de lançar
+
+### Adicionado
+
+- Campo `data.docZipErrors: [{ nsu, schema, error }]` no retorno da distribuição DF-e, com os documentos do lote que não puderam ser descompactados ou interpretados. Sempre presente; `[]` quando todos abrem. `docZip` mantém o formato de sempre e passa a trazer só os documentos válidos. Falha de documento não preenche o `error` de topo
+
+### Modificado
+
 - `actions/checkout` e `actions/setup-node` atualizadas da v4 para a v7 nos três workflows. A v4 roda em Node 20, deprecado nos runners do GitHub e já forçado a executar em Node 24 — o aviso aparecia em todo run. Nenhuma quebra das v5/v6/v7 se aplica a este repositório: o cache automático da v5 do `setup-node` depende do campo `packageManager` no `package.json`, que não existe aqui, e a remoção do `NODE_AUTH_TOKEN` fictício na v7 não afeta quem publica por OIDC
 
 ## [0.17.1] / 2026-09-10

@@ -41,26 +41,29 @@ Escolhemos X porque Y.
 
 ## ADRs ativos
 
-| ADR                                                             | Decisão                                                                        |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| [0001](0001-fork-e-republicacao-como-bitize-bit-mde.md)         | Fork de `node-mde` republicado como `@bitize/bit-mde`                          |
-| [0002](0002-publicacao-por-oidc-sem-npm-token.md)               | Publicação pela CI por Trusted Publishing (OIDC), sem `NPM_TOKEN`              |
-| [0003](0003-lockfile-versionado.md)                             | `package-lock.json` versionado e `npm ci` em todos os workflows                |
-| [0004](0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md) | Erro de configuração lança; erro de rede/SEFAZ vira retorno                    |
-| [0005](0005-object-freeze-pervasivo.md)                         | `Object.freeze` em todo módulo e nas instâncias públicas                       |
-| [0006](0006-js-com-jsdoc-em-vez-de-typescript.md)               | JavaScript com JSDoc em vez de TypeScript no fonte                             |
-| [0007](0007-assinatura-por-infevento-e-splice-do-lote.md)       | Assinatura individual por `infEvento` e montagem do lote por recorte de string |
-| [0008](0008-build-com-uglifyjs-beautify.md)                     | `lib/` gerado por UglifyJS em modo `beautify`                                  |
-| [0009](0009-certificados-fora-do-git-e-gerador-descartavel.md)  | Certificados fora do git, com gerador de certificado de teste descartável      |
-| [0010](0010-distribuicao-parametrizada-por-documento.md)        | Três classes de distribuição sobre descritor `DOCUMENTOS` em `env/`            |
-| [0011](0011-files-e-exports-como-contrato-de-empacotamento.md)  | `files` e `exports` como contrato de empacotamento, sem `.npmignore`           |
-| [0012](0012-renomeacao-para-bitize-bitmde.md)                   | Pacote e repositório renomeados de `bit-mde` para `bitmde`                     |
+| ADR                                                                    | Decisão                                                                                                        |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [0001](0001-fork-e-republicacao-como-bitize-bit-mde.md)                | Fork de `node-mde` republicado como `@bitize/bit-mde`                                                          |
+| [0002](0002-publicacao-por-oidc-sem-npm-token.md)                      | Publicação pela CI por Trusted Publishing (OIDC), sem `NPM_TOKEN`                                              |
+| [0003](0003-lockfile-versionado.md)                                    | `package-lock.json` versionado e `npm ci` em todos os workflows                                                |
+| [0004](0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md)        | Erro de configuração lança; erro de rede/SEFAZ vira retorno                                                    |
+| [0005](0005-object-freeze-pervasivo.md)                                | `Object.freeze` em todo módulo e nas instâncias públicas                                                       |
+| [0006](0006-js-com-jsdoc-em-vez-de-typescript.md)                      | JavaScript com JSDoc em vez de TypeScript no fonte                                                             |
+| [0007](0007-assinatura-por-infevento-e-splice-do-lote.md)              | Assinatura individual por `infEvento` e montagem do lote por recorte de string                                 |
+| [0008](0008-build-com-uglifyjs-beautify.md)                            | `lib/` gerado por UglifyJS em modo `beautify`                                                                  |
+| [0009](0009-certificados-fora-do-git-e-gerador-descartavel.md)         | Certificados fora do git, com gerador de certificado de teste descartável                                      |
+| [0010](0010-distribuicao-parametrizada-por-documento.md)               | Distribuição de NF-e, CT-e e MDF-e por três classes sobre um descritor de documento, sem cópia por tipo        |
+| [0011](0011-files-e-exports-como-contrato-de-empacotamento.md)         | `files` e `exports` como contrato de empacotamento, sem `.npmignore`                                           |
+| [0012](0012-renomeacao-para-bitize-bitmde.md)                          | Pacote e repositório renomeados de `bit-mde` para `bitmde`                                                     |
+| [0013](0013-falha-de-doczip-vira-item-de-doczip-errors.md)             | Falha de `docZip` vira item de `docZipErrors`, sem derrubar o lote da distribuição                             |
+| [0014](0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md) | TLS validado por padrão com raízes do Node + ICP-Brasil; erro de transporte com `status: 0` e `transportError` |
+| [0015](0015-nfse-nacional-no-proprio-bitmde.md)                        | NFS-e Nacional como classes novas do bitmde, sem pacote separado                                               |
+| [0016](0016-retorno-proprio-da-nfse.md)                                | Retorno próprio da NFS-e (`resBody`, fila vazia 404 sem `error`), com o mesmo contrato de erro da NF-e         |
 
 ## Próximos candidatos
 
 Decisões já tomadas na prática que ainda não viraram ADR formal:
 
-- `rejectUnauthorized: false` como default do `https.Agent`, com a cadeia ICP-Brasil embutida em `src/env/ca.js` (hoje em [../camadas/services-sefaz.md](../camadas/services-sefaz.md))
 - Todo campo de retorno é string — `parseTagValue: false` e `parseAttributeValue: false` no parser (hoje em [../camadas/schemas-xml.md](../camadas/schemas-xml.md))
 - Sem retry, backoff ou controle de cadência dentro da biblioteca (hoje em [../fluxos/distribuicao-dfe.md](../fluxos/distribuicao-dfe.md))
 - `prettier.config.js` com `endOfLine: 'auto'` enquanto não houver `.gitattributes`, e Prettier fixado em versão exata

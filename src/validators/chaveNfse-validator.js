@@ -1,6 +1,6 @@
 'use strict'
 
-class ChaveCteValidator {
+class ChaveNfseValidator {
   /**
    *
    * @param {string} chave
@@ -12,14 +12,15 @@ class ChaveCteValidator {
 
   isValid() {
     if (!this.chave) {
-      this.error = 'Chave do CT-e não informada.'
+      this.error = 'Chave da NFS-e não informada.'
       return false
     }
 
     this.chave = String(this.chave)
 
-    if (this.chave.length !== 44) {
-      this.error = 'Chave do CT-e com tamanho incorreto.'
+    // Só dígitos, também porque a chave vai no caminho da URL.
+    if (!/^[0-9]{50}$/.test(this.chave)) {
+      this.error = 'Chave da NFS-e com tamanho incorreto.'
       return false
     }
 
@@ -35,4 +36,4 @@ class ChaveCteValidator {
   }
 }
 
-module.exports = Object.freeze(ChaveCteValidator)
+module.exports = Object.freeze(ChaveNfseValidator)

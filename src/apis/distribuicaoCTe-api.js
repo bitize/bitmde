@@ -5,12 +5,15 @@ const { DOCUMENTOS } = require('../env')
 const {
   AmbienteValidator,
   CertificadoValidator,
-  ChaveCteValidator,
   CnpjCpfValidator,
   NsuValidator,
   UfValidator,
 } = require('../validators')
 
+/**
+ * Distribuição de CT-e de interesse do CNPJ/CPF, no Ambiente Nacional. O
+ * `CTeDistribuicaoDFe` não tem consulta por chave: só `distNSU` e `consNSU`.
+ */
 class DistribuicaoCTe {
   /**
    * @param {Object} config
@@ -24,7 +27,7 @@ class DistribuicaoCTe {
    * @param {'1' | '2'} config.tpAmb
    * @param {Object} [config.options]
    * @param {import('axios').AxiosRequestConfig} [config.options.requestOptions]
-   * @param {import('https').AgentOptions} [config.options.httpsOptions]
+   * @param {import('https').AgentOptions} [config.options.httpsOptions] Mesclado por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. Informar `ca` substitui a cadeia inteira; para somar uma AC, use `[...CA_PADRAO, minhaCa]`.
    */
   constructor(config) {
     const { requestOptions = {}, httpsOptions = {} } = config.options || {}
@@ -67,27 +70,6 @@ class DistribuicaoCTe {
     })
 
     Object.freeze(this)
-  }
-
-  /**
-   * @param {string} chCTe
-   */
-  consultaChCTe(chCTe) {
-    const chaveValidator = new ChaveCteValidator(chCTe)
-
-    if (!chaveValidator.isValid()) {
-      throw new Error(chaveValidator.getError())
-    }
-
-    const value = chaveValidator.getValues()
-
-    const opts = {
-      ...this.config,
-      chCTe: value,
-      documento: DOCUMENTOS.CTE,
-    }
-
-    return DistribuicaoController.enviar(opts)
   }
 
   /**

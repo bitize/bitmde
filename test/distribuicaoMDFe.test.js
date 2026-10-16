@@ -87,53 +87,12 @@ describe('DistribuicaoMDFe', function () {
       }, /^Error: CNPJ\/CPF não informado.$/)
     })
 
-    it('Código UF do Autor não informado (CNPJ)', function () {
-      const config = {
-        pfx: certificado.pfx,
-        passphrase: certificado.passphrase,
-        tpAmb: '2',
-        cnpj: '12345678901234',
-      }
-
-      assert.throws(() => {
-        new DistribuicaoMDFe(config)
-      }, /^Error: Código UF do Autor não informado.$/)
-    })
-
-    it('Código UF do Autor não informado (CPF)', function () {
-      const config = {
-        pfx: certificado.pfx,
-        passphrase: certificado.passphrase,
-        tpAmb: '2',
-        cpf: '12345678901',
-      }
-
-      assert.throws(() => {
-        new DistribuicaoMDFe(config)
-      }, /^Error: Código UF do Autor não informado.$/)
-    })
-
-    it('Código UF inválido', function () {
-      const config = {
-        pfx: certificado.pfx,
-        passphrase: certificado.passphrase,
-        tpAmb: '2',
-        cnpj: '12345678901234',
-        cUFAutor: '99',
-      }
-
-      assert.throws(() => {
-        new DistribuicaoMDFe(config)
-      }, /^Error: Código UF inválido.$/)
-    })
-
     it('Objeto instanciado (CPF = "12345678901")', function () {
       const config = {
         pfx: certificado.pfx,
         passphrase: certificado.passphrase,
         tpAmb: '2',
         cpf: '12345678901',
-        cUFAutor: '41',
       }
 
       const distribuicao = new DistribuicaoMDFe(config)
@@ -147,13 +106,12 @@ describe('DistribuicaoMDFe', function () {
         passphrase: certificado.passphrase,
         tpAmb: '2',
         cnpj: '12345678901234',
-        cUFAutor: '41',
       }
 
       const distribuicao = new DistribuicaoMDFe(config)
 
       assert.ok(distribuicao.config)
-      assert.ok(distribuicao.consultaChMDFe)
+      assert.strictEqual(distribuicao.consultaChMDFe, undefined)
       assert.ok(distribuicao.consultaNSU)
       assert.ok(distribuicao.consultaUltNSU)
 
@@ -161,63 +119,30 @@ describe('DistribuicaoMDFe', function () {
         distribuicao.config = {}
       })
       assert.throws(function () {
-        distribuicao.consultaChMDFe = null
+        distribuicao.consultaNSU = null
       })
 
       assert.equal(distribuicao.config.cnpj, '12345678901234')
       assert.equal(distribuicao.config.tpAmb, '2')
-      assert.equal(distribuicao.config.cUFAutor, '41')
+      assert.ok(!('cUFAutor' in distribuicao.config))
       assert.equal(distribuicao.config.cert, certificado.cert)
       assert.equal(distribuicao.config.key, certificado.key)
     })
   })
 
-  describe('#consultaChMDFe()', function () {
-    it('Chave do MDF-e não informada', async function () {
+  describe('#cUFAutor', function () {
+    it('Informado, é ignorado: o distDFeInt do MDF-e não tem o campo', function () {
       const config = {
         pfx: certificado.pfx,
         passphrase: certificado.passphrase,
         tpAmb: '2',
         cnpj: '12345678901234',
-        cUFAutor: '41',
+        cUFAutor: '99',
       }
 
       const distribuicao = new DistribuicaoMDFe(config)
 
-      await assert.rejects(
-        async () => {
-          distribuicao.consultaChMDFe()
-        },
-        (err) => {
-          assert.strictEqual(err.message, 'Chave do MDF-e não informada.')
-          return true
-        }
-      )
-    })
-
-    it('Chave do MDF-e com tamanho incorreto', async function () {
-      const config = {
-        pfx: certificado.pfx,
-        passphrase: certificado.passphrase,
-        tpAmb: '2',
-        cnpj: '12345678901234',
-        cUFAutor: '41',
-      }
-
-      const distribuicao = new DistribuicaoMDFe(config)
-
-      await assert.rejects(
-        async () => {
-          distribuicao.consultaChMDFe('41')
-        },
-        (err) => {
-          assert.strictEqual(
-            err.message,
-            'Chave do MDF-e com tamanho incorreto.'
-          )
-          return true
-        }
-      )
+      assert.ok(!('cUFAutor' in distribuicao.config))
     })
   })
 
@@ -228,7 +153,6 @@ describe('DistribuicaoMDFe', function () {
         passphrase: certificado.passphrase,
         tpAmb: '2',
         cnpj: '12345678901234',
-        cUFAutor: '41',
       }
 
       const distribuicao = new DistribuicaoMDFe(config)
@@ -250,7 +174,6 @@ describe('DistribuicaoMDFe', function () {
         passphrase: certificado.passphrase,
         tpAmb: '2',
         cnpj: '12345678901234',
-        cUFAutor: '41',
       }
 
       const distribuicao = new DistribuicaoMDFe(config)
@@ -274,7 +197,6 @@ describe('DistribuicaoMDFe', function () {
         passphrase: certificado.passphrase,
         tpAmb: '2',
         cnpj: '12345678901234',
-        cUFAutor: '41',
       }
 
       const distribuicao = new DistribuicaoMDFe(config)
@@ -296,7 +218,6 @@ describe('DistribuicaoMDFe', function () {
         passphrase: certificado.passphrase,
         tpAmb: '2',
         cnpj: '12345678901234',
-        cUFAutor: '41',
       }
 
       const distribuicao = new DistribuicaoMDFe(config)

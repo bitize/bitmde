@@ -31,21 +31,27 @@ E também por que os atributos (`'@_xmlns'`, `'@_versao'`, `'@_Id'`) são inseri
 
 > **Reordenar chave em schema é mudança de comportamento**, mesmo que o objeto pareça equivalente em JS.
 
-### Os dois schemas
+### Os três schemas
 
-[DistribuicaoSchema](../../../src/schemas/distribuicaoDFe-schema.js) monta `distDFeInt` a partir de `opts.documento` (NF-e, CT-e ou MDF-e — ver [documento.js](../../../src/env/documento.js)): namespace, `versao`, raiz SOAP e bloco de chave vêm do descritor. Escolhe **um** dos três blocos de consulta, nesta precedência:
+[DistribuicaoSchema](../../../src/schemas/distribuicaoDFe-schema.js) monta `distDFeInt` para NF-e, CT-e e MDF-e, lendo de `opts.documento` (ver [env.md](env.md#documentos)) o namespace, a `versao` (`1.01` na NF-e, `1.00` nos outros dois), se há `cUFAutor` e se há bloco de chave. A ordem das chaves é a mesma nos três: `tpAmb` → `cUFAutor` (quando o documento tem) → `CNPJ`/`CPF` → bloco de consulta. Escolhe **um** dos três blocos, nesta precedência:
 
-| Precedência | Campo em `opts`              | Bloco gerado (NF-e)    |
-| ----------- | ---------------------------- | ---------------------- |
-| 1º          | `ultNSU`                     | `<distNSU><ultNSU>`    |
-| 2º          | `chNFe` / `chCTe` / `chMDFe` | `consCh*` do descritor |
-| 3º (else)   | `nsu`                        | `<consNSU><NSU>`       |
+| Precedência | Campo em `opts` | Bloco gerado                      |
+| ----------- | --------------- | --------------------------------- |
+| 1º          | `ultNSU`        | `<distNSU><ultNSU>`               |
+| 2º          | `chNFe`         | `<consChNFe><chNFe>` — só na NF-e |
+| 3º (else)   | `nsu`           | `<consNSU><NSU>`                  |
+
+No CT-e e no MDF-e o descritor tem `consChave: null`: o leiaute não tem consulta por chave, e uma chave em `opts` é ignorada.
+
+O elemento em volta do `dadosMsg` também sai do descritor. NF-e e CT-e usam o invólucro da operação (`nfeDistDFeInteresse`, `cteDistDFeInteresse`), com o `xmlns` do WSDL nele. O MDF-e não tem invólucro: o WSDL é "bare", o `mdfeDadosMsg` vai direto no Body e leva ele mesmo o `xmlns` do WSDL. O XML da NF-e é conferido byte a byte em `test/distribuicaoDFe-helper.test.js`.
 
 O `else` final não testa `opts.nsu`: se nenhum dos três vier, sai `<consNSU><NSU>undefined</NSU>`. Na prática isso não acontece porque a camada `apis/` só chama o controller depois de validar, mas é a razão de não chamar controller diretamente.
 
 [RecepcaoSchema](../../../src/schemas/recepcaoEvento-schema.js) monta **um** evento por vez, com `versao="1.00"` em `envEvento`, `evento` e `detEvento`, e `xJust` presente só quando informado. O agrupamento em lote não é feito aqui — ver [fluxos/recepcao-evento.md](../fluxos/recepcao-evento.md).
 
-CNPJ e CPF são mutuamente exclusivos nos dois schemas, com a mesma forma: `if (options.cnpj) ... else ...` — CNPJ ganha quando ambos vêm preenchidos.
+[ManifestacaoNFSeSchema](../../../src/schemas/manifestacaoNFSe-schema.js) monta o `pedRegEvento` v1.01 da NFS-e, com `xmlns="http://www.sped.fazenda.gov.br/nfse"` só na raiz: o `infPedReg` herda o namespace (`elementFormDefault="qualified"` no XSD). A ordem é a do `TCInfPedReg` — `tpAmb`, `verAplic`, `dhEvento`, `CNPJAutor`, `chNFSe` e o grupo do evento (`e203202` ou `e203206`) —, com `Id` = `PRE` + chave + código do evento. No grupo, `cMotivo` e `xMotivo` só entram quando informados. Não há recorte de string: o pedido é um documento só, assinado inteiro.
+
+CNPJ e CPF são mutuamente exclusivos nos dois schemas da NF-e, com a mesma forma: `if (options.cnpj) ... else ...` — CNPJ ganha quando ambos vêm preenchidos.
 
 ## `util/xml.js`
 
@@ -55,9 +61,9 @@ Três funções estáticas em [src/util/xml.js](../../../src/util/xml.js):
 
 `new XMLBuilder({ ignoreAttributes: false }).build(json)`. A flag é obrigatória — sem ela o builder descarta as chaves `@_` e o XML sai sem `xmlns`, `versao` e `Id`.
 
-### `envelopar(xml, cabecalho?)`
+### `envelopar(xml)`
 
-Concatena o envelope **SOAP 1.2** em volta do corpo. Com um argumento, a saída é byte a byte a de antes da distribuição de CT-e/MDF-e. Com `cabecalho`, insere `<soap12:Header>…</soap12:Header>` antes do `Body` (MDF-e: `mdfeCabecMsg` montado no helper).
+Concatena o envelope **SOAP 1.2** em volta do corpo:
 
 ```text
 <?xml version="1.0" encoding="utf-8"?><soap12:Envelope …><soap12:Body>…</soap12:Body></soap12:Envelope>

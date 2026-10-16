@@ -4,10 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## O que é
 
-Biblioteca Node.js (CommonJS, JS puro com tipagem via JSDoc) que consome dois Web Services SOAP da SEFAZ:
+Biblioteca Node.js (CommonJS, JS puro com tipagem via JSDoc) que consome quatro Web Services SOAP da SEFAZ e duas APIs REST da NFS-e Nacional:
 
 - **NFeDistribuicaoDFe** — consulta de documentos destinados a um CNPJ/CPF (por `ultNSU`, `NSU` ou `chNFe`).
+- **CTeDistribuicaoDFe** (AN) e **MDFeDistribuicaoDFe** (SVRS) — o mesmo para CT-e e MDF-e, só por `ultNSU` e `NSU`, pelas classes `DistribuicaoCTe` e `DistribuicaoMDFe` sobre o mesmo schema/helper/controller da NF-e, parametrizado pelo descritor `DOCUMENTOS` ([ADR 0010](.docs/arquitetura/decisoes/0010-distribuicao-parametrizada-por-documento.md)).
 - **NFeRecepcaoEvento4** — envio de lote de eventos de manifestação do destinatário.
+- **ADN — distribuição para contribuintes** — NFS-e e eventos em que um CNPJ figura (por `ultNSU`, `NSU` ou chave), em REST/JSON com mTLS, pela classe `DistribuicaoNFSe` ([ADR 0015](.docs/arquitetura/decisoes/0015-nfse-nacional-no-proprio-bitmde.md)).
+- **SEFIN Nacional — pedido de registro de evento** — Confirmação (`e203202`) e Rejeição (`e203206`) do tomador, um `pedRegEvento` assinado e gzipado num `POST` JSON, pela classe `ManifestacaoNFSe`.
 
 Publicada no npm como `@bitize/bitmde` (pacote escopado, `publishConfig.access: public`); o remote é `bitize/bitmde` (fork de `lucashpmelo/node-mde`, publicado como `node-mde` até a 0.14.13 e como `@bitize/bit-mde` até a 0.16.0). O `README.md` é a documentação pública da API e deve ser atualizado junto com mudanças de assinatura.
 
@@ -18,7 +21,8 @@ Este arquivo é o resumo operacional. O detalhamento vive em `.docs/`, que não 
 - `.docs/arquitetura/` — como cada camada funciona ([camadas/](.docs/arquitetura/camadas/)), os fluxos de ponta a ponta ([fluxos/](.docs/arquitetura/fluxos/)) e o processo de [teste](.docs/arquitetura/testes-e-certificados.md), [build](.docs/arquitetura/build-e-versao.md) e [release](.docs/arquitetura/release.md).
 - `.docs/arquitetura/decisoes/` — ADRs numerados: o **porquê** das escolhas estruturais. Consultar antes de propor mudança que contrarie uma invariante.
 - `.docs/conhecimento/` — material externo da SEFAZ.
-- `.docs/tasks/` — tarefas versionadas, ciclo `drafts → specified → done | canceled`. Fluxo em [.docs/tasks/README.md](.docs/tasks/README.md), template em [.docs/tasks/\_templates/task-template.md](.docs/tasks/_templates/task-template.md). Para criar ou promover uma tarefa, usar a skill [criar-tarefa](.claude/skills/criar-tarefa/SKILL.md).
+- `.docs/tarefas/` — tarefas versionadas, ciclo `rascunhos → especificadas → concluidas | canceladas`. Fluxo em [.docs/tarefas/README.md](.docs/tarefas/README.md), modelo em [.docs/tarefas/\_modelos/modelo-de-tarefa.md](.docs/tarefas/_modelos/modelo-de-tarefa.md). Para criar ou promover uma tarefa, usar a skill [criar-tarefa](.claude/skills/criar-tarefa/SKILL.md); para implementá-la até o PR e concluí-la, a skill [executar-tarefa](.claude/skills/executar-tarefa/SKILL.md).
+- `.docs/planos/` — objetivo que se decompõe em duas ou mais tarefas filhas, mesmo ciclo (`rascunhos → especificados → concluidos | cancelados`). As filhas ficam em `.docs/tarefas/`, com o campo **Plano** no cabeçalho, e no GitHub são sub-issues da issue do plano. Fluxo em [.docs/planos/README.md](.docs/planos/README.md). Para criar ou promover um plano, usar a skill [criar-plano](.claude/skills/criar-plano/SKILL.md); para conduzir as filhas e fechá-lo, a skill [executar-plano](.claude/skills/executar-plano/SKILL.md).
 
 Regra de fronteira: aqui ficam as regras que, ignoradas, quebram build/teste/release; em `.docs/arquitetura/` fica a explicação de como as coisas funcionam. Não duplicar — critério completo em [.docs/arquitetura/ESTRUTURA.md](.docs/arquitetura/ESTRUTURA.md).
 
@@ -28,7 +32,7 @@ Regra de fronteira: aqui ficam as regras que, ignoradas, quebram build/teste/rel
 
 ```sh
 npm test                        # mocha sobre ./test (exige ./certs — ver abaixo)
-npm run test:ci                 # tudo menos sefaz.test.js (o que a CI roda)
+npm run test:ci                 # tudo menos sefaz.test.js e tls-sefaz.test.js (o que a CI roda)
 npm run certs:teste             # gera ./certs autoassinado descartável
 npx mocha test/xml.test.js      # um arquivo de teste
 npx mocha --grep "Imutabilidade"  # filtra por nome do teste
@@ -42,24 +46,30 @@ npm run release                 # git pull && npm publish
 
 Todo arquivo de teste que toca certificado faz `fs.readFileSync` **no topo do módulo**, com caminho relativo ao CWD. Sem o diretório `certs/` (gitignored) o mocha aborta antes de rodar qualquer teste — inclusive os que não dependem dele. É preciso criar `certs/` na raiz com `certificado.pfx`, `passphrase.txt`, `cert.pem` e `key.pem` (o mesmo certificado A1 nos dois formatos, pois `certificado.test.js` compara a conversão PFX→PEM com os `.pem` do disco). Sempre rodar mocha a partir da raiz do repositório.
 
-Sem `certs/`, ainda é possível rodar isoladamente: `test/xml.test.js`, `test/gzip.test.js`, `test/zeroPad.test.js`, `test/data.test.js`.
+Sem `certs/`, ainda é possível rodar isoladamente: `test/xml.test.js`, `test/gzip.test.js`, `test/zeroPad.test.js`, `test/data.test.js`, `test/distribuicaoDFe-helper.test.js`, `test/distribuicaoNFSe-helper.test.js`, `test/nfse-validators.test.js`, `test/ca.test.js`, `test/transporte.test.js` (servidor HTTPS local, sem rede externa) e `test/tls-sefaz.test.js` (exige rede).
 
-Quem não tem um A1 em mãos pode rodar `npm run certs:teste`, que gera um autoassinado descartável e libera tudo menos `sefaz.test.js` (65 dos 67 testes). O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Dois detalhes do `scripts/gerar-certificado-teste.sh` são load-bearing e não devem ser "simplificados": o `.pfx` precisa ser gerado com `-keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES` porque o node-forge não decifra o padrão AES-256 do OpenSSL 3; e os `.pem` são normalizados para CRLF porque `certificado.test.js` compara byte a byte com a saída do forge, que usa CRLF, enquanto o OpenSSL escreve LF no Linux.
+Quem não tem um A1 em mãos pode rodar `npm run certs:teste`, que gera um autoassinado descartável e libera tudo menos `sefaz.test.js` (271 dos 293 testes). O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Dois detalhes do `scripts/gerar-certificado-teste.sh` são load-bearing e não devem ser "simplificados": o `.pfx` precisa ser gerado com `-keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES` porque o node-forge não decifra o padrão AES-256 do OpenSSL 3; e os `.pem` são normalizados para CRLF porque `certificado.test.js` compara byte a byte com a saída do forge, que usa CRLF, enquanto o OpenSSL escreve LF no Linux.
 
-`test/sefaz.test.js` é um teste de integração real: bate nos endpoints de produção **e** homologação da SEFAZ com mTLS, e falha sem rede ou com certificado vencido. É o único arquivo excluído da CI.
+`test/sefaz.test.js` é um teste de integração real: bate nos endpoints de produção **e** homologação da SEFAZ e do ADN com mTLS, e falha sem rede ou com certificado vencido. No ADN ele só lê, e tira o CNPJ do CN do `certs/cert.pem` — não escrever CNPJ real em teste. Na SEFIN ele só manda pedido que é rejeitado (chave inventada, `E1831`): Confirmação ou Rejeição aceita registra evento fiscal irreversível e **não entra na suíte**. Com A1 real, a conversão PFX→PEM leva perto de 2 s e pode estourar o timeout padrão do mocha nos testes de construtor com PFX; `--timeout 15000` separa isso de falha real. `test/tls-sefaz.test.js` só faz o handshake TLS com os hosts da NF-e, do CT-e, do MDF-e, do ADN e da SEFIN, sem A1, e falha de propósito se a ICP-Brasil sozinha voltar a fechar a cadeia de um deles — menos os da SVRS (MDF-e), que servem cadeia ICP-Brasil e precisam fechar só com ela. Na distribuição de CT-e e MDF-e o `sefaz.test.js` consulta só homologação: consulta por NSU em produção move o ponteiro da SEFAZ para o CNPJ. Os dois são os únicos excluídos do `test:ci`.
 
 ### CI
 
 Dois workflows em push e PR na `main`:
 
-- `.github/workflows/testes.yml` — matriz Node 20/22/24: `npm ci` → `npm run certs:teste` → `npm run test:ci`.
-- `.github/workflows/qualidade.yml` — dois jobs paralelos em Node 22: `npm run format:check` (Prettier) e `npm run build`.
+- `.github/workflows/testes.yml` — matriz Node 22/24: `npm ci` → `npm run certs:teste` → `npm run test:ci`. **Não roda** quando todos os arquivos alterados casam com `paths-ignore` (`**/*.md`, `.docs/**`, `.claude/**`, `LICENSE`).
+- `.github/workflows/qualidade.yml` — dois jobs paralelos em Node 22: `npm run format:check` (Prettier) e `npm run build`. Roda sempre, inclusive em PR só de docs: é o Prettier que valida o Markdown.
+
+Check pulado por `paths-ignore` nunca reporta status. Hoje a `main` não tem proteção de branch nem ruleset; se `Node 22.x`/`Node 24.x` virarem checks obrigatórios, PR só de docs fica preso em "Expected — Waiting for status". Nesse caso, trocar o `paths-ignore` por um job que sempre roda e decide pelos arquivos alterados. O `publicar.yml` não tem filtro e roda os testes antes de todo release.
 
 Mais um em release publicado, descrito em [Release](#release):
 
 - `.github/workflows/publicar.yml` — confere tag e `version.js`, roda testes, build, confere o conteúdo do tarball e `npm publish`.
 
-Os três usam `npm ci` com `cache: npm` no `setup-node`. Ambos exigem `package-lock.json` versionado, e ele é — **não voltar a ignorá-lo**: sem lockfile, `npm ci` falha de imediato nos três workflows, e o pacote publicado passaria a ser montado com dependências resolvidas na hora do run, sem reprodutibilidade. Como consequência, bump de dependência agora é mudança de dois arquivos: `package.json` e `package-lock.json`, no mesmo commit.
+E um agendado, toda segunda-feira e sob demanda:
+
+- `.github/workflows/cadeia-tls.yml` — Node 24, `npm ci` → `npx mocha test/tls-sefaz.test.js`. Avisa (pelo e-mail padrão do GitHub) quando o Ambiente Nacional trocar de cadeia.
+
+Os quatro usam `npm ci` com `cache: npm` no `setup-node`. Ambos exigem `package-lock.json` versionado, e ele é — **não voltar a ignorá-lo**: sem lockfile, `npm ci` falha de imediato em todos os workflows, e o pacote publicado passaria a ser montado com dependências resolvidas na hora do run, sem reprodutibilidade. Como consequência, bump de dependência agora é mudança de dois arquivos: `package.json` e `package-lock.json`, no mesmo commit.
 
 Nenhum job escreve no repositório: todos declaram `permissions: contents: read` e `persist-credentials: false` no checkout, para o `GITHUB_TOKEN` não ficar gravado no `.git/config` do runner. `publicar.yml` é o único que soma `id-token: write`, pelo OIDC.
 
@@ -81,24 +91,31 @@ apis/          classe pública, valida config no construtor e congela (Object.fr
 controllers/   static enviar(opts): montarRequest -> envia -> montarResponse -> montarRetorno
   └ helpers/     orquestra schema -> XML -> (assinatura) -> serviço -> parse da resposta
       └ schemas/   objeto JS espelhando o XML (chaves `@_` = atributos, para o XMLBuilder)
-      └ services/sefaz-service.js  instância axios + https.Agent com mTLS
-      └ helpers/retorno-helper.js  formato final { data, reqXml, resXml, status, error? }
-env/           constantes: endpoints por tpAmb, cadeia CA ICP-Brasil, EVENTOS, CODIGOS_UF, ZONES, VERSION
+      └ services/sefaz-service.js  instância axios + https.Agent com mTLS, TLS validado por padrão
+      └ helpers/retorno-helper.js  formato final da NF-e { data, reqXml, resXml, status, error?, transportError? }
+      └ helpers/retornoNfse-helper.js  formato final da NFS-e { data, reqXml?, resBody, status, error?, transportError? }
+env/           constantes: endpoints por tpAmb (NF-e, CT-e, MDF-e, NFSE_ADN e NFSE_SEFIN), DOCUMENTOS (descritores da distribuição), EVENTOS_NFSE, CA (ICP-Brasil) e CA_PADRAO (raízes do Node + ICP-Brasil), EVENTOS, CODIGOS_UF, ZONES, VERSION
 ```
 
-`src/index.js` exporta `DistribuicaoDFe` e `RecepcaoEvento` em três formas (`module.exports`, `.default`, `.mde`) para interoperar com `require` e `import`.
+`src/index.js` exporta `DistribuicaoCTe`, `DistribuicaoDFe`, `DistribuicaoMDFe`, `DistribuicaoNFSe`, `ManifestacaoNFSe`, `RecepcaoEvento`, `CA_PADRAO` e `CA_ICP_BRASIL` (estes dois congelados) em três formas (`module.exports`, `.default`, `.mde`) para interoperar com `require` e `import`.
+
+Na NFS-e não há `schemas/` nem envelope: o helper monta a config de um `GET` do axios (`Accept` e `responseType: 'text'` na requisição, não em `requestOptions`) e lê JSON. O retorno é do `RetornoNfseHelper`, não do `RetornoHelper`: `resBody` no lugar de `reqXml`/`resXml`, fila vazia (HTTP 404, `NENHUM_DOCUMENTO_LOCALIZADO`) **sem** `error`, e rejeição com `data` mantido. `error` sai do HTTP e do `Erros` do ADN, não só do `StatusProcessamento`, que vem `DOCUMENTOS_LOCALIZADOS` até na rejeição E2243 ([ADR 0016](.docs/arquitetura/decisoes/0016-retorno-proprio-da-nfse.md)).
+
+A manifestação da NFS-e tem schema (`pedRegEvento` v1.01) e assinatura, mas não tem envelope: o helper monta um `POST` JSON com o XML assinado em gzip+base64 e reaproveita o `RetornoNfseHelper` com `servico: 'SEFIN'` e `reqXml`. O `pedRegEvento` leva `<?xml version="1.0" encoding="UTF-8"?>` na frente — sem ela a SEFIN rejeita com `E1229` —, e o `erro` da SEFIN chega como **array**, apesar do Swagger dizer objeto.
 
 ### Convenções que atravessam o código
 
 **Contrato dos validators.** Todos seguem o mesmo formato: `new Validator(entrada)` → `isValid()` → `getValues()` / `getError()`. `isValid()` **muta o estado interno** — é onde acontecem a conversão PFX→PEM, o zero-padding do NSU (`ZeroPad.padNsu`, 15 dígitos), o default de `idLote` (`'1'`) e o de `timezone` (`'America/Sao_Paulo'`). Chamar `getValues()` sem antes chamar `isValid()` devolve dados crus. Novos validators devem seguir esse mesmo contrato.
 
-**Onde o erro aparece.** Problemas de configuração e de argumento **lançam** (`throw new Error(validator.getError())`) de forma síncrona, dentro do construtor ou do método público. Problemas de rede/SEFAZ **não lançam**: `SefazService.request` captura tudo e devolve `{status, data:'<error>…</error>'}` (504 para `ECONNABORTED`, 502 quando não houve resposta, 500 no resto), e `RetornoHelper` transforma isso em `{ data: {}, error, reqXml, resXml, status }`. Preservar essa separação.
+**Onde o erro aparece.** Problemas de configuração e de argumento **lançam** (`throw new Error(validator.getError())`) de forma síncrona, dentro do construtor ou do método público. Problemas de rede/SEFAZ **não lançam**: `SefazService.request` captura tudo. Resposta HTTP de erro passa com o status real; sem resposta HTTP, devolve `{ status: 0, data: '', transportError: { code, message } }`, e `RetornoHelper` transforma isso em `{ data: {}, error: 'Falha de transporte (<code>): <message>', transportError, reqXml, resXml: '', status: 0 }`. Nenhum status é sintetizado. Do erro do axios saem **só** `code` e `message`: ele carrega `config.httpsAgent`, com a chave do A1. Preservar essa separação ([ADR 0014](.docs/arquitetura/decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md)).
 
 **Imutabilidade.** Praticamente todo módulo exporta `Object.freeze(Classe)`, e as instâncias de `apis/` congelam `this` e `this.config`. Existem testes que asseguram isso (`assert.throws` ao sobrescrever um método estático). Consequência prática: `requestOptions` e `httpsOptions` chegam congelados no `SefazService`, que precisa copiá-los (`{ ...opts.httpsOptions }`) antes de mesclar — foi exatamente a origem do bug #22 (`Cannot add property rejectUnauthorized, object is not extensible`).
 
-**Assinatura digital.** Só a recepção de evento assina. `RecepcaoHelper.montarRequest` assina cada `infEvento` individualmente com `xml-crypto` (referência `//*[local-name(.)='infEvento']`, assinatura inserida _depois_ do nó) e depois faz _splice de string_ nos blocos `<evento versao="1.00">…` para montar o lote dentro de um único `<envEvento>`. Mexer no formato do XML gerado pelo schema pode quebrar esse recorte por `indexOf`.
+**TLS.** O padrão do agente é `{ ca: CA_PADRAO, rejectUnauthorized: true }`, e `httpsOptions` sobrescreve tudo. `CA_PADRAO` soma as raízes do Node (`tls.getCACertificates('default')`, ou `tls.rootCertificates` no Node 22 anterior à 22.15) à ICP-Brasil, porque a opção `ca` do Node **substitui** as raízes padrão. Passar só a ICP-Brasil quebra o handshake com o Ambiente Nacional, cuja cadeia hoje é GlobalSign.
 
-**Ambiente.** `tpAmb` é string: `'1'` produção, `'2'` homologação. É a chave dos mapas em `env/distribuicao.js` e `env/recepcao.js`.
+**Assinatura digital.** Assinam a recepção de evento da NF-e e a manifestação da NFS-e, com a mesma `Assinatura.assinarXml` (RSA-SHA1, digest SHA1, C14N); o quarto parâmetro escolhe o elemento (`'infEvento'` por padrão, `'infPedReg'` na NFS-e), e `test/assinatura.test.js` congela o lote da NF-e para provar que a chamada de três argumentos não mudou um byte. `RecepcaoHelper.montarRequest` assina cada `infEvento` individualmente com `xml-crypto` (referência `//*[local-name(.)='infEvento']`, assinatura inserida _depois_ do nó) e depois faz _splice de string_ nos blocos `<evento versao="1.00">…` para montar o lote dentro de um único `<envEvento>`. Mexer no formato do XML gerado pelo schema pode quebrar esse recorte por `indexOf`.
+
+**Ambiente.** `tpAmb` é string: `'1'` produção, `'2'` homologação (produção restrita, na NFS-e). É a chave dos mapas em `env/distribuicao.js`, `env/recepcao.js` e `env/nfse.js`.
 
 **Idioma e mensagens.** Domínio, nomes de arquivo/classe e mensagens de erro são em português. As mensagens são comparadas **literalmente** nos testes (`assert.strictEqual(err.message, 'NSU não informado.')`) — alterar o texto quebra testes.
 

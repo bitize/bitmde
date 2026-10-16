@@ -21,11 +21,11 @@ RecepcaoController.enviar({ ...config, idLote, eventos })
   │    Xml.envelopar                 → <soap12:Envelope>…
   │
   ├─ RecepcaoHelper.enviarEvento(data, opts)
-  │    endpoint = RECEPCAO[tpAmb]  →  POST  →  { status, data }
+  │    endpoint = RECEPCAO[tpAmb]  →  POST  →  { status, data, transportError? }
   │
   ├─ RecepcaoHelper.montarResponse(retornoSefaz.data)   ← síncrono
   │
-  └─ RetornoHelper.montarRetorno → { data, reqXml, resXml, status, error? }
+  └─ RetornoHelper.montarRetorno → { data, reqXml, resXml, status, error?, transportError? }
 ```
 
 ## Os campos derivados
@@ -65,6 +65,8 @@ Três coisas aqui não são negociáveis:
 3. **O `getKeyInfoContent` faz `cert.split('-----')[2]`.** Extrai o corpo base64 do PEM entre os delimitadores e remove quebras de linha. Depende do formato exato do PEM — que é o que o `CertificadoValidator` produz, via node-forge ou lido do disco. PEM com cadeia concatenada (mais de um bloco `BEGIN CERTIFICATE`) pegaria o primeiro corpo, que é o certificado folha; é o comportamento desejado, mas por acidente da estrutura, não por checagem.
 
 Cada evento é assinado **individualmente**, antes de entrar no lote. Ver [ADR 0007](../decisoes/0007-assinatura-por-infevento-e-splice-do-lote.md).
+
+A mesma função assina o `pedRegEvento` da NFS-e, com um quarto parâmetro que troca o elemento referenciado (`'infEvento'` por padrão, `'infPedReg'` na manifestação). Com três argumentos o XML sai byte a byte igual ao de antes do parâmetro: [test/assinatura.test.js](../../../test/assinatura.test.js) congela o lote com dois eventos, mascarando só `SignatureValue` e `X509Certificate`, que dependem da chave. Ver [manifestacao-nfse.md](manifestacao-nfse.md).
 
 ## O recorte de string
 
@@ -109,3 +111,5 @@ O recorte é por `indexOf` de **literal exato**. Ele depende de:
 **O `cStat` do lote e o de cada evento são independentes.** Lote aceito (`cStat` 128) com evento rejeitado dentro dele é o caso normal — sempre inspecionar `infEvento[]` item a item, e não só o status do lote. `nProt` preenchido é o sinal de evento registrado.
 
 Como em toda a biblioteca, campo ausente vira `''`, e o array é normalizado mesmo quando a SEFAZ devolve um único `retEvento`.
+
+Quando a SEFAZ não responde — cadeia TLS que não fecha, DNS, conexão recusada, timeout —, o retorno vem com `status: 0`, `resXml: ''`, `data: {}` e `transportError: { code, message }`. O `reqXml` assinado continua no retorno. Um timeout **não** prova que o lote não chegou: antes de reenviar, consultar a situação da NF-e, porque um evento já registrado volta rejeitado como duplicidade. Ver [ADR 0014](../decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md).
