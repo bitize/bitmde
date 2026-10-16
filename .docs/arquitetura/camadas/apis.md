@@ -1,12 +1,13 @@
 # Camada `apis/` — a superfície pública
 
-`src/apis/` é a única camada que o consumidor do pacote enxerga. Três classes, uma por serviço:
+`src/apis/` é a única camada que o consumidor do pacote enxerga. Quatro classes, uma por serviço:
 
 - [DistribuicaoDFe](../../../src/apis/distribuicaoDFe-api.js) — `consultaUltNSU`, `consultaNSU`, `consultaChNFe`
 - [RecepcaoEvento](../../../src/apis/recepcaoEvento-api.js) — `enviarEvento`
 - [DistribuicaoNFSe](../../../src/apis/distribuicaoNFSe-api.js) — `consultaUltNSU`, `consultaNSU`, `consultaChNFSe`, no ADN da NFS-e Nacional ([ADR 0015](../decisoes/0015-nfse-nacional-no-proprio-bitmde.md))
+- [ManifestacaoNFSe](../../../src/apis/manifestacaoNFSe-api.js) — `confirmar`, `rejeitar`, na SEFIN Nacional
 
-As três são reexportadas por [src/index.js](../../../src/index.js) em três formas (`module.exports`, `.default`, `.mde`), para funcionar tanto com `require` quanto com `import` sob transpiladores diferentes.
+As quatro são reexportadas por [src/index.js](../../../src/index.js) em três formas (`module.exports`, `.default`, `.mde`), para funcionar tanto com `require` quanto com `import` sob transpiladores diferentes.
 
 ## Responsabilidade
 
@@ -20,7 +21,7 @@ Nenhuma regra de negócio, nenhuma montagem de XML e nenhuma chamada HTTP vivem 
 
 ## Construtor
 
-O padrão é idêntico nas três classes:
+O padrão é idêntico nas quatro classes:
 
 ```js
 const certificadoValidator = new CertificadoValidator(config)
@@ -39,10 +40,11 @@ A ordem importa para a mensagem de erro: com dois problemas simultâneos na conf
 | `DistribuicaoDFe`  | Certificado → Ambiente → CnpjCpf → Uf   |
 | `RecepcaoEvento`   | Certificado → Ambiente → CnpjCpf → Zone |
 | `DistribuicaoNFSe` | Certificado → Ambiente → Cnpj           |
+| `ManifestacaoNFSe` | Certificado → Ambiente → Cnpj → Zone    |
 
-`options.requestOptions` e `options.httpsOptions` **não passam por validator** — são repassados como estão (com `{}` de default) e mesclados lá embaixo, no [SefazService](services-sefaz.md), por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. O JSDoc de `httpsOptions` nos três construtores diz isso, e diz que informar `ca` substitui a cadeia inteira — é o texto que chega ao consumidor pelo `dist/index.d.ts`.
+`options.requestOptions` e `options.httpsOptions` **não passam por validator** — são repassados como estão (com `{}` de default) e mesclados lá embaixo, no [SefazService](services-sefaz.md), por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. O JSDoc de `httpsOptions` nos quatro construtores diz isso, e diz que informar `ca` substitui a cadeia inteira — é o texto que chega ao consumidor pelo `dist/index.d.ts`.
 
-Além das três classes, a raiz do pacote exporta `CA_PADRAO` e `CA_ICP_BRASIL`, congelados, nas mesmas três formas. Ver [env.md](env.md).
+Além das quatro classes, a raiz do pacote exporta `CA_PADRAO` e `CA_ICP_BRASIL`, congelados, nas mesmas três formas. Ver [env.md](env.md).
 
 ### O que fica em `this.config`
 
@@ -62,7 +64,7 @@ this.config = Object.freeze({
 Object.freeze(this)
 ```
 
-A `DistribuicaoNFSe` guarda o mesmo objeto sem `cUFAutor` e `cpf`: o ADN não usa UF, e a NFS-e é só de CNPJ, que ela exige e valida em formato (`CnpjValidator`).
+A `DistribuicaoNFSe` guarda o mesmo objeto sem `cUFAutor` e `cpf`: o ADN não usa UF, e a NFS-e é só de CNPJ, que ela exige e valida em formato (`CnpjValidator`). A `ManifestacaoNFSe` guarda o mesmo da `DistribuicaoNFSe` mais o `timezone`, para o `dhEvento`.
 
 O congelamento alcança dois níveis — `config` e os dois objetos de options dentro dele —, mas `Object.freeze` é **raso**: só as propriedades de primeiro nível de cada um desses três objetos ficam imutáveis. O que estiver aninhado mais fundo, como `requestOptions.headers`, continua mutável. Quem recebe esses objetos pode lê-los e mesclá-los, mas **não pode escrever nas propriedades congeladas**; ver [ADR 0005](../decisoes/0005-object-freeze-pervasivo.md).
 
@@ -89,6 +91,16 @@ Na `DistribuicaoNFSe`, `consultaUltNSU` e `consultaNSU` usam o `NsuNfseValidator
 | `dhEvento`    | `Data.toFormat(new Date(), opts.timezone)`            |
 
 `dhEvento` usa o relógio da máquina convertido para o timezone da config (default `America/Sao_Paulo`), via luxon. É o único ponto de não-determinismo da biblioteca.
+
+`ManifestacaoNFSe.confirmar` e `rejeitar` fazem o mesmo para o `pedRegEvento`, num `montarOpts` do módulo (função, não método, para não aparecer no `.d.ts`):
+
+| Campo      | Origem                                                          |
+| ---------- | --------------------------------------------------------------- |
+| `evento`   | `EVENTOS_NFSE[203202]` ou `EVENTOS_NFSE[203206]`                |
+| `verAplic` | `` `bitmde/${VERSION}` `` — cabe nos 20 caracteres do XSD       |
+| `dhEvento` | `Data.toFormat(new Date(), timezone)`, como na recepção da NF-e |
+
+`rejeitar` valida a chave **antes** do motivo, com o `MotivoRejeicaoValidator`. Não há lote: a SEFIN recebe um pedido por `POST`, e simular lote esconderia falha parcial.
 
 ## Tipagem
 

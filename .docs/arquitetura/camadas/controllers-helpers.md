@@ -2,7 +2,7 @@
 
 ## Controllers — a sequência fixa
 
-[src/controllers/](../../../src/controllers/) tem três classes, cada uma com um único método estático `enviar(opts)`, e as três têm praticamente o mesmo corpo — o da NFS-e troca o `RetornoHelper` pelo `RetornoNfseHelper` (ver [abaixo](#distribuição-da-nfs-e)):
+[src/controllers/](../../../src/controllers/) tem quatro classes, cada uma com um único método estático `enviar(opts)`, e as quatro têm praticamente o mesmo corpo — as da NFS-e trocam o `RetornoHelper` pelo `RetornoNfseHelper` (ver [abaixo](#distribuição-da-nfs-e)):
 
 ```js
 static async enviar(opts) {
@@ -134,11 +134,26 @@ A segunda usa `Math.floor(status / 100) > 2`, ou seja, **3xx também é erro** a
 [retornoNfse-helper.js](../../../src/helpers/retornoNfse-helper.js) monta `{ data, resBody, status, error?, transportError? }`. `resBody` é o corpo cru, porque o helper pede `responseType: 'text'` e faz o parse ele mesmo. A ordem das condições segue a do `RetornoHelper`, transporte primeiro, mas as regras são outras:
 
 1. `transportError` → `data: {}` e `Falha de transporte (<code>): <message>`, igual à NF-e;
-2. `json` nulo → `data: {}` e `Resposta inesperada do ADN (HTTP <status>).`;
+2. `json` nulo → `data: {}` e `Resposta inesperada do ADN (HTTP <status>).` — ou `da SEFIN`, com `servico: 'SEFIN'`;
 3. `NENHUM_DOCUMENTO_LOCALIZADO` → sem `error`, com qualquer status. É o 404 do fim da fila;
-4. HTTP fora de 2xx, `REJEICAO` ou `erros` não vazio → `error` com `<codigo>: <descricao>` de cada erro, unidos por `; `, e `data` **mantido**.
+4. HTTP fora de 2xx, `REJEICAO` ou `erros` não vazio → `error` com `<codigo>: <descricao>` de cada erro, unidos por `; `, e `data` **mantido**;
+5. `falha` informada pelo helper → `error` com ela, e `data` mantido. Só a manifestação usa: é o evento registrado que não abriu.
+
+Dois parâmetros opcionais servem à manifestação sem mudar a distribuição: `servico` (`'ADN'` por padrão) nomeia o serviço na mensagem da regra 2, e `reqXml`, quando informado, entra no retorno logo depois de `data`, em todos os caminhos, inclusive o de transporte.
 
 A regra 4 olha os três sinais porque o ADN rejeita `cnpjConsulta` de outra raiz com HTTP 400 e `StatusProcessamento: DOCUMENTOS_LOCALIZADOS`. O porquê do formato está na [ADR 0016](../decisoes/0016-retorno-proprio-da-nfse.md).
+
+## Manifestação da NFS-e
+
+[ManifestacaoNFSeController](../../../src/controllers/manifestacaoNFSe-controller.js) segue a sequência fixa, com `await` também no `montarRequest`, que gzipa:
+
+| Método           | Faz                                                                                                                                         |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `montarRequest`  | schema → XML → `Assinatura.assinarXml(…, 'infPedReg')` → declaração XML na frente → `Gzip.zip`. Devolve `{ reqXml, config }` do `POST` JSON |
+| `enviarEvento`   | Endpoint por `tpAmb` em `NFSE_SEFIN`, mesmo `SefazService`                                                                                  |
+| `montarResponse` | Corpo cru → `{ json, falha? }`; `json` em camelCase, ou `null` se o corpo não tiver `eventoXmlGZipB64`, `erro` nem `erros`                  |
+
+`montarResponse` nunca lança, como o da distribuição. Normaliza `tipoAmbiente` para string e o `erro` da SEFIN — que chega como array, embora o Swagger o descreva como objeto único — para `erros: [{ codigo, descricao, complemento }]`, aceitando as duas formas. O evento registrado passa por `abrirEvento`, que nunca rejeita: falha de gunzip ou de parse vira `evento: {}` e `falha: 'Falha ao abrir o evento retornado: <mensagem>'`, entregue ao `RetornoNfseHelper` com `servico: 'SEFIN'` e o `reqXml`. Fluxo completo em [../fluxos/manifestacao-nfse.md](../fluxos/manifestacao-nfse.md).
 
 ## Ao mexer aqui
 

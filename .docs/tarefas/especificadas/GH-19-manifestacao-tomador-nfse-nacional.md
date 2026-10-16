@@ -9,7 +9,7 @@
 | **Tipo**             | feature                                                                                |
 | **Camadas afetadas** | apis / validators / controllers / helpers / schemas / env / util / test                |
 | **Criado em**        | 2026-10-15                                                                             |
-| **Atualizado em**    | 2026-10-15                                                                             |
+| **Atualizado em**    | 2026-10-16                                                                             |
 | **Concluído em**     | —                                                                                      |
 
 ---
@@ -32,12 +32,12 @@ Depende da [GH-18](../concluidas/GH-18-distribuicao-nfse-nacional-adn.md), entre
 - [x] [apis](../../arquitetura/camadas/apis.md) — API pública, config congelada, JSDoc que vira `.d.ts`
 - [x] [validators](../../arquitetura/camadas/validators.md) — contrato `isValid()`/`getValues()`, mensagens literais
 - [x] [controllers e helpers](../../arquitetura/camadas/controllers-helpers.md) — orquestração e formato de retorno
-- [ ] [schemas e XML](../../arquitetura/camadas/schemas-xml.md) — ordem das chaves, opções do builder: **ler antes de implementar**
+- [x] [schemas e XML](../../arquitetura/camadas/schemas-xml.md) — ordem das chaves, opções do builder: **ler antes de implementar**
 - [x] [services](../../arquitetura/camadas/services-sefaz.md) — mTLS, mescla de options, erro de transporte
 - [x] [env](../../arquitetura/camadas/env.md) — endpoints, `ZONES`, `VERSION`
-- [ ] Fluxo: [recepção](../../arquitetura/fluxos/recepcao-evento.md) e [ADR 0007](../../arquitetura/decisoes/0007-assinatura-por-infevento-e-splice-do-lote.md) — **ler antes de implementar**: a assinatura da NF-e não pode mudar um byte
+- [x] Fluxo: [recepção](../../arquitetura/fluxos/recepcao-evento.md) e [ADR 0007](../../arquitetura/decisoes/0007-assinatura-por-infevento-e-splice-do-lote.md) — **ler antes de implementar**: a assinatura da NF-e não pode mudar um byte
 - [x] [testes e certificados](../../arquitetura/testes-e-certificados.md)
-- [ ] [build e versão](../../arquitetura/build-e-versao.md) / [release](../../arquitetura/release.md) — sem impacto além do bump de minor
+- [x] [build e versão](../../arquitetura/build-e-versao.md) / [release](../../arquitetura/release.md) — sem impacto além do bump de minor
 - [x] ADRs relacionados — listados em **Referências**
 
 ## Requisitos
@@ -99,6 +99,14 @@ O `erro` único da SEFIN é normalizado para `erros: [...]`, como no ADN (Decis�
 | 3   | Corpo real de sucesso (`eventoXmlGZipB64` traz `evento/infEvento` completo?) e de rejeição (`400` com `erro`?)   | Os dois casos em produção restrita                                              |
 | 4   | Confirmação depois de Rejeição (e vice-versa) dá `E0861`/`E0866`? A Rejeição pode ser anulada só pelo município? | Aba "RN EVENTOSxEVENTOS" do Anexo II + teste                                    |
 | 5   | O namespace e o atributo `versao` vão só no `pedRegEvento`, sem `xmlns` repetido no `infPedReg`?                 | XSD + pedido aceito                                                             |
+
+Respostas, em 2026-10-16:
+
+1. **Não resolvida; substituída por decisão do usuário.** Ninguém emitiu nota em produção restrita. Os pedidos de erro rodam em produção e em produção restrita, e uma Confirmação real é feita uma vez, em produção, sobre nota indicada pelo usuário — ver Notas de implementação.
+2. **Em aberto.** Responde-se se a nota indicada para a Confirmação em produção for de município com sistema próprio (`ambGer` 1).
+3. **Metade respondida.** Rejeição: HTTP 400 com `erro` em **array** de `{ codigo, descricao }`, não o objeto único do Swagger; `tipoAmbiente` numérico. Sucesso (`201` e o conteúdo do `eventoXmlGZipB64`): pendente da Confirmação real.
+4. **Respondida pelo Anexo II.** Confirmação depois de Confirmação dá `E0861`, Rejeição depois de Rejeição dá `E0866`; Rejeição depois de Confirmação e Confirmação depois de Rejeição são **aceitas**. Com a Confirmação vinculada, o emitente não cancela mais a nota (só substitui). A Anulação da Rejeição é do município de incidência. Não exercitado contra o serviço.
+5. **Respondida pelo XSD.** `xmlns` e `versao` só no `pedRegEvento`; o `infPedReg` herda o namespace (`elementFormDefault="qualified"`).
 
 > Manifestação em **produção** registra evento fiscal irreversível. Os testes desta tarefa rodam só em produção restrita; teste em produção só com decisão explícita sobre qual nota e qual evento.
 
@@ -174,46 +182,71 @@ O `erro` único da SEFIN é normalizado para `erros: [...]`, como no ADN (Decis�
 
 ## Testes
 
-- [ ] `test/manifestacaoNFSe.test.js`: construtor (cada mensagem de configuração), `confirmar` e `rejeitar` com chave ausente e de tamanho errado, e as quatro mensagens do `MotivoRejeicaoValidator`
-- [ ] Imutabilidade da classe nova e dos módulos novos
-- [ ] **XML gerado** para Confirmação e Rejeição (com e sem `xMotivo`) conferido contra o esperado, com `dhEvento` fixo; ordem dos elementos igual à do XSD
-- [ ] Assinatura do `infPedReg` verificável com `xml-crypto` (`SignedXml.checkSignature`), com `Signature` como irmã seguinte do `infPedReg`
-- [ ] **Regressão da NF-e:** `Assinatura.assinarXml` de três argumentos e o lote da `RecepcaoEvento` byte a byte iguais aos de antes — congelar o XML esperado
-- [ ] `Gzip.zip` → `Gzip.unzip` devolve a entrada
-- [ ] Helper e `RetornoNfseHelper` com respostas sintéticas: as cinco linhas da Decisão 4
-- [ ] Transporte com servidor HTTPS local: `POST` com `Content-Type` e `Accept` JSON, corpo `{ pedidoRegistroEventoXmlGZipB64 }` que abre no XML de `reqXml`, sem `PRIVATE KEY` no retorno serializado
-- [ ] `test/tls-sefaz.test.js` com os dois hosts da SEFIN (GlobalSign, como o Ambiente Nacional da NF-e)
-- [ ] `test/sefaz.test.js` estendido com Confirmação e Rejeição em **produção restrita**, sobre a nota de teste da questão 1 — rodado manualmente
+- [x] `test/manifestacaoNFSe.test.js`: construtor (cada mensagem de configuração), `confirmar` e `rejeitar` com chave ausente e de tamanho errado, e as quatro mensagens do `MotivoRejeicaoValidator`
+- [x] Imutabilidade da classe nova e dos módulos novos
+- [x] **XML gerado** para Confirmação e Rejeição (com e sem `xMotivo`) conferido contra o esperado, com `dhEvento` fixo; ordem dos elementos igual à do XSD
+- [x] Assinatura do `infPedReg` verificável com `xml-crypto` (`SignedXml.checkSignature`), com `Signature` como irmã seguinte do `infPedReg`
+- [x] **Regressão da NF-e:** `Assinatura.assinarXml` de três argumentos e o lote da `RecepcaoEvento` byte a byte iguais aos de antes — congelar o XML esperado (`test/assinatura.test.js`; ver Notas)
+- [x] `Gzip.zip` → `Gzip.unzip` devolve a entrada
+- [x] Helper e `RetornoNfseHelper` com respostas sintéticas: as cinco linhas da Decisão 4
+- [x] Transporte com servidor HTTPS local: `POST` com `Content-Type` e `Accept` JSON, corpo `{ pedidoRegistroEventoXmlGZipB64 }` que abre no XML de `reqXml`, sem `PRIVATE KEY` no retorno serializado
+- [x] `test/tls-sefaz.test.js` com os dois hosts da SEFIN (GlobalSign, como o Ambiente Nacional da NF-e)
+- [x] `test/sefaz.test.js` estendido com pedidos **rejeitados** em produção e em produção restrita (chave inventada, `E1831`; assinatura adulterada, `E0714`) — rodado manualmente com A1 real. Confirmação e Rejeição aceitas ficam fora da suíte (ver Notas)
+- [ ] Confirmação real em **produção**, uma vez, fora da suíte, sobre nota indicada pelo usuário — pendente da indicação
 
 ## Checklist de implementação
 
-- [ ] Código em `src/` (apis, validators, schemas, controllers, helpers, env, util)
-- [ ] Testes em `test/`
-- [ ] JSDoc da `ManifestacaoNFSe` e do controller
-- [ ] [README.md](../../../README.md): seção da manifestação, com os códigos de `cMotivo` e a regra do motivo 9
-- [ ] `CHANGELOG.md` em `[Não publicado]`
-- [ ] `CLAUDE.md`: "O que é" e exports de `src/index.js`
-- [ ] `.docs/arquitetura/`: [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [schemas-xml](../../arquitetura/camadas/schemas-xml.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md) e fluxo novo `fluxos/manifestacao-nfse.md`
-- [ ] Questões em aberto respondidas nesta seção, com data, antes do PR
+- [x] Código em `src/` (apis, validators, schemas, controllers, helpers, env, util)
+- [x] Testes em `test/`
+- [x] JSDoc da `ManifestacaoNFSe` e do controller
+- [x] [README.md](../../../README.md): seção da manifestação, com os códigos de `cMotivo` e a regra do motivo 9
+- [x] `CHANGELOG.md` em `[Não publicado]`
+- [x] `CLAUDE.md`: "O que é" e exports de `src/index.js`
+- [x] `.docs/arquitetura/`: [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [schemas-xml](../../arquitetura/camadas/schemas-xml.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md) e fluxo novo [fluxos/manifestacao-nfse.md](../../arquitetura/fluxos/manifestacao-nfse.md); também [services-sefaz](../../arquitetura/camadas/services-sefaz.md), [testes-e-certificados](../../arquitetura/testes-e-certificados.md), [fluxos/recepcao-evento](../../arquitetura/fluxos/recepcao-evento.md) e [conhecimento/nfse-nacional-sefin-eventos.md](../../conhecimento/nfse-nacional-sefin-eventos.md)
+- [x] Questões em aberto respondidas nesta seção, com data, antes do PR — a 2 e metade da 3 dependem da Confirmação real
 - [ ] Versão: bump de **minor** no release que fechar o plano
 
 ## Validação pré-PR (obrigatório)
 
 Rodar na raiz do repositório:
 
-- [ ] `npm run format` (ou conferir com `npm run format:check`)
-- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real)
-- [ ] `npm run test:ci` — tudo menos `test/sefaz.test.js` e `test/tls-sefaz.test.js`
-- [ ] `test/sefaz.test.js` e `test/tls-sefaz.test.js` rodados à parte — exigem rede, e o primeiro, certificado A1 válido
-- [ ] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
-- [ ] Conferir no `dist/index.d.ts` que `ManifestacaoNFSe` aparece com os dois métodos, a união de `cMotivo` e o tipo de retorno
-- [ ] `git status` limpo, exceto o que a tarefa mudou de propósito
+- [x] `npm run format` (ou conferir com `npm run format:check`)
+- [x] `npm run certs:teste` — não rodado: `certs/` já existe, com o e-CNPJ A1 real
+- [x] `npm run test:ci` — tudo menos `test/sefaz.test.js` e `test/tls-sefaz.test.js`: 212 passando, antes eram 152
+- [x] `test/sefaz.test.js` e `test/tls-sefaz.test.js` rodados à parte — 14 e 13 passando, antes eram 10 e 9; o primeiro com o A1 real
+- [x] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
+- [x] Conferir no `dist/index.d.ts` que `ManifestacaoNFSe` aparece com os dois métodos, a união de `cMotivo` e o tipo de retorno
+- [x] `git status` limpo, exceto o que a tarefa mudou de propósito
 
 ## Notas de implementação
 
 > Preenchido durante ou após a implementação. Registrar os **desvios** em relação a esta especificação e a justificativa de cada um. Se não houve, escrever "Sem desvios".
 
--
+**Desvio aprovado pelo usuário (2026-10-16): testes reais em produção, não em produção restrita.** Ninguém emitiu nota de teste em produção restrita (questão 1). O usuário decidiu: (1) pedidos que a SEFIN rejeita, sem registrar nada, em produção — eles entram no `sefaz.test.js`; (2) **uma** Confirmação real em produção, sobre nota que ele indicar, fora da suíte; (3) nenhuma Rejeição em produção. A implementação andou antes de responder as questões 1 a 3, que a seção pedia antes de implementar. Consequências:
+
+- A Rejeição aceita não é exercitada contra o serviço: fica validada por unidade e por transporte local, e pelo pedido rejeitado em produção (`E1831`), que passou pela assinatura. Se aparecer nota em produção restrita, a Rejeição pode ser exercitada lá.
+- O critério de conclusão do plano (Confirmação e Rejeição aceitas em produção restrita) precisa de revisão — fica para o Passo 4 do plano, no PR de conclusão.
+
+**Descobertas em produção que mudaram a implementação** (pedidos com chave inventada, 2026-10-16):
+
+- **Declaração XML obrigatória.** Sem `<?xml version="1.0" encoding="UTF-8"?>` a SEFIN rejeita com `E1229`. O helper acrescenta a declaração depois de assinar (fica fora do `infPedReg` e do digest). `reqXml` começa por ela.
+- **`erro` é array.** A SEFIN responde `erro: [{ codigo, descricao }]`, não o objeto único do Swagger e da Decisão 4. O helper aceita objeto, array e `erros`, e o teste de transporte usa a forma real.
+- **Ordem de validação da SEFIN:** codificação (`E1229`) → assinatura (`E0717` sem, `E0714` inválida) → existência da nota (`E1831`) → autor (`E0812`). Por isso o `E1831` com chave inventada prova que a assinatura (RSA-SHA1, C14N) é aceita, e o `sefaz.test.js` traz um caso de assinatura adulterada para manter essa prova de pé.
+
+**Detalhes de implementação que a especificação não fixou:**
+
+- `ManifestacaoNFSeHelper.montarResponse` devolve `{ json, falha? }`, e não `json | null` como o da distribuição: a falha ao abrir o `eventoXmlGZipB64` precisa chegar ao retorno. `RetornoNfseHelper.montarRetorno` ganhou três opções — `servico` (`'ADN'` padrão, nomeia o serviço na resposta inesperada: "do ADN"/"da SEFIN"), `reqXml` e `falha` —, sem mudar a distribuição: os testes dela passam sem alteração.
+- `data` sempre traz `alertas`, `erros` e `evento` (`{}` quando não há), seguindo a Decisão 2 do plano ("`erros` e `alertas` sempre como array"); a tabela da Decisão 4 listava só parte dos campos por linha.
+- Os erros têm precedência sobre a `falha`; a `falha` só vira `error` numa resposta 2xx sem erros.
+- Uma resposta é reconhecida como da SEFIN se tiver `eventoXmlGZipB64`, `erro` ou `erros`. `201` com `eventoXmlGZipB64` vazio ou `null` é falha (`eventoXmlGZipB64 sem conteúdo.`).
+- `rejeitar` valida a chave antes do motivo. `xMotivo` vazio depois de aparado conta como não informado.
+- `verAplic`, `evento` e `dhEvento` saem de uma função `montarOpts` do módulo da API, não de um método, para não aparecer no `.d.ts`.
+- **Regressão da NF-e:** o lote congelado em `test/assinatura.test.js` mascara `SignatureValue` e `X509Certificate`, que dependem da chave, para o teste valer com o A1 real e com o certificado descartável da CI; o `DigestValue` e todo o resto são comparados byte a byte. A assinatura de cada evento é conferida dentro de um `envEvento` isolado, porque no envelope SOAP a C14N inclusiva leva os `xmlns` do envelope para o digest e a verificação falha — comportamento de sempre da recepção, que a SEFAZ aceita, e não mexido aqui.
+- Cadeia TLS da SEFIN confirmada: `AC SERPRO AR46 OV TLS CA 2025 ← GlobalSign Root R46` nos dois hosts, como o Ambiente Nacional da NF-e.
+
+**Contagens:** `test:ci` de 152 para 212; `sefaz.test.js` de 10 para 14; `tls-sefaz.test.js` de 9 para 13.
+
+**Pendente:** Confirmação real em produção, sobre nota a indicar pelo usuário — responde a questão 2 e a metade de sucesso da 3 (corpo do `201`).
 
 ## Conclusão e entrega
 
@@ -240,9 +273,10 @@ Executar **após o PR ser mergeado na `main`**:
 
 ## Histórico de revisões
 
-| Data       | Rev | Descrição                                                                                                                 |
-| ---------- | --- | ------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-15 | 0.1 | Rascunho criado como filha 2 do plano NFS-e                                                                               |
-| 2026-10-15 | 1.0 | Especificada com o Swagger da SEFIN, o Anexo II e a evidência de assinatura; questões de produção restrita seguem abertas |
-| 2026-10-15 | 1.1 | Promovida a `especificadas` com a issue GH-19, filha do plano GH-17                                                       |
-| 2026-10-15 | 1.2 | Revista depois da GH-18: `RetornoNfseHelper` a parametrizar por serviço e `error` pelo HTTP e pelos `erros` (ADR 0016)    |
+| Data       | Rev | Descrição                                                                                                                     |
+| ---------- | --- | ----------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-15 | 0.1 | Rascunho criado como filha 2 do plano NFS-e                                                                                   |
+| 2026-10-15 | 1.0 | Especificada com o Swagger da SEFIN, o Anexo II e a evidência de assinatura; questões de produção restrita seguem abertas     |
+| 2026-10-15 | 1.1 | Promovida a `especificadas` com a issue GH-19, filha do plano GH-17                                                           |
+| 2026-10-15 | 1.2 | Revista depois da GH-18: `RetornoNfseHelper` a parametrizar por serviço e `error` pelo HTTP e pelos `erros` (ADR 0016)        |
+| 2026-10-16 | 1.3 | Implementação e notas: testes reais em produção por decisão do usuário; declaração XML e `erro` em array descobertos na SEFIN |

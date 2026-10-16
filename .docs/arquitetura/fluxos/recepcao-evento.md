@@ -66,6 +66,8 @@ Três coisas aqui não são negociáveis:
 
 Cada evento é assinado **individualmente**, antes de entrar no lote. Ver [ADR 0007](../decisoes/0007-assinatura-por-infevento-e-splice-do-lote.md).
 
+A mesma função assina o `pedRegEvento` da NFS-e, com um quarto parâmetro que troca o elemento referenciado (`'infEvento'` por padrão, `'infPedReg'` na manifestação). Com três argumentos o XML sai byte a byte igual ao de antes do parâmetro: [test/assinatura.test.js](../../../test/assinatura.test.js) congela o lote com dois eventos, mascarando só `SignatureValue` e `X509Certificate`, que dependem da chave. Ver [manifestacao-nfse.md](manifestacao-nfse.md).
+
 ## O recorte de string
 
 Este é o ponto mais frágil do código e merece leitura atenta:

@@ -1,10 +1,11 @@
 # Arquitetura — bitmde
 
-Biblioteca Node.js (CommonJS, JavaScript puro com tipagem via JSDoc) que consome dois Web Services SOAP da SEFAZ e a API REST de distribuição da NFS-e Nacional:
+Biblioteca Node.js (CommonJS, JavaScript puro com tipagem via JSDoc) que consome dois Web Services SOAP da SEFAZ e duas APIs REST da NFS-e Nacional:
 
 - **NFeDistribuicaoDFe** — consulta de documentos destinados a um CNPJ/CPF, por `ultNSU`, `NSU` ou `chNFe`.
 - **NFeRecepcaoEvento4** — envio de lote de eventos de manifestação do destinatário.
 - **ADN — distribuição para contribuintes** — NFS-e e eventos em que um CNPJ figura, por `ultNSU`, `NSU` ou chave de acesso.
+- **SEFIN Nacional — pedido de registro de evento** — Confirmação e Rejeição do tomador de uma NFS-e.
 
 A biblioteca não guarda estado, não persiste nada e não faz retry: ela monta a requisição, fala com o serviço por mTLS e devolve a resposta em JSON, junto com o corpo cru — o XML dos dois lados na NF-e, o corpo da resposta em `resBody` na NFS-e.
 
@@ -20,14 +21,14 @@ controllers/         static enviar(opts): montarRequest → envia → montarResp
         └ schemas/   objeto JS espelhando o XML (chaves `@_` = atributos, para o XMLBuilder)
         └ services/  sefaz-service.js: instância axios + https.Agent com mTLS, TLS validado por padrão
         └ helpers/retorno-helper.js: formato final da NF-e { data, reqXml, resXml, status, error?, transportError? }
-        └ helpers/retornoNfse-helper.js: formato final da NFS-e { data, resBody, status, error?, transportError? }
-env/                 constantes: endpoints por tpAmb (NF-e e ADN), cadeias CA (ICP-Brasil e CA_PADRAO), EVENTOS, CODIGOS_UF, ZONES, VERSION
+        └ helpers/retornoNfse-helper.js: formato final da NFS-e { data, reqXml?, resBody, status, error?, transportError? }
+env/                 constantes: endpoints por tpAmb (NF-e, ADN e SEFIN), EVENTOS_NFSE, cadeias CA (ICP-Brasil e CA_PADRAO), EVENTOS, CODIGOS_UF, ZONES, VERSION
 util/                XML, gzip, PFX→PEM, assinatura, data, zero-pad
 ```
 
-Na NFS-e não há `schemas/` nem envelope: o helper monta a config de um `GET` do axios e lê JSON.
+Na NFS-e não há envelope. A distribuição não tem `schemas/`: o helper monta a config de um `GET` do axios e lê JSON. A manifestação tem schema e assinatura, e manda o XML assinado em gzip+base64 num `POST` JSON.
 
-[src/index.js](../../src/index.js) exporta `DistribuicaoDFe`, `DistribuicaoNFSe`, `RecepcaoEvento` e as cadeias `CA_PADRAO` e `CA_ICP_BRASIL` em três formas — `module.exports`, `.default` e `.mde` — para interoperar com `require` e `import`.
+[src/index.js](../../src/index.js) exporta `DistribuicaoDFe`, `DistribuicaoNFSe`, `ManifestacaoNFSe`, `RecepcaoEvento` e as cadeias `CA_PADRAO` e `CA_ICP_BRASIL` em três formas — `module.exports`, `.default` e `.mde` — para interoperar com `require` e `import`.
 
 ## Documentos
 
@@ -47,6 +48,7 @@ Na NFS-e não há `schemas/` nem envelope: o helper monta a config de um `GET` d
 - [fluxos/distribuicao-dfe.md](fluxos/distribuicao-dfe.md) — consulta por `ultNSU`, `NSU` e `chNFe`, e o gunzip dos `docZip`.
 - [fluxos/recepcao-evento.md](fluxos/recepcao-evento.md) — montagem, assinatura individual e recorte de string que forma o lote.
 - [fluxos/distribuicao-nfse.md](fluxos/distribuicao-nfse.md) — fila do ADN por NSU e consulta por chave, `papel` por item e a drenagem que termina no 404.
+- [fluxos/manifestacao-nfse.md](fluxos/manifestacao-nfse.md) — `pedRegEvento` assinado, gzipado num `POST` JSON à SEFIN, e o que a SEFIN valida antes de registrar.
 
 ### Processo
 

@@ -5,9 +5,9 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/bitize/bitmde/blob/main/LICENSE)
 [![Mantido pelo BitERP](https://img.shields.io/badge/mantido%20por-BitERP-0b5fff.svg)](https://www.biterp.ai)
 
-Biblioteca para consumo dos Web Services da Sefaz de Distribuição de DF-e e Evento de Manifestação do Destinatário, e da distribuição de NFS-e Nacional pelo Ambiente de Dados Nacional (ADN).
+Biblioteca para consumo dos Web Services da Sefaz de Distribuição de DF-e e Evento de Manifestação do Destinatário, e da NFS-e Nacional: distribuição pelo Ambiente de Dados Nacional (ADN) e manifestação do tomador na SEFIN Nacional.
 
-Essa biblioteca permite consultar a relação das notas fiscais emitidas contra um determinado CNPJ/CPF e realizar o envio do evento de manifestação, podendo assim, baixar o XML da NF-e. Com o mesmo certificado, consulta as NFS-e em que o CNPJ é tomador, prestador ou intermediário.
+Essa biblioteca permite consultar a relação das notas fiscais emitidas contra um determinado CNPJ/CPF e realizar o envio do evento de manifestação, podendo assim, baixar o XML da NF-e. Com o mesmo certificado, consulta as NFS-e em que o CNPJ é tomador, prestador ou intermediário, e registra a Confirmação ou a Rejeição do tomador.
 
 Desenvolvida e mantida pela equipe do **[BitERP](https://www.biterp.ai)**, onde é usada em produção para a automação da manifestação do destinatário e do download de XML de NF-e de entrada.
 
@@ -39,6 +39,8 @@ npm i @bitize/bitmde
   - Registra o evento de manifestação na nota informada (`Confirmação da Operação`, `Ciência da Operação`, `Desconhecimento da Operação` ou `Operação não Realizada`)
 - Distribuição de NFS-e Nacional
   - Consulta por último NSU, por NSU e por chave de acesso no ADN, com o papel do CNPJ (`tomador`, `prestador` ou `intermediario`) em cada NFS-e
+- Manifestação do tomador da NFS-e Nacional
+  - Registra a `Confirmação do Tomador` ou a `Rejeição do Tomador` na SEFIN Nacional
 
 ## Distribuição de DF-e
 
@@ -482,6 +484,117 @@ console.log(consulta)
 | Sem resposta HTTP                                 |    0     | `{}`                         | `Falha de transporte (<code>): <message>`          |
 
 Na rejeição, `data` **não** é esvaziado: `data.erros` traz o diagnóstico em `{ codigo, descricao, complemento }`. `error` e `transportError` têm o mesmo significado da distribuição de DF-e — ver [Erro de transporte](#erro-de-transporte).
+
+## Manifestação do tomador da NFS-e Nacional
+
+Registra, na SEFIN Nacional, a Confirmação (`e203202`) ou a Rejeição (`e203206`) do tomador sobre uma NFS-e que exista no ADN. Cada chamada é **um** pedido de registro de evento, assinado com o A1 da config — não há lote.
+
+> **Evento fiscal não se desfaz.** Em produção (`tpAmb: '1'`), cada chamada aceita registra um evento vinculado à nota. Depois da Confirmação, o prestador não consegue mais cancelar a NFS-e, só substituí-la; a Rejeição só é anulada pelo município de incidência. Teste em produção restrita (`tpAmb: '2'`).
+
+### Construtor
+
+```js
+new ManifestacaoNFSe(config)
+```
+
+- `config` `<Object>`
+  - `pfx` `<Buffer>` - [OPCIONAL] - Arquivo **.pfx**. Se o `pfx` não for informado, as propriedades `cert` e `key` passam a ser obrigatórias.
+  - `passphrase` `<String>` - [OPCIONAL] - Senha do arquivo **.pfx**.
+  - `cert` `<Buffer | String>` - [OPCIONAL] - Conteúdo do _cert.pem_. Essa propriedade fica obrigatória se o `pfx` não for informado.
+  - `key` `<Buffer | String>` - [OPCIONAL] - Conteúdo do _key.pem_. Essa propriedade fica obrigatória se o `pfx` não for informado.
+  - `cnpj` `<String>` - [OBRIGATÓRIO] - CNPJ do tomador, enviado como `CNPJAutor`, com 14 caracteres e sem pontuação. Precisa ter a mesma raiz do CNPJ do certificado.
+  - `tpAmb` `<String>` - [OBRIGATÓRIO] - Informar `'1'` para **Produção** ou `'2'` para **Produção restrita**.
+  - `timezone` `<String>` - [OPCIONAL] - Fuso do `dhEvento`. Padrão `'America/Sao_Paulo'`. Ver [Lista de Timezones](#lista-de-timezones).
+  - `options` `<Object>` - [OPCIONAL]
+    - `requestOptions` `<AxiosRequestConfig>` - [OPCIONAL]
+    - `httpsOptions` `<AgentOptions>` - [OPCIONAL] - Opções do `https.Agent`, mescladas por cima do padrão `{ ca: CA_PADRAO, rejectUnauthorized: true }`. Ver [Conexão com a SEFAZ](#conexão-com-a-sefaz).
+
+### Métodos
+
+| Método                     | Argumentos                                         | Evento                             |
+| :------------------------- | :------------------------------------------------- | :--------------------------------- |
+| `confirmar(chNFSe)`        | Chave de acesso, 50 dígitos                        | `e203202` — Confirmação do Tomador |
+| `rejeitar(chNFSe, motivo)` | Chave de acesso e `motivo` `{ cMotivo, xMotivo? }` | `e203206` — Rejeição do Tomador    |
+
+Códigos de `cMotivo`:
+
+| `cMotivo` | Motivo                                                                                        |
+| :-------: | :-------------------------------------------------------------------------------------------- |
+|   `'1'`   | NFS-e em duplicidade                                                                          |
+|   `'2'`   | NFS-e já emitida pelo tomador                                                                 |
+|   `'3'`   | Não ocorrência do fato gerador                                                                |
+|   `'4'`   | Erro quanto à responsabilidade tributária                                                     |
+|   `'5'`   | Erro quanto ao valor do serviço, valor das deduções, serviço prestado ou data do fato gerador |
+|   `'9'`   | Outros — **exige `xMotivo`**                                                                  |
+
+`xMotivo` é opcional nos demais motivos e, quando informado, tem de 15 a 255 caracteres.
+
+Cada NFS-e aceita uma Confirmação e uma Rejeição do tomador. A Rejeição é aceita depois da Confirmação, e a Confirmação depois da Rejeição; repetir o mesmo evento é rejeitado (`E0861` e `E0866`).
+
+#### Exemplo
+
+```js
+const { ManifestacaoNFSe } = require('@bitize/bitmde')
+const fs = require('fs')
+
+const manifestacao = new ManifestacaoNFSe({
+  pfx: fs.readFileSync('./certificado.pfx'),
+  passphrase: 'senha',
+  cnpj: '12345678000190',
+  tpAmb: '2',
+})
+
+const confirmacao = await manifestacao.confirmar(
+  '41000000000000000000000000000000000000000000000001'
+)
+
+const rejeicao = await manifestacao.rejeitar(
+  '41000000000000000000000000000000000000000000000002',
+  { cMotivo: '9', xMotivo: 'Serviço não foi prestado.' }
+)
+
+if (rejeicao.error) {
+  console.error(rejeicao.error) // ex.: 'E0866: ...'
+}
+```
+
+#### Retorno
+
+```js
+console.log(confirmacao)
+// {
+//   data: {
+//     tipoAmbiente: '2',
+//     versaoAplicativo: 'SefinNacional_1.6.0',
+//     dataHoraProcessamento: '2026-10-16T09:26:06-03:00',
+//     alertas: [],
+//     erros: [],
+//     evento: {
+//       xml: '<evento versao="1.01" ... </evento>',
+//       json: { evento: { ... } },
+//     },
+//   },
+//   reqXml: '<?xml version="1.0" encoding="UTF-8"?><pedRegEvento xmlns="http://www.sped.fazenda.gov.br/nfse" versao="1.01"> ... </pedRegEvento>',
+//   resBody: '{"tipoAmbiente":2, ... }',
+//   status: 201,
+// }
+```
+
+- `reqXml` é o `pedRegEvento` assinado, antes do gzip — é o que se audita numa rejeição.
+- `data.evento` traz o evento registrado pela SEFIN, em `xml` e `json`.
+- `status`, `error` e `transportError` têm o mesmo significado das outras APIs.
+
+#### Quando há `error`
+
+| Situação                                            | `status` | `data`                   | `error`                                                |
+| :-------------------------------------------------- | :------: | :----------------------- | :----------------------------------------------------- |
+| Evento registrado e devolvido                       |   201    | preenchido, com `evento` | —                                                      |
+| Evento registrado, mas o retorno não abre           |   201    | preenchido, `evento: {}` | `Falha ao abrir o evento retornado: <motivo>`          |
+| Rejeição da SEFIN (ex.: nota fora do ADN)           |   400    | preenchido, com `erros`  | `E1831: O evento não pode ser recepcionado pois a ...` |
+| Resposta que não é da SEFIN (ex.: HTML de um proxy) |   real   | `{}`                     | `Resposta inesperada da SEFIN (HTTP 502).`             |
+| Sem resposta HTTP                                   |    0     | `{}`                     | `Falha de transporte (<code>): <message>`              |
+
+Na segunda linha o evento **foi registrado**: não repita o pedido; consulte a nota pela [Distribuição de NFS-e Nacional](#distribuição-de-nfs-e-nacional). `reqXml` vem em todos os casos.
 
 ## Conexão com a SEFAZ
 
