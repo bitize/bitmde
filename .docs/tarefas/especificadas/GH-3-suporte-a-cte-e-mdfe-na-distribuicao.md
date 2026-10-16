@@ -256,7 +256,13 @@ Detalhes de implementação sem impacto no contrato:
 - O PR estava 50 commits atrás da `main` (GH-11, GH-14, NFS-e). Entrou um merge da `main`, não um rebase, para não reescrever a branch do fork. Na fusão, o helper manteve a normalização de `loteDistDFeInt` da GH-11 e o `CA_PADRAO` da GH-14.
 - `montarResponse(data, documento = DOCUMENTOS.NFE)`: o default mantém os testes da GH-11 sem alteração, como a especificação pede.
 - Os testes de `montarRequest` e de `montarResponse` dos documentos novos foram para `test/distribuicaoDFe-helper.test.js`; o `test/distribuicaoSchema.test.js` da primeira versão saiu (testava o helper, com `includes`, e congelava o envelope errado do MDF-e).
-- `test/sefaz.test.js` aceita qualquer `cStat` de negócio nas consultas de homologação (137, 138, 493, 656) e reprova o `215`: o que ele prova é o leiaute, e o `cStat` varia com a base de homologação.
+- `test/sefaz.test.js` aceita, nas consultas de homologação, só os `cStat` que a base pode devolver para um leiaute aceito (137, 138, 493, 656), e reprova qualquer outro. A primeira versão aceitava qualquer código de três dígitos menos o `215`; a lista fechada veio da revisão do CodeRabbit, para um código inesperado não passar calado.
+
+Revisão automática (CodeRabbit, revisões de 2026-10-16):
+
+- Aplicado: lista fechada de no (ver acima).
+- Aplicado: o README restringe à NF-e a afirmação sobre o ponteiro e o , e troca "dessincroniza" por "pode dessincronizar".
+- Não aplicado: no export de e . Nenhuma das quatro classes de que já existiam congela o export; o que a camada garante é a instância e a congeladas, e as duas novas fazem isso, com teste. Congelar a classe também não protegeria os métodos, que ficam no . O ADR 0005 diz "praticamente todo módulo" sem listar como exceção: alinhar texto e código é tarefa à parte, não deste PR.
 
 Contagens: `test:ci` foi de 212 para 249 testes passando; a suíte inteira tem 293, com 22 em `sefaz.test.js` e 22 em `tls-sefaz.test.js`.
 

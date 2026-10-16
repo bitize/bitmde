@@ -298,7 +298,7 @@ Trate o CT-e e o MDF-e com a mesma disciplina da NF-e. A biblioteca não control
 
 - Guarde o `ultNSU` devolvido e use-o no próximo pedido. Repita enquanto `ultNSU` for menor que `maxNSU`.
 - Com `cStat` `137` (nenhum documento localizado), espere uma hora antes de consultar de novo.
-- A SEFAZ guarda o ponteiro por CNPJ/CPF e rejeita com `656` quem sai da sequência. Uma consulta avulsa por NSU em produção, para um CNPJ que outro sistema já varre, move esse ponteiro e dessincroniza o outro sistema.
+- Na NF-e, a SEFAZ guarda o ponteiro por CNPJ/CPF e rejeita com `656` quem sai da sequência. Uma consulta avulsa por NSU em produção, para um CNPJ que outro sistema já varre, move esse ponteiro e pode dessincronizar o outro sistema.
 
 Essas regras foram observadas na NF-e. No CT-e e no MDF-e a biblioteca assume que valem igual.
 

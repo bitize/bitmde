@@ -271,15 +271,20 @@ describe('SefazService', function () {
 })
 
 // Só homologação. Em produção, consulta por NSU move o ponteiro que a SEFAZ
-// guarda por CNPJ e dessincroniza quem já faz a distribuição desse CNPJ
+// guarda por CNPJ e pode dessincronizar quem já faz a distribuição desse CNPJ
 // (cStat 656). Em homologação o cStat varia com o que há na base (137, 138,
-// 493 se o NSU passar do maior, 656 se o teste repetir em menos de uma hora)
-// e todos provam que o leiaute foi aceito. O que não pode é 215: schema.
+// 493 se o NSU passar do maior, 656 se o teste repetir em menos de uma hora),
+// e esses quatro provam que o leiaute foi aceito. Qualquer outro reprova:
+// 215 é schema, e um código novo pede investigação antes de entrar na lista.
+const CSTAT_LEIAUTE_ACEITO = ['137', '138', '493', '656']
+
 function assertLeiauteAceito(retorno) {
   assert.strictEqual(retorno.status, 200)
   assert.strictEqual(retorno.error, undefined)
-  assert.match(retorno.data.cStat, /^[0-9]{3}$/, retorno.resXml)
-  assert.notStrictEqual(retorno.data.cStat, '215', retorno.data.xMotivo)
+  assert.ok(
+    CSTAT_LEIAUTE_ACEITO.includes(retorno.data.cStat),
+    `cStat ${retorno.data.cStat}: ${retorno.data.xMotivo}`
+  )
 }
 
 describe('DistribuicaoCTe', function () {
