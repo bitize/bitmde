@@ -11,8 +11,13 @@
 - Campo `papel` em cada NFS-e distribuída: `'tomador'`, `'prestador'` ou `'intermediario'`, conforme o CNPJ consultado apareça como `toma`, `prest` ou `interm` da DPS, nessa ordem; `''` se não aparecer e em eventos. A biblioteca marca, não filtra
 - Retorno próprio da NFS-e, `{ data, resBody, status, error?, transportError? }`: `resBody` é o corpo cru do ADN, e `status`, `error` e `transportError` têm o mesmo significado das APIs de NF-e. Ver [ADR 0016](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0016-retorno-proprio-da-nfse.md)
 - Hosts do ADN, de produção e produção restrita, no `test/tls-sefaz.test.js` e com isso no workflow semanal `cadeia-tls.yml`
+- **`ManifestacaoNFSe`: manifestação do tomador da NFS-e Nacional na SEFIN Nacional**, exportada nas três formas. Com o mesmo certificado A1, registra um evento por chamada:
+  - `confirmar(chNFSe)` — Confirmação do Tomador (`e203202`)
+  - `rejeitar(chNFSe, { cMotivo, xMotivo? })` — Rejeição do Tomador (`e203206`), com `cMotivo` `'1'` a `'5'` ou `'9'`; `xMotivo` de 15 a 255 caracteres, obrigatório no motivo `'9'`
+- Retorno da manifestação `{ data, reqXml, resBody, status, error?, transportError? }`, no formato da ADR 0016: `reqXml` é o `pedRegEvento` assinado e `data.evento` traz o evento registrado, em `xml` e `json`
+- Hosts da SEFIN Nacional, de produção e produção restrita, no `test/tls-sefaz.test.js` e no `cadeia-tls.yml`
 
-Nada muda em `DistribuicaoDFe` nem em `RecepcaoEvento`.
+Nada muda em `DistribuicaoDFe` nem em `RecepcaoEvento`: o XML assinado da recepção de evento sai byte a byte igual, conferido por teste.
 
 ### Modificado
 

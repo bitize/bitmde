@@ -9,6 +9,24 @@ const XML_UNZIP =
   '<resNFe xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" versao="1.00" xmlns="http://www.portalfiscal.inf.br/nfe"><chNFe>31201010588201000105550010038421171838422178</chNFe><CNPJ>10588201000105</CNPJ><xNome>ZAP GRAFICA E EDITORA EIRELI</xNome><IE>0011182040063</IE><dhEmi>2020-10-06T00:00:00-03:00</dhEmi><tpNF>1</tpNF><vNF>897.93</vNF><digVal>VVjX756NwRFs62nSeGUweFsLB5U=</digVal><dhRecbto>2020-10-06T19:25:43-03:00</dhRecbto><nProt>131203850706417</nProt><cSitNFe>1</cSitNFe></resNFe>'
 
 describe('Gzip', function () {
+  describe('#zip()', function () {
+    it('zip seguido de unzip devolve a entrada, com acento', async function () {
+      const xml =
+        '<pedRegEvento><xDesc>Manifestação de NFS-e - Confirmação do Tomador</xDesc></pedRegEvento>'
+
+      const zipado = await Gzip.zip(xml)
+
+      assert.match(zipado, /^[A-Za-z0-9+/]+=*$/)
+      assert.strictEqual(await Gzip.unzip(zipado), xml)
+    })
+
+    it('Imutabilidade', function () {
+      assert.throws(function () {
+        Gzip.zip = 'subscrever zip'
+      })
+    })
+  })
+
   describe('#unzip()', function () {
     it('Descompactar XML', async function () {
       const xml = await Gzip.unzip(XML_ZIP)

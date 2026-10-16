@@ -1,12 +1,14 @@
 # Camada `env/` — constantes
 
-[src/env/index.js](../../../src/env/index.js) reexporta nove constantes. Nada aqui lê variável de ambiente do processo, apesar do nome da pasta: são valores fixos, compilados no pacote.
+[src/env/index.js](../../../src/env/index.js) reexporta onze constantes. Nada aqui lê variável de ambiente do processo, apesar do nome da pasta: são valores fixos, compilados no pacote.
 
 | Constante      | Arquivo                                             | Conteúdo                                              |
 | -------------- | --------------------------------------------------- | ----------------------------------------------------- |
 | `DISTRIBUICAO` | [distribuicao.js](../../../src/env/distribuicao.js) | Endpoint do NFeDistribuicaoDFe por ambiente           |
 | `RECEPCAO`     | [recepcao.js](../../../src/env/recepcao.js)         | Endpoint do NFeRecepcaoEvento4 por ambiente           |
 | `NFSE_ADN`     | [nfse.js](../../../src/env/nfse.js)                 | URL base da distribuição da NFS-e no ADN por ambiente |
+| `NFSE_SEFIN`   | [nfse.js](../../../src/env/nfse.js)                 | URL base da SEFIN Nacional por ambiente               |
+| `EVENTOS_NFSE` | [nfse.js](../../../src/env/nfse.js)                 | Os dois eventos de manifestação do tomador            |
 | `CA`           | [ca.js](../../../src/env/ca.js)                     | Cadeia de certificados ICP-Brasil                     |
 | `CA_PADRAO`    | [ca.js](../../../src/env/ca.js)                     | Raízes do Node + `CA` — o `ca` padrão                 |
 | `EVENTOS`      | [evento.js](../../../src/env/evento.js)             | Os quatro eventos de manifestação                     |
@@ -30,7 +32,14 @@ A distribuição da NFS-e roda no **Ambiente de Dados Nacional (ADN)**, com o me
 | `'1'`   | Produção          | `https://adn.nfse.gov.br/contribuintes`                  |
 | `'2'`   | Produção restrita | `https://adn.producaorestrita.nfse.gov.br/contribuintes` |
 
-A produção restrita se identifica como `TipoAmbiente: HOMOLOGACAO` na resposta. `NFSE_ADN` é URL base, não endpoint: o helper acrescenta `/DFe/{NSU}` ou `/NFSe/{chave}/Eventos`. A manifestação do tomador (GH-19) acrescenta `NFSE_SEFIN` no mesmo arquivo.
+A produção restrita se identifica como `TipoAmbiente: HOMOLOGACAO` na resposta. `NFSE_ADN` é URL base, não endpoint: o helper acrescenta `/DFe/{NSU}` ou `/NFSe/{chave}/Eventos`. A manifestação do tomador vai à **SEFIN Nacional**, também por `tpAmb`:
+
+| `tpAmb` | Ambiente          | URL base                                                   |
+| ------- | ----------------- | ---------------------------------------------------------- |
+| `'1'`   | Produção          | `https://sefin.nfse.gov.br/SefinNacional`                  |
+| `'2'`   | Produção restrita | `https://sefin.producaorestrita.nfse.gov.br/SefinNacional` |
+
+Na SEFIN o ambiente volta como `tipoAmbiente` numérico (`1`/`2`), que o helper converte em string. O helper acrescenta `/nfse/{chave}/eventos`.
 
 Detalhe que engana: os objetos são declarados com chave **numérica** (`1:` e `2:`), mas `tpAmb` circula como **string**. Funciona porque chave de objeto em JS é sempre string — `DISTRIBUICAO['1']` acha `DISTRIBUICAO[1]`. Não "arrumar" nem um lado nem o outro sem ver o outro: o `AmbienteValidator` rejeita `tpAmb` numérico, então a string é a forma canônica na fronteira pública.
 
@@ -55,7 +64,7 @@ As duas saem na raiz do pacote, congeladas, como `CA_PADRAO` e `CA_ICP_BRASIL` (
 
 > `ca.js` é uma pequena exceção à regra de "módulo de dado" desta pasta: lê `tls` para montar `CA_PADRAO`. Mantido aqui, e não em `src/util/`, porque o resultado é uma constante como as outras, consultada pelos helpers pelo mesmo caminho de `CA`.
 
-Quem vigia a troca de cadeia é o workflow semanal [cadeia-tls.yml](../../../.github/workflows/cadeia-tls.yml), que roda [test/tls-sefaz.test.js](../../../test/tls-sefaz.test.js) contra `www1`, `hom1` e os dois hosts do ADN. O ADN serve Let's Encrypt (`YR1 ← Root YR`, com cross-sign da `ISRG Root X1`), que também fecha pelas raízes do Node e não pela ICP-Brasil. Ver [testes-e-certificados.md](../testes-e-certificados.md).
+Quem vigia a troca de cadeia é o workflow semanal [cadeia-tls.yml](../../../.github/workflows/cadeia-tls.yml), que roda [test/tls-sefaz.test.js](../../../test/tls-sefaz.test.js) contra `www1`, `hom1` e os dois hosts do ADN e da SEFIN. A SEFIN serve a mesma cadeia GlobalSign do Ambiente Nacional; o ADN serve Let's Encrypt (`YR1 ← Root YR`, com cross-sign da `ISRG Root X1`), que também fecha pelas raízes do Node e não pela ICP-Brasil. Ver [testes-e-certificados.md](../testes-e-certificados.md).
 
 Cadeia de AC tem validade. Incluir uma AC ICP-Brasil nova em `CA` só se justifica com um endpoint concreto que precise dela; a cadeia do AN já fecha pelas raízes do Node.
 
@@ -72,6 +81,15 @@ Cadeia de AC tem validade. Incluir uma AC ICP-Brasil nova em `CA` só se justifi
 
 `EVENTOS` é a fonte da lista tanto para a validação (`EventoValidator`) quanto para a descrição enviada no XML. A chave é o `tipoEvento` informado pelo usuário e `tpEvento` é o valor repetido — a indireção existe para permitir que os dois divirjam no futuro sem mudar a API pública.
 
+## `EVENTOS_NFSE`
+
+| Chave    | `elemento` | `xDesc`                                          |
+| -------- | ---------- | ------------------------------------------------ |
+| `203202` | `e203202`  | `Manifestação de NFS-e - Confirmação do Tomador` |
+| `203206` | `e203206`  | `Manifestação de NFS-e - Rejeição do Tomador`    |
+
+> Ao contrário de `EVENTOS`, os `xDesc` são **com acento**: são `enumeration` do XSD da NFS-e, e o texto tem de bater exatamente. `codigo` compõe o `Id` (`PRE` + chave + código) e `elemento` é o nome do grupo dentro do `infPedReg`.
+
 ## `CODIGOS_UF`
 
 27 códigos IBGE, como **string**: `11`–`17`, `21`–`29`, `31`–`33`, `35`, `41`–`43`, `50`–`53`. Não há `34` (não existe UF com esse código) e `53` é o Distrito Federal.
@@ -80,7 +98,7 @@ Só é usado pelo `UfValidator`, para `cUFAutor` na distribuição. A recepção
 
 ## `ZONES`
 
-14 timezones IANA do Brasil, aceitos em `config.timezone` do `RecepcaoEvento`. Default `America/Sao_Paulo`. Alimenta o `dhEvento` via luxon — ver [fluxos/recepcao-evento.md](../fluxos/recepcao-evento.md).
+14 timezones IANA do Brasil, aceitos em `config.timezone` do `RecepcaoEvento` e da `ManifestacaoNFSe`. Default `America/Sao_Paulo`. Alimenta o `dhEvento` via luxon — ver [fluxos/recepcao-evento.md](../fluxos/recepcao-evento.md).
 
 A lista é fechada por decisão: o campo existe para o offset sair correto no `dhEvento`, e aceitar qualquer string IANA permitiria mandar evento com fuso que a SEFAZ não espera.
 

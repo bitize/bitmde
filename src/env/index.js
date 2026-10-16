@@ -1,7 +1,7 @@
 const { CA, CA_PADRAO } = require('./ca')
 const { DISTRIBUICAO } = require('./distribuicao')
 const { EVENTOS } = require('./evento')
-const { NFSE_ADN } = require('./nfse')
+const { EVENTOS_NFSE, NFSE_ADN, NFSE_SEFIN } = require('./nfse')
 const { RECEPCAO } = require('./recepcao')
 const { CODIGOS_UF } = require('./uf')
 const { VERSION } = require('./version')
@@ -13,7 +13,9 @@ module.exports = {
   CODIGOS_UF: CODIGOS_UF,
   DISTRIBUICAO: DISTRIBUICAO,
   EVENTOS: EVENTOS,
+  EVENTOS_NFSE: EVENTOS_NFSE,
   NFSE_ADN: NFSE_ADN,
+  NFSE_SEFIN: NFSE_SEFIN,
   RECEPCAO: RECEPCAO,
   VERSION: VERSION,
   ZONES: ZONES,

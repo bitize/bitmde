@@ -4,6 +4,7 @@ const assert = require('assert')
 const {
   ChaveNfseValidator,
   CnpjValidator,
+  MotivoRejeicaoValidator,
   NsuNfseValidator,
 } = require('../src/validators')
 
@@ -151,6 +152,98 @@ describe('ChaveNfseValidator', function () {
   it('Imutabilidade', function () {
     assert.throws(() => {
       ChaveNfseValidator.isValid = 'subscrever isValid'
+    }, TypeError)
+  })
+})
+
+describe('MotivoRejeicaoValidator', function () {
+  const DESCRICAO = 'Serviço não foi prestado.'
+
+  it('Motivo da rejeição não informado', function () {
+    for (const motivo of [
+      undefined,
+      null,
+      {},
+      { cMotivo: '' },
+      { xMotivo: DESCRICAO },
+    ]) {
+      assert.strictEqual(
+        erroDe(new MotivoRejeicaoValidator(motivo)),
+        'Motivo da rejeição não informado.',
+        JSON.stringify(motivo)
+      )
+    }
+  })
+
+  it('Motivo da rejeição deve conter um dos valores: 1, 2, 3, 4, 5 ou 9', function () {
+    for (const cMotivo of ['0', '6', '8', '10', '01', 'a', 7]) {
+      assert.strictEqual(
+        erroDe(new MotivoRejeicaoValidator({ cMotivo })),
+        'Motivo da rejeição deve conter um dos valores: 1, 2, 3, 4, 5 ou 9',
+        String(cMotivo)
+      )
+    }
+  })
+
+  it('Descrição do motivo obrigatória para o motivo 9 (Outros).', function () {
+    for (const xMotivo of [undefined, '', '   ']) {
+      assert.strictEqual(
+        erroDe(new MotivoRejeicaoValidator({ cMotivo: '9', xMotivo })),
+        'Descrição do motivo obrigatória para o motivo 9 (Outros).',
+        String(xMotivo)
+      )
+    }
+  })
+
+  it('Descrição do motivo com tamanho incorreto.', function () {
+    for (const xMotivo of ['Curto demais.', 'x'.repeat(256)]) {
+      for (const cMotivo of ['1', '9']) {
+        assert.strictEqual(
+          erroDe(new MotivoRejeicaoValidator({ cMotivo, xMotivo })),
+          'Descrição do motivo com tamanho incorreto.',
+          `${cMotivo} ${xMotivo.length}`
+        )
+      }
+    }
+  })
+
+  it('cMotivo vira string e xMotivo é aparado', function () {
+    const validator = new MotivoRejeicaoValidator({
+      cMotivo: 9,
+      xMotivo: `  ${DESCRICAO}  `,
+    })
+
+    assert.strictEqual(validator.isValid(), true)
+    assert.deepStrictEqual(validator.getValues(), {
+      cMotivo: '9',
+      xMotivo: DESCRICAO,
+    })
+  })
+
+  it('xMotivo é opcional fora do motivo 9', function () {
+    for (const xMotivo of [undefined, '', '  ']) {
+      const validator = new MotivoRejeicaoValidator({ cMotivo: '3', xMotivo })
+
+      assert.strictEqual(validator.isValid(), true)
+      assert.deepStrictEqual(validator.getValues(), {
+        cMotivo: '3',
+        xMotivo: undefined,
+      })
+    }
+  })
+
+  it('Limites de tamanho do xMotivo: 15 e 255', function () {
+    for (const xMotivo of ['x'.repeat(15), 'x'.repeat(255)]) {
+      const validator = new MotivoRejeicaoValidator({ cMotivo: '5', xMotivo })
+
+      assert.strictEqual(validator.isValid(), true)
+      assert.strictEqual(validator.getValues().xMotivo, xMotivo)
+    }
+  })
+
+  it('Imutabilidade', function () {
+    assert.throws(() => {
+      MotivoRejeicaoValidator.isValid = 'subscrever isValid'
     }, TypeError)
   })
 })

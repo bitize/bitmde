@@ -41,6 +41,8 @@ O certificado do servidor é verificado por padrão desde a 0.19.0. Até a 0.18.
 
 A distribuição da NFS-e usa a mesma instância: `method: 'GET'`, `Accept: application/json` e `responseType: 'text'` vão **na requisição** (`request(config)`), que o axios mescla com os headers da instância, então o `User-Agent` continua saindo. O `Content-Type` SOAP do default vai junto num `GET` sem corpo e o ADN o ignora. `responseType: 'text'` impede o axios de fazer o parse, para o corpo chegar cru ao `resBody`.
 
+A manifestação da NFS-e faz o mesmo num `POST`: `Accept` e `Content-Type: application/json` vão na requisição, e o `Content-Type` dela substitui o SOAP do default, porque o axios mescla os headers da requisição por cima dos da instância.
+
 Passar `requestOptions: { headers: {...} }` **substitui o objeto de headers inteiro**, não mescla chave a chave — `Object.assign` é raso. Quem sobrescrever headers precisa repetir `Content-Type` e, se quiser, o `User-Agent`.
 
 O `User-Agent` sai de `src/env/version.js`, que é **commitado e regenerado pelo build**. Bumpar só o `package.json` deixa a lib se identificando com a versão anterior; a CI tem guard para isso, ver [release.md](../release.md).

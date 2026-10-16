@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## O que é
 
-Biblioteca Node.js (CommonJS, JS puro com tipagem via JSDoc) que consome dois Web Services SOAP da SEFAZ e a API REST de distribuição da NFS-e Nacional:
+Biblioteca Node.js (CommonJS, JS puro com tipagem via JSDoc) que consome dois Web Services SOAP da SEFAZ e duas APIs REST da NFS-e Nacional:
 
 - **NFeDistribuicaoDFe** — consulta de documentos destinados a um CNPJ/CPF (por `ultNSU`, `NSU` ou `chNFe`).
 - **NFeRecepcaoEvento4** — envio de lote de eventos de manifestação do destinatário.
 - **ADN — distribuição para contribuintes** — NFS-e e eventos em que um CNPJ figura (por `ultNSU`, `NSU` ou chave), em REST/JSON com mTLS, pela classe `DistribuicaoNFSe` ([ADR 0015](.docs/arquitetura/decisoes/0015-nfse-nacional-no-proprio-bitmde.md)).
+- **SEFIN Nacional — pedido de registro de evento** — Confirmação (`e203202`) e Rejeição (`e203206`) do tomador, um `pedRegEvento` assinado e gzipado num `POST` JSON, pela classe `ManifestacaoNFSe`.
 
 Publicada no npm como `@bitize/bitmde` (pacote escopado, `publishConfig.access: public`); o remote é `bitize/bitmde` (fork de `lucashpmelo/node-mde`, publicado como `node-mde` até a 0.14.13 e como `@bitize/bit-mde` até a 0.16.0). O `README.md` é a documentação pública da API e deve ser atualizado junto com mudanças de assinatura.
 
@@ -46,9 +47,9 @@ Todo arquivo de teste que toca certificado faz `fs.readFileSync` **no topo do m�
 
 Sem `certs/`, ainda é possível rodar isoladamente: `test/xml.test.js`, `test/gzip.test.js`, `test/zeroPad.test.js`, `test/data.test.js`, `test/distribuicaoDFe-helper.test.js`, `test/distribuicaoNFSe-helper.test.js`, `test/nfse-validators.test.js`, `test/ca.test.js`, `test/transporte.test.js` (servidor HTTPS local, sem rede externa) e `test/tls-sefaz.test.js` (exige rede).
 
-Quem não tem um A1 em mãos pode rodar `npm run certs:teste`, que gera um autoassinado descartável e libera tudo menos `sefaz.test.js` (161 dos 171 testes). O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Dois detalhes do `scripts/gerar-certificado-teste.sh` são load-bearing e não devem ser "simplificados": o `.pfx` precisa ser gerado com `-keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES` porque o node-forge não decifra o padrão AES-256 do OpenSSL 3; e os `.pem` são normalizados para CRLF porque `certificado.test.js` compara byte a byte com a saída do forge, que usa CRLF, enquanto o OpenSSL escreve LF no Linux.
+Quem não tem um A1 em mãos pode rodar `npm run certs:teste`, que gera um autoassinado descartável e libera tudo menos `sefaz.test.js` (225 dos 239 testes). O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Dois detalhes do `scripts/gerar-certificado-teste.sh` são load-bearing e não devem ser "simplificados": o `.pfx` precisa ser gerado com `-keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES` porque o node-forge não decifra o padrão AES-256 do OpenSSL 3; e os `.pem` são normalizados para CRLF porque `certificado.test.js` compara byte a byte com a saída do forge, que usa CRLF, enquanto o OpenSSL escreve LF no Linux.
 
-`test/sefaz.test.js` é um teste de integração real: bate nos endpoints de produção **e** homologação da SEFAZ e do ADN com mTLS, e falha sem rede ou com certificado vencido. No ADN ele só lê, e tira o CNPJ do CN do `certs/cert.pem` — não escrever CNPJ real em teste. Com A1 real, a conversão PFX→PEM leva perto de 2 s e pode estourar o timeout padrão do mocha nos testes de construtor com PFX; `--timeout 15000` separa isso de falha real. `test/tls-sefaz.test.js` só faz o handshake TLS com `www1`/`hom1` e os dois hosts do ADN, sem A1, e falha de propósito se a ICP-Brasil sozinha voltar a fechar a cadeia. Os dois são os únicos excluídos do `test:ci`.
+`test/sefaz.test.js` é um teste de integração real: bate nos endpoints de produção **e** homologação da SEFAZ e do ADN com mTLS, e falha sem rede ou com certificado vencido. No ADN ele só lê, e tira o CNPJ do CN do `certs/cert.pem` — não escrever CNPJ real em teste. Na SEFIN ele só manda pedido que é rejeitado (chave inventada, `E1831`): Confirmação ou Rejeição aceita registra evento fiscal irreversível e **não entra na suíte**. Com A1 real, a conversão PFX→PEM leva perto de 2 s e pode estourar o timeout padrão do mocha nos testes de construtor com PFX; `--timeout 15000` separa isso de falha real. `test/tls-sefaz.test.js` só faz o handshake TLS com `www1`/`hom1` e os dois hosts do ADN e da SEFIN, sem A1, e falha de propósito se a ICP-Brasil sozinha voltar a fechar a cadeia. Os dois são os únicos excluídos do `test:ci`.
 
 ### CI
 
@@ -91,13 +92,15 @@ controllers/   static enviar(opts): montarRequest -> envia -> montarResponse -> 
       └ schemas/   objeto JS espelhando o XML (chaves `@_` = atributos, para o XMLBuilder)
       └ services/sefaz-service.js  instância axios + https.Agent com mTLS, TLS validado por padrão
       └ helpers/retorno-helper.js  formato final da NF-e { data, reqXml, resXml, status, error?, transportError? }
-      └ helpers/retornoNfse-helper.js  formato final da NFS-e { data, resBody, status, error?, transportError? }
-env/           constantes: endpoints por tpAmb (NF-e e NFSE_ADN), CA (ICP-Brasil) e CA_PADRAO (raízes do Node + ICP-Brasil), EVENTOS, CODIGOS_UF, ZONES, VERSION
+      └ helpers/retornoNfse-helper.js  formato final da NFS-e { data, reqXml?, resBody, status, error?, transportError? }
+env/           constantes: endpoints por tpAmb (NF-e, NFSE_ADN e NFSE_SEFIN), EVENTOS_NFSE, CA (ICP-Brasil) e CA_PADRAO (raízes do Node + ICP-Brasil), EVENTOS, CODIGOS_UF, ZONES, VERSION
 ```
 
-`src/index.js` exporta `DistribuicaoDFe`, `DistribuicaoNFSe`, `RecepcaoEvento`, `CA_PADRAO` e `CA_ICP_BRASIL` (estes dois congelados) em três formas (`module.exports`, `.default`, `.mde`) para interoperar com `require` e `import`.
+`src/index.js` exporta `DistribuicaoDFe`, `DistribuicaoNFSe`, `ManifestacaoNFSe`, `RecepcaoEvento`, `CA_PADRAO` e `CA_ICP_BRASIL` (estes dois congelados) em três formas (`module.exports`, `.default`, `.mde`) para interoperar com `require` e `import`.
 
 Na NFS-e não há `schemas/` nem envelope: o helper monta a config de um `GET` do axios (`Accept` e `responseType: 'text'` na requisição, não em `requestOptions`) e lê JSON. O retorno é do `RetornoNfseHelper`, não do `RetornoHelper`: `resBody` no lugar de `reqXml`/`resXml`, fila vazia (HTTP 404, `NENHUM_DOCUMENTO_LOCALIZADO`) **sem** `error`, e rejeição com `data` mantido. `error` sai do HTTP e do `Erros` do ADN, não só do `StatusProcessamento`, que vem `DOCUMENTOS_LOCALIZADOS` até na rejeição E2243 ([ADR 0016](.docs/arquitetura/decisoes/0016-retorno-proprio-da-nfse.md)).
+
+A manifestação da NFS-e tem schema (`pedRegEvento` v1.01) e assinatura, mas não tem envelope: o helper monta um `POST` JSON com o XML assinado em gzip+base64 e reaproveita o `RetornoNfseHelper` com `servico: 'SEFIN'` e `reqXml`. O `pedRegEvento` leva `<?xml version="1.0" encoding="UTF-8"?>` na frente — sem ela a SEFIN rejeita com `E1229` —, e o `erro` da SEFIN chega como **array**, apesar do Swagger dizer objeto.
 
 ### Convenções que atravessam o código
 
@@ -109,7 +112,7 @@ Na NFS-e não há `schemas/` nem envelope: o helper monta a config de um `GET` d
 
 **TLS.** O padrão do agente é `{ ca: CA_PADRAO, rejectUnauthorized: true }`, e `httpsOptions` sobrescreve tudo. `CA_PADRAO` soma as raízes do Node (`tls.getCACertificates('default')`, ou `tls.rootCertificates` no Node 22 anterior à 22.15) à ICP-Brasil, porque a opção `ca` do Node **substitui** as raízes padrão. Passar só a ICP-Brasil quebra o handshake com o Ambiente Nacional, cuja cadeia hoje é GlobalSign.
 
-**Assinatura digital.** Só a recepção de evento assina. `RecepcaoHelper.montarRequest` assina cada `infEvento` individualmente com `xml-crypto` (referência `//*[local-name(.)='infEvento']`, assinatura inserida _depois_ do nó) e depois faz _splice de string_ nos blocos `<evento versao="1.00">…` para montar o lote dentro de um único `<envEvento>`. Mexer no formato do XML gerado pelo schema pode quebrar esse recorte por `indexOf`.
+**Assinatura digital.** Assinam a recepção de evento da NF-e e a manifestação da NFS-e, com a mesma `Assinatura.assinarXml` (RSA-SHA1, digest SHA1, C14N); o quarto parâmetro escolhe o elemento (`'infEvento'` por padrão, `'infPedReg'` na NFS-e), e `test/assinatura.test.js` congela o lote da NF-e para provar que a chamada de três argumentos não mudou um byte. `RecepcaoHelper.montarRequest` assina cada `infEvento` individualmente com `xml-crypto` (referência `//*[local-name(.)='infEvento']`, assinatura inserida _depois_ do nó) e depois faz _splice de string_ nos blocos `<evento versao="1.00">…` para montar o lote dentro de um único `<envEvento>`. Mexer no formato do XML gerado pelo schema pode quebrar esse recorte por `indexOf`.
 
 **Ambiente.** `tpAmb` é string: `'1'` produção, `'2'` homologação (produção restrita, na NFS-e). É a chave dos mapas em `env/distribuicao.js`, `env/recepcao.js` e `env/nfse.js`.
 

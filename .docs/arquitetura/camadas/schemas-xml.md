@@ -31,7 +31,7 @@ E também por que os atributos (`'@_xmlns'`, `'@_versao'`, `'@_Id'`) são inseri
 
 > **Reordenar chave em schema é mudança de comportamento**, mesmo que o objeto pareça equivalente em JS.
 
-### Os dois schemas
+### Os três schemas
 
 [DistribuicaoSchema](../../../src/schemas/distribuicaoDFe-schema.js) monta `distDFeInt` com `versao="1.01"`, e escolhe **um** dos três blocos de consulta, nesta precedência:
 
@@ -45,7 +45,9 @@ O `else` final não testa `opts.nsu`: se nenhum dos três vier, sai `<consNSU><N
 
 [RecepcaoSchema](../../../src/schemas/recepcaoEvento-schema.js) monta **um** evento por vez, com `versao="1.00"` em `envEvento`, `evento` e `detEvento`, e `xJust` presente só quando informado. O agrupamento em lote não é feito aqui — ver [fluxos/recepcao-evento.md](../fluxos/recepcao-evento.md).
 
-CNPJ e CPF são mutuamente exclusivos nos dois schemas, com a mesma forma: `if (options.cnpj) ... else ...` — CNPJ ganha quando ambos vêm preenchidos.
+[ManifestacaoNFSeSchema](../../../src/schemas/manifestacaoNFSe-schema.js) monta o `pedRegEvento` v1.01 da NFS-e, com `xmlns="http://www.sped.fazenda.gov.br/nfse"` só na raiz: o `infPedReg` herda o namespace (`elementFormDefault="qualified"` no XSD). A ordem é a do `TCInfPedReg` — `tpAmb`, `verAplic`, `dhEvento`, `CNPJAutor`, `chNFSe` e o grupo do evento (`e203202` ou `e203206`) —, com `Id` = `PRE` + chave + código do evento. No grupo, `cMotivo` e `xMotivo` só entram quando informados. Não há recorte de string: o pedido é um documento só, assinado inteiro.
+
+CNPJ e CPF são mutuamente exclusivos nos dois schemas da NF-e, com a mesma forma: `if (options.cnpj) ... else ...` — CNPJ ganha quando ambos vêm preenchidos.
 
 ## `util/xml.js`
 

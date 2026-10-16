@@ -2,6 +2,7 @@
 
 const DistribuicaoDFe = require('./apis/distribuicaoDFe-api')
 const DistribuicaoNFSe = require('./apis/distribuicaoNFSe-api')
+const ManifestacaoNFSe = require('./apis/manifestacaoNFSe-api')
 const RecepcaoEvento = require('./apis/recepcaoEvento-api')
 const env = require('./env')
 
@@ -15,6 +16,7 @@ module.exports = {
   CA_PADRAO: CA_PADRAO,
   DistribuicaoDFe: DistribuicaoDFe,
   DistribuicaoNFSe: DistribuicaoNFSe,
+  ManifestacaoNFSe: ManifestacaoNFSe,
   RecepcaoEvento: RecepcaoEvento,
 }
 module.exports.default = {
@@ -22,6 +24,7 @@ module.exports.default = {
   CA_PADRAO: CA_PADRAO,
   DistribuicaoDFe: DistribuicaoDFe,
   DistribuicaoNFSe: DistribuicaoNFSe,
+  ManifestacaoNFSe: ManifestacaoNFSe,
   RecepcaoEvento: RecepcaoEvento,
 }
 module.exports.mde = {
@@ -29,5 +32,6 @@ module.exports.mde = {
   CA_PADRAO: CA_PADRAO,
   DistribuicaoDFe: DistribuicaoDFe,
   DistribuicaoNFSe: DistribuicaoNFSe,
+  ManifestacaoNFSe: ManifestacaoNFSe,
   RecepcaoEvento: RecepcaoEvento,
 }

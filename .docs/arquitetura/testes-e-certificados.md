@@ -43,7 +43,7 @@ Quem não tem um A1 em mãos roda:
 npm run certs:teste
 ```
 
-[scripts/gerar-certificado-teste.sh](../../scripts/gerar-certificado-teste.sh) gera um autoassinado válido por 10 anos e libera tudo menos `sefaz.test.js` — 161 dos 171 testes, dos quais os 9 de `tls-sefaz.test.js` exigem rede.
+[scripts/gerar-certificado-teste.sh](../../scripts/gerar-certificado-teste.sh) gera um autoassinado válido por 10 anos e libera tudo menos `sefaz.test.js` — 225 dos 239 testes, dos quais os 13 de `tls-sefaz.test.js` exigem rede.
 
 O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Regerar exige apagar o diretório à mão.
 
@@ -58,23 +58,26 @@ Há ainda `MSYS_NO_PATHCONV=1`, que impede o Git Bash de converter o argumento d
 
 ## Os arquivos de teste
 
-| Arquivo                           | Cobre                                                                                                            | Precisa de `certs/`  |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------- |
-| `xml.test.js`                     | `jsonToXml`, `xmlToJson`, `envelopar`                                                                            | Não                  |
-| `gzip.test.js`                    | `Gzip.unzip`                                                                                                     | Não                  |
-| `zeroPad.test.js`                 | `ZeroPad.padNsu`                                                                                                 | Não                  |
-| `data.test.js`                    | `Data.toFormat` e os timezones                                                                                   | Não                  |
-| `distribuicaoDFe-helper.test.js`  | `DistribuicaoHelper.montarResponse` sobre envelope montado no teste: lote misto, `docZipErrors`                  | Não                  |
-| `distribuicaoNFSe-helper.test.js` | `DistribuicaoNFSeHelper` (requisição, `papel`, `documentosErros`) e `RetornoNfseHelper`, com fixtures inventadas | Não                  |
-| `nfse-validators.test.js`         | `CnpjValidator`, `NsuNfseValidator`, `ChaveNfseValidator`: mensagens e normalização                              | Não                  |
-| `ca.test.js`                      | `CA_PADRAO` e `CA_ICP_BRASIL`: exportação, congelamento, composição com as raízes do Node                        | Não                  |
-| `transporte.test.js`              | Validação TLS e `transportError` contra servidor HTTPS local em `127.0.0.1`, para NF-e e NFS-e; `RetornoHelper`  | Não                  |
-| `certificado.test.js`             | `Certificado.p12ToPem` contra os `.pem` do disco                                                                 | **Sim**              |
-| `distribuicao.test.js`            | `DistribuicaoDFe`: validação, montagem, imutabilidade                                                            | **Sim**              |
-| `recepcao.test.js`                | `RecepcaoEvento`: validação, lote, assinatura, imutabilidade                                                     | **Sim**              |
-| `distribuicaoNFSe.test.js`        | `DistribuicaoNFSe`: validação, exportação, imutabilidade                                                         | **Sim**              |
-| `sefaz.test.js`                   | Integração real contra a SEFAZ e o ADN                                                                           | **Sim**, e A1 válido |
-| `tls-sefaz.test.js`               | Handshake TLS real com `www1`, `hom1` e os dois hosts do ADN, sem A1                                             | Não, mas exige rede  |
+| Arquivo                           | Cobre                                                                                                                                   | Precisa de `certs/`  |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| `xml.test.js`                     | `jsonToXml`, `xmlToJson`, `envelopar`                                                                                                   | Não                  |
+| `gzip.test.js`                    | `Gzip.zip` e `Gzip.unzip`                                                                                                               | Não                  |
+| `zeroPad.test.js`                 | `ZeroPad.padNsu`                                                                                                                        | Não                  |
+| `data.test.js`                    | `Data.toFormat` e os timezones                                                                                                          | Não                  |
+| `distribuicaoDFe-helper.test.js`  | `DistribuicaoHelper.montarResponse` sobre envelope montado no teste: lote misto, `docZipErrors`                                         | Não                  |
+| `distribuicaoNFSe-helper.test.js` | `DistribuicaoNFSeHelper` (requisição, `papel`, `documentosErros`) e `RetornoNfseHelper`, com fixtures inventadas                        | Não                  |
+| `nfse-validators.test.js`         | `CnpjValidator`, `NsuNfseValidator`, `ChaveNfseValidator`, `MotivoRejeicaoValidator`: mensagens e normalização                          | Não                  |
+| `ca.test.js`                      | `CA_PADRAO` e `CA_ICP_BRASIL`: exportação, congelamento, composição com as raízes do Node                                               | Não                  |
+| `transporte.test.js`              | Validação TLS e `transportError` contra servidor HTTPS local em `127.0.0.1`, para NF-e e NFS-e; `POST` da manifestação; `RetornoHelper` | Não                  |
+| `certificado.test.js`             | `Certificado.p12ToPem` contra os `.pem` do disco                                                                                        | **Sim**              |
+| `distribuicao.test.js`            | `DistribuicaoDFe`: validação, montagem, imutabilidade                                                                                   | **Sim**              |
+| `recepcao.test.js`                | `RecepcaoEvento`: validação, lote, assinatura, imutabilidade                                                                            | **Sim**              |
+| `distribuicaoNFSe.test.js`        | `DistribuicaoNFSe`: validação, exportação, imutabilidade                                                                                | **Sim**              |
+| `manifestacaoNFSe.test.js`        | `ManifestacaoNFSe`: validação, exportação, imutabilidade                                                                                | **Sim**              |
+| `manifestacaoNFSe-helper.test.js` | Schema do `pedRegEvento`, assinatura do `infPedReg`, `montarResponse` e `RetornoNfseHelper` com a SEFIN                                 | **Sim**              |
+| `assinatura.test.js`              | Lote da recepção da NF-e congelado byte a byte (fora a parte que depende da chave) e assinatura do `infPedReg`                          | **Sim**              |
+| `sefaz.test.js`                   | Integração real contra a SEFAZ, o ADN e a SEFIN                                                                                         | **Sim**, e A1 válido |
+| `tls-sefaz.test.js`               | Handshake TLS real com `www1`, `hom1` e os dois hosts do ADN e da SEFIN, sem A1                                                         | Não, mas exige rede  |
 
 ### `sefaz.test.js`
 
@@ -82,11 +85,13 @@ Teste de integração de verdade: bate nos endpoints de **produção e homologa�
 
 O bloco da `DistribuicaoNFSe` lê o ADN: `consultaUltNSU('0')` em produção restrita (sem `error`, com fila vazia ou não) e em produção (`DOCUMENTOS_LOCALIZADOS`), `consultaNSU('1')` em produção e um `cnpj` de outra raiz em produção restrita (`E2243`). É só leitura, e o ADN não tem bloqueio de sequência, então não dessincroniza ninguém. O CNPJ consultado sai do CN do `certs/cert.pem` durante o teste, para não ficar escrito no repositório; com o certificado descartável, esses testes falham.
 
+O bloco da `ManifestacaoNFSe` só manda à SEFIN pedido que ela **rejeita**: `confirmar` e `rejeitar` sobre uma chave inventada (`E1831`, a nota não existe no ADN), em produção e em produção restrita, e um pedido com o `dhEvento` alterado depois de assinar (`E0714`). O último prova que a SEFIN confere a assinatura antes da existência da nota — e, com isso, que chegar ao `E1831` significa assinatura aceita. Confirmação ou Rejeição aceita registra evento fiscal irreversível, e a segunda execução seria duplicidade: **não entra na suíte**.
+
 Rodar antes de um release é recomendável quando a mudança tocou transporte, certificado ou assinatura — é o único teste que prova que a ponta ainda funciona.
 
 ### `tls-sefaz.test.js`
 
-Faz só o handshake TLS com `www1`, `hom1`, `adn.nfse.gov.br` e `adn.producaorestrita.nfse.gov.br`, sem certificado A1 e sem `certs/`, com `rejectUnauthorized: true`. Afirma duas coisas por host:
+Faz só o handshake TLS com `www1`, `hom1`, `adn.nfse.gov.br`, `adn.producaorestrita.nfse.gov.br`, `sefin.nfse.gov.br` e `sefin.producaorestrita.nfse.gov.br`, sem certificado A1 e sem `certs/`, com `rejectUnauthorized: true`. Afirma duas coisas por host:
 
 - com `CA_PADRAO`, o handshake fecha;
 - só com `CA_ICP_BRASIL`, falha com `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`.
