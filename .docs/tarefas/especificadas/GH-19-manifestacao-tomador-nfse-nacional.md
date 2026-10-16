@@ -250,6 +250,8 @@ Rodar na raiz do repositório:
 
 **Ainda não exercitado contra o serviço:** Rejeição aceita, e as regras `E0861`/`E0866` entre eventos.
 
+**Revisão automática (CodeRabbit, PR #23):** dois apontamentos, os dois aplicados — o JSDoc de `normalizarMensagens` ainda descrevia o `erro` como o Swagger (objeto único), e a linha do `RetornoNfseHelper` no diagrama do `CLAUDE.md` não tinha o `reqXml?`.
+
 ## Conclusão e entrega
 
 Executar **após o PR ser mergeado na `main`**:

@@ -92,7 +92,7 @@ controllers/   static enviar(opts): montarRequest -> envia -> montarResponse -> 
       └ schemas/   objeto JS espelhando o XML (chaves `@_` = atributos, para o XMLBuilder)
       └ services/sefaz-service.js  instância axios + https.Agent com mTLS, TLS validado por padrão
       └ helpers/retorno-helper.js  formato final da NF-e { data, reqXml, resXml, status, error?, transportError? }
-      └ helpers/retornoNfse-helper.js  formato final da NFS-e { data, resBody, status, error?, transportError? }
+      └ helpers/retornoNfse-helper.js  formato final da NFS-e { data, reqXml?, resBody, status, error?, transportError? }
 env/           constantes: endpoints por tpAmb (NF-e, NFSE_ADN e NFSE_SEFIN), EVENTOS_NFSE, CA (ICP-Brasil) e CA_PADRAO (raízes do Node + ICP-Brasil), EVENTOS, CODIGOS_UF, ZONES, VERSION
 ```
 

@@ -14,7 +14,8 @@ function texto(valor) {
 }
 
 /**
- * A SEFIN devolve um objeto `erro` único; aceita também `erros` em array.
+ * A SEFIN devolve `erro` em array, embora o Swagger o descreva como objeto
+ * único; aceita as duas formas e também `erros`.
  *
  * @param {any} lista
  * @returns {{codigo: string, descricao: string, complemento: string}[]}
