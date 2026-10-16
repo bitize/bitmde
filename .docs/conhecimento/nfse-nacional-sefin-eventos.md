@@ -1,18 +1,18 @@
 # NFS-e Nacional — pedido de registro de evento na SEFIN Nacional
 
 **Fonte**: [swagger-sefin-nacional-v1-20261015.json](fontes/nfse-nacional/swagger-sefin-nacional-v1-20261015.json), [Anexo II v1.01 de 22/01/2026](fontes/nfse-nacional/anexo-ii-sefin-adn-pedregevt-evt-v1.01-20260122.xlsx), [XSDs v1.01 de 09/02/2026](fontes/nfse-nacional/nfse-esquemas-xsd-v1.01-20260209.zip) e [Manual dos Contribuintes — Emissor Público v1.2](fontes/nfse-nacional/manual-contribuintes-emissor-publico-v1.2-202510.pdf)
-**Consultado em**: 2026-10-15; pedidos rejeitados enviados à SEFIN em 2026-10-16
+**Consultado em**: 2026-10-15; pedidos à SEFIN em 2026-10-16 (rejeitados e uma Confirmação aceita)
 
 Como o tomador registra Confirmação (`e203202`) e Rejeição (`e203206`) de uma NFS-e. O que os documentos dizem, corrigido pelo que a SEFIN respondeu em 2026-10-16 a pedidos com chave inventada, que ela rejeita sem registrar nada (seção [Observado na SEFIN](#observado-na-sefin-2026-10-16)).
 
 ## Onde o tomador manifesta
 
-Na **SEFIN Nacional**, mesmo que a NFS-e tenha sido gerada por sistema próprio de município:
+Na **SEFIN Nacional**, mesmo que a NFS-e tenha sido gerada por sistema próprio de município — **confirmado em produção em 2026-10-16**, com uma Confirmação aceita sobre nota de `ambGer` 1:
 
 - Anexo II, RN 16 (`E1818`): o município **não pode** compartilhar com o ADN eventos de manifestação — "Estes eventos devem ser emitidos pelos não emitentes da NFS-e diretamente no SEFIN NFS-e."
 - Anexo II, RN 24 (`E1831`): a NFS-e indicada precisa **existir no ADN**.
 
-O "2 - ADN" na coluna "ambiente receptor" da aba "TIPO EVENTOS DE NFSe" é o 4º dígito do código do evento (`20320`**`2`**) e diz onde o evento fica registrado, não para onde o pedido é enviado. **Ainda não confirmado na prática:** a SEFIN aceitar manifestação de NFS-e gerada por município com sistema próprio.
+O "2 - ADN" na coluna "ambiente receptor" da aba "TIPO EVENTOS DE NFSe" é o 4º dígito do código do evento (`20320`**`2`**) e diz onde o evento fica registrado, não para onde o pedido é enviado. Confirmado na prática: a SEFIN aceita manifestação de NFS-e gerada por município com sistema próprio, e o evento sai com `ambGer` 2 (gerado pela SEFIN).
 
 ## Endpoint
 
@@ -125,10 +125,18 @@ Conclusões:
 - O corpo de erro é `{ tipoAmbiente: 1|2, versaoAplicativo, dataHoraProcessamento, erro: [{ codigo, descricao }] }`, com CRLF e indentação.
 - `tipoAmbiente` vem numérico, `1` em produção e `2` em produção restrita.
 
+### Confirmação aceita
+
+Uma Confirmação do tomador (`e203202`) em produção, pela `ManifestacaoNFSe`, sobre NFS-e real recebida pela Bitize e gerada por sistema próprio de município (`ambGer` 1), com autorização explícita do responsável:
+
+- **HTTP 201**, corpo `{ tipoAmbiente: 1, versaoAplicativo: "SefinNacional_1.6.0", dataHoraProcessamento, eventoXmlGZipB64 }`.
+- O `eventoXmlGZipB64` abre no **evento completo**, no mesmo formato do item `EVENTO` da distribuição: `<?xml …?><evento versao="1.01"><infEvento Id="EVT{chave}{203202}{001}">` com `verAplic` da SEFIN, `ambGer` 2, `nSeqEvento` 1, `dhProc`, `nDFSe` 0 e o `pedRegEvento` enviado, byte a byte, com a assinatura do autor (RSA-SHA1); depois do `infEvento`, a assinatura da SEFIN (RSA-SHA256, exc-c14n with comments).
+- `dhProc` sai um segundo depois do `dhEvento` do pedido.
+
 ## Ainda não confirmado
 
-- Se a SEFIN aceita manifestação de NFS-e gerada por município com sistema próprio (ver "Onde o tomador manifesta").
-- Corpo real do sucesso (`201`): se o `eventoXmlGZipB64` traz o `evento/infEvento` completo, como o item `EVENTO` da distribuição.
+- Rejeição do tomador aceita: não exercitada contra o serviço. O código é o da Confirmação, com o grupo `e203206`.
+- As regras da aba "RN EVENTOSxEVENTOS" (`E0861`, `E0866`): lidas no Anexo II, não exercitadas.
 
 ## Evidência: eventos de tomador reais
 

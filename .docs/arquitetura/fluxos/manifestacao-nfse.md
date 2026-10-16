@@ -79,6 +79,8 @@ Com chave inventada (a nota não existe no ADN), em 2026-10-16:
 
 A ordem importa para o teste de integração: chegar ao `E1831` prova que codificação, schema e assinatura passaram. Todos com HTTP 400.
 
+E com nota real: uma Confirmação em produção, em 2026-10-16, sobre NFS-e gerada por sistema próprio de município, voltou **201** com o evento completo — `evento/infEvento` com `ambGer` 2, o `pedRegEvento` enviado dentro e a assinatura da SEFIN. Manifestação de nota de município é aceita.
+
 ## O retorno
 
 | Situação                                  | `status` | `data`                         | `error`                                         |

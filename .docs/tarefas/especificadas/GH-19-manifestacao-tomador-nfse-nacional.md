@@ -103,8 +103,8 @@ O `erro` único da SEFIN é normalizado para `erros: [...]`, como no ADN (Decis�
 Respostas, em 2026-10-16:
 
 1. **Não resolvida; substituída por decisão do usuário.** Ninguém emitiu nota em produção restrita. Os pedidos de erro rodam em produção e em produção restrita, e uma Confirmação real é feita uma vez, em produção, sobre nota indicada pelo usuário — ver Notas de implementação.
-2. **Em aberto.** Responde-se se a nota indicada para a Confirmação em produção for de município com sistema próprio (`ambGer` 1).
-3. **Metade respondida.** Rejeição: HTTP 400 com `erro` em **array** de `{ codigo, descricao }`, não o objeto único do Swagger; `tipoAmbiente` numérico. Sucesso (`201` e o conteúdo do `eventoXmlGZipB64`): pendente da Confirmação real.
+2. **Sim.** A Confirmação real em produção foi sobre nota de município com sistema próprio (`ambGer` 1) e foi aceita; o evento sai com `ambGer` 2.
+3. **Respondida.** Rejeição: HTTP 400 com `erro` em **array** de `{ codigo, descricao }`, não o objeto único do Swagger; `tipoAmbiente` numérico. Sucesso: HTTP 201 com `eventoXmlGZipB64`, que abre no `evento/infEvento` completo, com o `pedRegEvento` enviado dentro — o mesmo formato do item `EVENTO` da distribuição.
 4. **Respondida pelo Anexo II.** Confirmação depois de Confirmação dá `E0861`, Rejeição depois de Rejeição dá `E0866`; Rejeição depois de Confirmação e Confirmação depois de Rejeição são **aceitas**. Com a Confirmação vinculada, o emitente não cancela mais a nota (só substitui). A Anulação da Rejeição é do município de incidência. Não exercitado contra o serviço.
 5. **Respondida pelo XSD.** `xmlns` e `versao` só no `pedRegEvento`; o `infPedReg` herda o namespace (`elementFormDefault="qualified"`).
 
@@ -192,7 +192,7 @@ Respostas, em 2026-10-16:
 - [x] Transporte com servidor HTTPS local: `POST` com `Content-Type` e `Accept` JSON, corpo `{ pedidoRegistroEventoXmlGZipB64 }` que abre no XML de `reqXml`, sem `PRIVATE KEY` no retorno serializado
 - [x] `test/tls-sefaz.test.js` com os dois hosts da SEFIN (GlobalSign, como o Ambiente Nacional da NF-e)
 - [x] `test/sefaz.test.js` estendido com pedidos **rejeitados** em produção e em produção restrita (chave inventada, `E1831`; assinatura adulterada, `E0714`) — rodado manualmente com A1 real. Confirmação e Rejeição aceitas ficam fora da suíte (ver Notas)
-- [ ] Confirmação real em **produção**, uma vez, fora da suíte, sobre nota indicada pelo usuário — pendente da indicação
+- [x] Confirmação real em **produção**, uma vez, fora da suíte, sobre nota legítima autorizada pelo usuário (2026-10-16): `201`, evento aberto, sem `error`
 
 ## Checklist de implementação
 
@@ -203,7 +203,7 @@ Respostas, em 2026-10-16:
 - [x] `CHANGELOG.md` em `[Não publicado]`
 - [x] `CLAUDE.md`: "O que é" e exports de `src/index.js`
 - [x] `.docs/arquitetura/`: [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [schemas-xml](../../arquitetura/camadas/schemas-xml.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md) e fluxo novo [fluxos/manifestacao-nfse.md](../../arquitetura/fluxos/manifestacao-nfse.md); também [services-sefaz](../../arquitetura/camadas/services-sefaz.md), [testes-e-certificados](../../arquitetura/testes-e-certificados.md), [fluxos/recepcao-evento](../../arquitetura/fluxos/recepcao-evento.md) e [conhecimento/nfse-nacional-sefin-eventos.md](../../conhecimento/nfse-nacional-sefin-eventos.md)
-- [x] Questões em aberto respondidas nesta seção, com data, antes do PR — a 2 e metade da 3 dependem da Confirmação real
+- [x] Questões em aberto respondidas nesta seção, com data, antes do PR
 - [ ] Versão: bump de **minor** no release que fechar o plano
 
 ## Validação pré-PR (obrigatório)
@@ -246,7 +246,9 @@ Rodar na raiz do repositório:
 
 **Contagens:** `test:ci` de 152 para 212; `sefaz.test.js` de 10 para 14; `tls-sefaz.test.js` de 9 para 13.
 
-**Pendente:** Confirmação real em produção, sobre nota a indicar pelo usuário — responde a questão 2 e a metade de sucesso da 3 (corpo do `201`).
+**Confirmação real em produção (2026-10-16):** feita uma vez, pelo `ManifestacaoNFSe.confirmar`, sobre NFS-e recebida pela Bitize, gerada por sistema próprio de município, que o usuário reconheceu como legítima. O modo automático do agente bloqueou o envio como transação real, e o próprio usuário rodou o script. Resultado: `201`, `tipoAmbiente` `'1'`, `erros: []`, evento aberto. Chave e retorno ficam fora do repositório.
+
+**Ainda não exercitado contra o serviço:** Rejeição aceita, e as regras `E0861`/`E0866` entre eventos.
 
 ## Conclusão e entrega
 
@@ -280,3 +282,4 @@ Executar **após o PR ser mergeado na `main`**:
 | 2026-10-15 | 1.1 | Promovida a `especificadas` com a issue GH-19, filha do plano GH-17                                                           |
 | 2026-10-15 | 1.2 | Revista depois da GH-18: `RetornoNfseHelper` a parametrizar por serviço e `error` pelo HTTP e pelos `erros` (ADR 0016)        |
 | 2026-10-16 | 1.3 | Implementação e notas: testes reais em produção por decisão do usuário; declaração XML e `erro` em array descobertos na SEFIN |
+| 2026-10-16 | 1.4 | Confirmação real aceita em produção, sobre nota de município: questões 2 e 3 respondidas                                      |
