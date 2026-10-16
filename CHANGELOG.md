@@ -2,6 +2,10 @@
 
 ## [Não publicado]
 
+### Corrigido
+
+- README: a seção "Conexão com a SEFAZ" passa a cobrir a `ManifestacaoNFSe` — o erro de transporte mantém o `reqXml`, e os hosts da SEFIN Nacional servem a cadeia GlobalSign
+
 ## [0.20.0] / 2026-10-16
 
 > Acrescenta a NFS-e Nacional: distribuição pelo ADN e manifestação do tomador na SEFIN. Nada muda nas APIs de NF-e.
