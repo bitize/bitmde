@@ -97,6 +97,8 @@ O padrão de uso previsto pelo serviço, e o motivo de `ultNSU` e `maxNSU` virem
 
 A biblioteca não faz esse laço, e isso é intencional: a SEFAZ impõe **restrição de cadência** por consumidor (consulta repetida em intervalo curto é rejeitada com `cStat` de bloqueio, e a penalidade é por CNPJ). Quem chama precisa controlar o intervalo com conhecimento do próprio agendamento — ver [../camadas/services-sefaz.md](../camadas/services-sefaz.md).
 
+O mesmo vale para o CT-e e o MDF-e, que a biblioteca e a documentação tratam com a mesma disciplina da NF-e: ponteiro por CNPJ/CPF, uma hora de espera depois de `137` e `656` para quem sai da sequência. O bloqueio foi observado na NF-e; nos outros dois é premissa, não medição. É também por isso que o `sefaz.test.js` só consulta CT-e e MDF-e em homologação.
+
 ## Gunzip
 
 [src/util/gzip.js](../../../src/util/gzip.js) envolve `zlib.unzip` em Promise: `Buffer.from(str, 'base64')` → `unzip` → `toString('utf8')`.

@@ -262,7 +262,7 @@ Contagens: `test:ci` foi de 212 para 249 testes passando; a suíte inteira tem 2
 
 `sefaz.test.js` com A1 real: os 8 testes novos (4 `GET ?wsdl`, 4 consultas em homologação) passaram em 2026-10-16. Os 14 já existentes não foram rodados nesta revisão — o código de NF-e e NFS-e não mudou de comportamento, e os de NFS-e consultam produção.
 
-Pendente: consulta em produção do CT-e e do MDF-e, que nenhum teste automatizado faz. Recomendável uma consulta manual com um CNPJ que ainda não seja varrido por outro sistema, antes do release.
+Produção conferida à mão em 2026-10-16, com uma `consultaUltNSU('0')` por serviço para o CNPJ do A1 da Bitize, que nenhum sistema varre em CT-e nem em MDF-e: o CT-e voltou `138` com 25 documentos (`procCTe_v4.00` e `procEventoCTe_v4.00`), todos abertos, sem `docZipErrors`; o MDF-e voltou `137`. Nenhum `215`. A consulta deixou o ponteiro do CT-e desse CNPJ em produção no NSU 397, igual ao `maxNSU`. Quem for varrer CT-e desse CNPJ parte de 397, não de 0.
 
 ## Conclusão e entrega
 
