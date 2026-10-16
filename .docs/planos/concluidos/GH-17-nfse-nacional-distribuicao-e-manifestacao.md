@@ -3,12 +3,12 @@
 | Campo                | Valor                                                                              |
 | -------------------- | ---------------------------------------------------------------------------------- |
 | **Issue**            | [GH-17](https://github.com/bitize/bitmde/issues/17)                                |
-| **Status**           | especificados                                                                      |
+| **Status**           | concluidos                                                                         |
 | **Prioridade**       | P2 (médio)                                                                         |
 | **Camadas afetadas** | apis / validators / controllers / helpers / schemas / services / env / util / test |
 | **Criado em**        | 2026-10-15                                                                         |
 | **Atualizado em**    | 2026-10-16                                                                         |
-| **Concluído em**     | —                                                                                  |
+| **Concluído em**     | 2026-10-16                                                                         |
 
 ---
 
@@ -139,25 +139,29 @@ A GH-19 foi entregue no PR #23 (merge `3e8c976`, 2026-10-16). O desvio aprovado 
 - [x] Ao menos uma filha em `concluidas/`
 - [x] Objetivo verificado: a distribuição drena uma fila real com o contrato da Decisão 2 (produção, 2026-10-16), e uma Confirmação do tomador é aceita pela SEFIN em produção (2026-10-16); a Rejeição é validada por unidade e por pedido rejeitado em produção, sem envio real — critério revisto, ver histórico 1.2
 - [x] ADRs 0015 e 0016 aceitos
-- [ ] Release de **minor** com as duas APIs — segue [../../arquitetura/release.md](../../arquitetura/release.md), não é filha comum
+- [x] Release de **minor** com as duas APIs — segue [../../arquitetura/release.md](../../arquitetura/release.md), não é filha comum: [0.20.0](https://github.com/bitize/bitmde/releases/tag/v0.20.0), publicada no npm com provenance em 2026-10-16
 
 ## Notas de conclusão
 
 > Preenchido ao encerrar. Registrar os **desvios** em relação a este plano — filha adicionada, cancelada, escopo que migrou — e o motivo de cada um. Se não houve, escrever "Sem desvios".
 
--
+Nenhuma filha adicionada nem cancelada, e nenhum escopo migrou. Um desvio, no critério de conclusão:
+
+- **Verificação em produção, e não em produção restrita** (revisão 1.2). Produção restrita não tinha NFS-e com a Bitize como tomadora, e ninguém emitiu uma. Por decisão do usuário, a GH-19 testou em produção: pedidos que a SEFIN rejeita na suíte de integração e **uma** Confirmação real, sobre nota legítima escolhida por ele. A Rejeição não foi enviada à SEFIN e segue registrada como risco aberto — validada por unidade, por transporte local e por pedido rejeitado em produção, que passou pela assinatura.
+
+Aprendizados que valem para quem mexer na NFS-e: o ADN rejeita com status de processamento de sucesso (E2243, ADR 0016); a SEFIN exige a declaração XML (`E1229`) e responde `erro` em array, ao contrário do Swagger; e a SEFIN aceita manifestação de NFS-e gerada por sistema próprio de município.
 
 ## Conclusão e entrega
 
 Executar quando a última filha sair de `especificadas/`:
 
-- [ ] Tabela de filhas com link e status final
-- [ ] Desvios registrados em "Notas de conclusão"
-- [ ] Cabeçalho: **Status** = `concluidos` e **Concluído em** preenchido
-- [ ] Arquivo movido: `git mv .docs/planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md .docs/planos/concluidos/`
-- [ ] Campo **Plano** da GH-18 e da GH-19 apontando para `../../planos/concluidos/` (era `especificados/`)
-- [ ] Blockquote do plano na issue apontando para `.docs/planos/concluidos/` (era `especificados/`)
-- [ ] Issue do plano fechada no GitHub e no Linear
+- [x] Tabela de filhas com link e status final
+- [x] Desvios registrados em "Notas de conclusão"
+- [x] Cabeçalho: **Status** = `concluidos` e **Concluído em** preenchido
+- [x] Arquivo movido: `git mv .docs/planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md .docs/planos/concluidos/`
+- [x] Campo **Plano** da GH-18 e da GH-19 apontando para `../../planos/concluidos/` (era `especificados/`); os links das ADRs 0015 e 0016 também
+- [x] Blockquote do plano na issue apontando para `.docs/planos/concluidos/` (era `especificados/`)
+- [x] Issue do plano fechada no GitHub e no Linear
 
 ## Referências
 
@@ -178,3 +182,4 @@ Executar quando a última filha sair de `especificadas/`:
 | 2026-10-15 | 1.0 | Promovido a `especificados` com a issue GH-17; filhas GH-18 e GH-19 promovidas junto e vinculadas como sub-issues                                                                                                                                                        |
 | 2026-10-15 | 1.1 | GH-18 concluída (PR #20): Decisão 2 revista com a ADR 0016 e o `RetornoNfseHelper` a parametrizar na GH-19; riscos atualizados                                                                                                                                           |
 | 2026-10-16 | 1.2 | GH-19 concluída (PR #23). Critério de conclusão revisto por decisão do usuário: Confirmação real em produção no lugar de Confirmação e Rejeição em produção restrita, que não tinha nota de teste; Rejeição sem envio real. Riscos atualizados. Falta o release de minor |
+| 2026-10-16 | 2.0 | Release 0.20.0 publicado; plano concluído e movido para `concluidos/`                                                                                                                                                                                                    |

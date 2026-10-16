@@ -3,7 +3,7 @@
 **Status**: Aceito
 **Data**: 2026-10-15
 
-> Decisão 2 do plano [GH-17](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md), escrita na filha [GH-18](../../tarefas/concluidas/GH-18-distribuicao-nfse-nacional-adn.md). Aplica às APIs de NFS-e o princípio da [ADR 0004](0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md) e a forma do erro de transporte da [ADR 0014](0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md); não muda nenhuma das duas.
+> Decisão 2 do plano [GH-17](../../planos/concluidos/GH-17-nfse-nacional-distribuicao-e-manifestacao.md), escrita na filha [GH-18](../../tarefas/concluidas/GH-18-distribuicao-nfse-nacional-adn.md). Aplica às APIs de NFS-e o princípio da [ADR 0004](0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md) e a forma do erro de transporte da [ADR 0014](0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md); não muda nenhuma das duas.
 
 ## Contexto
 

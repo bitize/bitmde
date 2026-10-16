@@ -1,22 +1,22 @@
 # GH-19: Manifestação do tomador da NFS-e Nacional
 
-| Campo                | Valor                                                                                  |
-| -------------------- | -------------------------------------------------------------------------------------- |
-| **Issue**            | [GH-19](https://github.com/bitize/bitmde/issues/19)                                    |
-| **Status**           | concluidas                                                                             |
-| **Plano**            | [GH-17](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md) |
-| **Prioridade**       | P2 (médio)                                                                             |
-| **Tipo**             | feature                                                                                |
-| **Camadas afetadas** | apis / validators / controllers / helpers / schemas / env / util / test                |
-| **Criado em**        | 2026-10-15                                                                             |
-| **Atualizado em**    | 2026-10-16                                                                             |
-| **Concluído em**     | 2026-10-16                                                                             |
+| Campo                | Valor                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| **Issue**            | [GH-19](https://github.com/bitize/bitmde/issues/19)                                 |
+| **Status**           | concluidas                                                                          |
+| **Plano**            | [GH-17](../../planos/concluidos/GH-17-nfse-nacional-distribuicao-e-manifestacao.md) |
+| **Prioridade**       | P2 (médio)                                                                          |
+| **Tipo**             | feature                                                                             |
+| **Camadas afetadas** | apis / validators / controllers / helpers / schemas / env / util / test             |
+| **Criado em**        | 2026-10-15                                                                          |
+| **Atualizado em**    | 2026-10-16                                                                          |
+| **Concluído em**     | 2026-10-16                                                                          |
 
 ---
 
 ## Contexto e motivação
 
-Segunda filha do plano [NFS-e Nacional: distribuição e manifestação do tomador](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md). Entrega o lado de escrita: o equivalente, para serviço, do que a `RecepcaoEvento` faz para NF-e.
+Segunda filha do plano [NFS-e Nacional: distribuição e manifestação do tomador](../../planos/concluidos/GH-17-nfse-nacional-distribuicao-e-manifestacao.md). Entrega o lado de escrita: o equivalente, para serviço, do que a `RecepcaoEvento` faz para NF-e.
 
 O tomador manifesta-se sobre uma NFS-e com dois eventos, enviados à **SEFIN Nacional** — mesmo quando a nota foi gerada por sistema próprio de município, segundo o Anexo II (`E1818`: o município não pode compartilhar manifestação; `E1831`: a nota precisa existir no ADN). O contrato está em [conhecimento/nfse-nacional-sefin-eventos.md](../../conhecimento/nfse-nacional-sefin-eventos.md):
 
@@ -204,7 +204,7 @@ Respostas, em 2026-10-16:
 - [x] `CLAUDE.md`: "O que é" e exports de `src/index.js`
 - [x] `.docs/arquitetura/`: [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [schemas-xml](../../arquitetura/camadas/schemas-xml.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md) e fluxo novo [fluxos/manifestacao-nfse.md](../../arquitetura/fluxos/manifestacao-nfse.md); também [services-sefaz](../../arquitetura/camadas/services-sefaz.md), [testes-e-certificados](../../arquitetura/testes-e-certificados.md), [fluxos/recepcao-evento](../../arquitetura/fluxos/recepcao-evento.md) e [conhecimento/nfse-nacional-sefin-eventos.md](../../conhecimento/nfse-nacional-sefin-eventos.md)
 - [x] Questões em aberto respondidas nesta seção, com data, antes do PR
-- [ ] Versão: bump de **minor** no release que fechar o plano — fica para o release, disparado pelo usuário
+- [x] Versão: bump de **minor** no release que fechar o plano — [0.20.0](https://github.com/bitize/bitmde/releases/tag/v0.20.0), publicada em 2026-10-16
 
 ## Validação pré-PR (obrigatório)
 
@@ -266,7 +266,7 @@ Executar **após o PR ser mergeado na `main`**:
 
 ## Referências
 
-- Plano: [NFS-e Nacional: distribuição e manifestação do tomador](../../planos/especificados/GH-17-nfse-nacional-distribuicao-e-manifestacao.md)
+- Plano: [NFS-e Nacional: distribuição e manifestação do tomador](../../planos/concluidos/GH-17-nfse-nacional-distribuicao-e-manifestacao.md)
 - [conhecimento/nfse-nacional-sefin-eventos.md](../../conhecimento/nfse-nacional-sefin-eventos.md) — contrato, leiaute, regras e evidência de assinatura
 - Originais: [Swagger SEFIN Nacional](../../conhecimento/fontes/nfse-nacional/swagger-sefin-nacional-v1-20261015.json), [Anexo II v1.01](../../conhecimento/fontes/nfse-nacional/anexo-ii-sefin-adn-pedregevt-evt-v1.01-20260122.xlsx), [XSDs v1.01](../../conhecimento/fontes/nfse-nacional/nfse-esquemas-xsd-v1.01-20260209.zip), [Manual do Emissor Público v1.2](../../conhecimento/fontes/nfse-nacional/manual-contribuintes-emissor-publico-v1.2-202510.pdf)
 - [fluxos/recepcao-evento.md](../../arquitetura/fluxos/recepcao-evento.md) e [ADR 0007](../../arquitetura/decisoes/0007-assinatura-por-infevento-e-splice-do-lote.md) — como a NF-e assina hoje
