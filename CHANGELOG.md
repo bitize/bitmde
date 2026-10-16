@@ -2,6 +2,10 @@
 
 ## [Não publicado]
 
+## [0.20.0] / 2026-10-16
+
+> Acrescenta a NFS-e Nacional: distribuição pelo ADN e manifestação do tomador na SEFIN. Nada muda nas APIs de NF-e.
+
 ### Adicionado
 
 - **`DistribuicaoNFSe`: distribuição de NFS-e Nacional pelo Ambiente de Dados Nacional (ADN)**, exportada nas três formas (`module.exports`, `.default`, `.mde`). Usa o mesmo certificado A1 da NF-e e consulta as NFS-e e os eventos em que o CNPJ figura:
