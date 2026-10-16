@@ -260,9 +260,9 @@ Detalhes de implementação sem impacto no contrato:
 
 Revisão automática (CodeRabbit, revisões de 2026-10-16):
 
-- Aplicado: lista fechada de no (ver acima).
-- Aplicado: o README restringe à NF-e a afirmação sobre o ponteiro e o , e troca "dessincroniza" por "pode dessincronizar".
-- Não aplicado: no export de e . Nenhuma das quatro classes de que já existiam congela o export; o que a camada garante é a instância e a congeladas, e as duas novas fazem isso, com teste. Congelar a classe também não protegeria os métodos, que ficam no . O ADR 0005 diz "praticamente todo módulo" sem listar como exceção: alinhar texto e código é tarefa à parte, não deste PR.
+- Aplicado: lista fechada de `cStat` no `sefaz.test.js` (ver acima).
+- Aplicado: o README restringe à NF-e a afirmação sobre o ponteiro e o `656`, e troca "dessincroniza" por "pode dessincronizar".
+- Não aplicado: `Object.freeze` no export de `DistribuicaoCTe` e `DistribuicaoMDFe`. Nenhuma das quatro classes de `apis/` que já existiam congela o export; o que a camada garante é a instância e a `config` congeladas, e as duas novas fazem isso, com teste. Congelar a classe também não protegeria os métodos, que ficam no `prototype`. O ADR 0005 diz "praticamente todo módulo" sem listar `apis/` como exceção: alinhar texto e código é tarefa à parte, não deste PR.
 
 Contagens: `test:ci` foi de 212 para 249 testes passando; a suíte inteira tem 293, com 22 em `sefaz.test.js` e 22 em `tls-sefaz.test.js`.
 
