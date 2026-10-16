@@ -9,7 +9,7 @@
 | **Tipo**             | feature                                                                             |
 | **Camadas afetadas** | apis / validators / controllers / helpers / services / env / util / test            |
 | **Criado em**        | 2026-10-15                                                                          |
-| **Atualizado em**    | 2026-10-15                                                                          |
+| **Atualizado em**    | 2026-10-16                                                                          |
 | **Concluído em**     | 2026-10-15                                                                          |
 
 ---
