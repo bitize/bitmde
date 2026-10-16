@@ -1,5 +1,10 @@
 'use strict'
 
+const RESPOSTA_INESPERADA = {
+  ADN: 'Resposta inesperada do ADN',
+  SEFIN: 'Resposta inesperada da SEFIN',
+}
+
 class RetornoNfseHelper {
   /**
    * Formato de retorno das APIs da NFS-e. `status`, `error` e
@@ -7,22 +12,30 @@ class RetornoNfseHelper {
    * vai em `resBody`.
    *
    * @param {Object} options
-   * @param {Object | null} options.json `null` quando o corpo não é uma resposta do ADN
+   * @param {Object | null} options.json `null` quando o corpo não é uma resposta do serviço
    * @param {Object} options.retorno
    * @param {string} options.retorno.data
    * @param {number} options.retorno.status
    * @param {{code: string, message: string}} [options.retorno.transportError]
-   * @returns {{data: Object, resBody: string, status: number, error?: string, transportError?: {code: string, message: string}}}
+   * @param {'ADN' | 'SEFIN'} [options.servico = 'ADN'] Nomeia o serviço na mensagem de resposta inesperada
+   * @param {string} [options.reqXml] XML de domínio enviado; só existe na manifestação
+   * @param {string} [options.falha] Falha do helper ao ler uma resposta bem-sucedida
+   * @returns {{data: Object, reqXml?: string, resBody: string, status: number, error?: string, transportError?: {code: string, message: string}}}
    */
   static montarRetorno(options) {
-    const { json, retorno } = options
+    const { json, retorno, servico = 'ADN', reqXml, falha } = options
     const { status } = retorno
 
-    const resultado = {
-      data: json || {},
-      resBody: retorno.data || '',
-      status: status,
+    const resultado = { data: json || {} }
+
+    if (reqXml !== undefined) {
+      resultado['reqXml'] = reqXml
     }
+
+    resultado['resBody'] = retorno.data || ''
+    resultado['status'] = status
+
+    const inesperada = `${RESPOSTA_INESPERADA[servico]} (HTTP ${status}).`
 
     // Sem resposta HTTP, status é 0 e nenhuma condição abaixo se aplica.
     if (retorno.transportError) {
@@ -36,7 +49,7 @@ class RetornoNfseHelper {
     }
 
     if (!json) {
-      resultado['error'] = `Resposta inesperada do ADN (HTTP ${status}).`
+      resultado['error'] = inesperada
 
       return resultado
     }
@@ -57,7 +70,13 @@ class RetornoNfseHelper {
     if (falhou) {
       resultado['error'] = erros.length
         ? erros.map((erro) => `${erro.codigo}: ${erro.descricao}`).join('; ')
-        : `Resposta inesperada do ADN (HTTP ${status}).`
+        : inesperada
+
+      return resultado
+    }
+
+    if (falha) {
+      resultado['error'] = falha
     }
 
     return resultado

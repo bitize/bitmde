@@ -8,6 +8,7 @@ const CnpjCpfValidator = require('./cnpjCpf-validator')
 const CnpjValidator = require('./cnpj-validator')
 const EventoValidator = require('./evento-validator')
 const LoteValidator = require('./lote-validator')
+const MotivoRejeicaoValidator = require('./motivoRejeicao-validator')
 const NsuNfseValidator = require('./nsuNfse-validator')
 const NsuValidator = require('./nsu-validator')
 const UfValidator = require('./uf-validator')
@@ -22,6 +23,7 @@ const validator = Object.freeze({
   CnpjValidator,
   EventoValidator,
   LoteValidator,
+  MotivoRejeicaoValidator,
   NsuNfseValidator,
   NsuValidator,
   UfValidator,
