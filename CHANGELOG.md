@@ -2,6 +2,14 @@
 
 ## [Não publicado]
 
+### Adicionado
+
+- **`DistribuicaoCTe` e `DistribuicaoMDFe`: distribuição de CT-e (Ambiente Nacional) e de MDF-e (SVRS)**, exportadas nas três formas (`module.exports`, `.default`, `.mde`), com `consultaUltNSU(ultNSU)` e `consultaNSU(nsu)` e o mesmo retorno da `DistribuicaoDFe`, `docZipErrors` incluído. Não há consulta por chave: o leiaute dos dois serviços só aceita `distNSU` e `consNSU`
+- A `DistribuicaoMDFe` não recebe `cUFAutor`, que o `distDFeInt` do MDF-e não tem; a `DistribuicaoCTe` recebe a mesma `config` da `DistribuicaoDFe`
+- Hosts do CT-e e do MDF-e no `test/tls-sefaz.test.js` e com isso no workflow semanal `cadeia-tls.yml`. Os da SVRS servem cadeia ICP-Brasil, e o teste confere que continuam fechando com `CA_PADRAO`
+
+Nada muda em `DistribuicaoDFe`: o XML da NF-e sai byte a byte igual, conferido por teste. Ver [ADR 0010](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0010-distribuicao-parametrizada-por-documento.md).
+
 ### Corrigido
 
 - README: a seção "Conexão com a SEFAZ" passa a cobrir a `ManifestacaoNFSe` — o erro de transporte mantém o `reqXml`, e os hosts da SEFIN Nacional servem a cadeia GlobalSign

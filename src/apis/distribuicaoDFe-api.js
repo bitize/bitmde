@@ -1,6 +1,7 @@
 'use strict'
 
 const { DistribuicaoController } = require('../controllers')
+const { DOCUMENTOS } = require('../env')
 const {
   AmbienteValidator,
   CertificadoValidator,
@@ -83,6 +84,7 @@ class DistribuicaoDFe {
     const opts = {
       ...this.config,
       chNFe: value,
+      documento: DOCUMENTOS.NFE,
     }
 
     return DistribuicaoController.enviar(opts)
@@ -103,6 +105,7 @@ class DistribuicaoDFe {
     const opts = {
       ...this.config,
       nsu: value,
+      documento: DOCUMENTOS.NFE,
     }
 
     return DistribuicaoController.enviar(opts)
@@ -123,6 +126,7 @@ class DistribuicaoDFe {
     const opts = {
       ...this.config,
       ultNSU: value,
+      documento: DOCUMENTOS.NFE,
     }
 
     return DistribuicaoController.enviar(opts)

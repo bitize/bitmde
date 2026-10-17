@@ -1,6 +1,6 @@
-# Fluxo — NFeDistribuicaoDFe
+# Fluxo — distribuição de DF-e (NF-e, CT-e e MDF-e)
 
-Consulta de documentos fiscais destinados a um CNPJ/CPF. Três formas de perguntar, um único caminho de código.
+Consulta de documentos fiscais destinados a um CNPJ/CPF. Três classes públicas — `DistribuicaoDFe` (NF-e), `DistribuicaoCTe` e `DistribuicaoMDFe` —, um único caminho de código, parametrizado pelo descritor de `DOCUMENTOS` que cada classe injeta em `opts.documento` ([ADR 0010](../decisoes/0010-distribuicao-parametrizada-por-documento.md), descritor em [../camadas/env.md](../camadas/env.md#documentos)).
 
 ## O caminho completo
 
@@ -8,34 +8,49 @@ Consulta de documentos fiscais destinados a um CNPJ/CPF. Três formas de pergunt
 DistribuicaoDFe.consultaUltNSU(ultNSU)      ← apis/distribuicaoDFe-api.js
   │  NsuValidator: exige valor, ≤ 15 chars, zero-pad para 15
   ▼
-DistribuicaoController.enviar({ ...config, ultNSU })
+DistribuicaoController.enviar({ ...config, ultNSU, documento: DOCUMENTOS.NFE })
   │
   ├─ DistribuicaoHelper.montarRequest(opts)
   │    DistribuicaoSchema.montarSchema → objeto JS
-  │    Xml.jsonToXml                   → <nfeDistDFeInteresse>…
+  │    Xml.jsonToXml                   → <nfeDistDFeInteresse>… (MDF-e: <mdfeDadosMsg>…)
   │    Xml.envelopar                   → <soap12:Envelope>…
   │
   ├─ DistribuicaoHelper.enviarConsulta(data, opts)
-  │    endpoint = DISTRIBUICAO[tpAmb]
+  │    endpoint = documento.endpoints[tpAmb]
   │    new SefazService({ baseURL, ca: CA_PADRAO, cert, key, tpAmb, requestOptions, httpsOptions })
   │    POST  → { status, data, transportError? }
   │
-  ├─ DistribuicaoHelper.montarResponse(retornoSefaz.data)   ← async: tem gunzip
-  │    Xml.xmlToJson → desestruturação defensiva → normaliza docZip para array
+  ├─ DistribuicaoHelper.montarResponse(retornoSefaz.data, opts.documento)   ← async: tem gunzip
+  │    Xml.xmlToJson → Body › [response ›] result › retDistDFeInt → normaliza docZip para array
   │    para cada docZip: Gzip.unzip(base64) → Xml.xmlToJson
   │
   └─ RetornoHelper.montarRetorno → { data, reqXml, resXml, status, error?, transportError? }
 ```
 
-## As três consultas
+## As consultas
 
-| Método           | Validator        | Bloco no XML         | Uso                                                             |
-| ---------------- | ---------------- | -------------------- | --------------------------------------------------------------- |
-| `consultaUltNSU` | `NsuValidator`   | `<distNSU><ultNSU>`  | Varredura incremental: devolve o lote seguinte ao NSU informado |
-| `consultaNSU`    | `NsuValidator`   | `<consNSU><NSU>`     | Um documento específico, pelo NSU                               |
-| `consultaChNFe`  | `ChaveValidator` | `<consChNFe><chNFe>` | Um documento específico, pela chave de 44 dígitos               |
+| Método           | Classes   | Validator        | Bloco no XML         | Uso                                                             |
+| ---------------- | --------- | ---------------- | -------------------- | --------------------------------------------------------------- |
+| `consultaUltNSU` | as três   | `NsuValidator`   | `<distNSU><ultNSU>`  | Varredura incremental: devolve o lote seguinte ao NSU informado |
+| `consultaNSU`    | as três   | `NsuValidator`   | `<consNSU><NSU>`     | Um documento específico, pelo NSU                               |
+| `consultaChNFe`  | só a NF-e | `ChaveValidator` | `<consChNFe><chNFe>` | Um documento específico, pela chave de 44 dígitos               |
 
-A precedência é resolvida no schema (`ultNSU` → `chNFe` → `nsu`), mas na prática cada método monta `opts` com **um** desses campos apenas. Ver [../camadas/schemas-xml.md](../camadas/schemas-xml.md).
+O CT-e e o MDF-e não têm consulta por chave: o `distDFeInt` dos dois só aceita `distNSU` e `consNSU`, e a SEFAZ rejeita o bloco de chave com `215`. Por isso o descritor deles tem `consChave: null`.
+
+A precedência é resolvida no schema (`ultNSU` → chave do descritor, quando há → `nsu`), mas na prática cada método monta `opts` com **um** desses campos apenas. Ver [../camadas/schemas-xml.md](../camadas/schemas-xml.md).
+
+### O que muda por documento
+
+|                          | NF-e                  | CT-e                  | MDF-e                               |
+| ------------------------ | --------------------- | --------------------- | ----------------------------------- |
+| Serviço                  | Ambiente Nacional     | Ambiente Nacional     | SVRS                                |
+| Cadeia TLS               | GlobalSign            | GlobalSign            | ICP-Brasil                          |
+| `versao` do `distDFeInt` | `1.01`                | `1.00`                | `1.00`                              |
+| `cUFAutor`               | sim                   | sim                   | **não existe**                      |
+| Invólucro no Body        | `nfeDistDFeInteresse` | `cteDistDFeInteresse` | **nenhum** (`mdfeDadosMsg` direto)  |
+| Resposta                 | `…Response › …Result` | `…Response › …Result` | `mdfeDistDFeInteresseResult` direto |
+
+O WSDL do MDF-e declara um `mdfeCabecMsg` no SOAP Header, mas a SVRS aceita o pedido sem ele e o devolve preenchido na resposta, que a biblioteca ignora. Cada serviço guarda o próprio `ultNSU` por CNPJ/CPF: as três varreduras são independentes.
 
 ### Zero-pad do NSU
 
@@ -65,7 +80,7 @@ Cada item de `docZip`:
 | `nsu`    | Atributo `@_NSU`                                                  |
 | `schema` | Atributo `@_schema` — diz o que o documento é                     |
 
-O campo `schema` é o que distingue os tipos de documento que a SEFAZ devolve no mesmo lote (procNFe, resNFe, resEvento, procEventoNFe). A biblioteca **não** interpreta esse campo nem valida o conteúdo — entrega os quatro campos e sai do caminho.
+O campo `schema` é o que distingue os tipos de documento que a SEFAZ devolve no mesmo lote (procNFe, resNFe, resEvento, procEventoNFe; no CT-e e no MDF-e, procCTe, procEventoCTe, procMDFe…). A biblioteca **não** interpreta esse campo nem valida o conteúdo — entrega os quatro campos e sai do caminho.
 
 Cada item de `docZipErrors` traz `nsu`, `schema` e `error` (string). Os dois arrays preservam a ordem do lote. Os textos de `error` estão em [../camadas/controllers-helpers.md](../camadas/controllers-helpers.md).
 
@@ -81,6 +96,8 @@ O padrão de uso previsto pelo serviço, e o motivo de `ultNSU` e `maxNSU` virem
 4. Se `ultNSU < maxNSU`, ainda há documentos — repetir a partir do `ultNSU` devolvido.
 
 A biblioteca não faz esse laço, e isso é intencional: a SEFAZ impõe **restrição de cadência** por consumidor (consulta repetida em intervalo curto é rejeitada com `cStat` de bloqueio, e a penalidade é por CNPJ). Quem chama precisa controlar o intervalo com conhecimento do próprio agendamento — ver [../camadas/services-sefaz.md](../camadas/services-sefaz.md).
+
+O mesmo vale para o CT-e e o MDF-e, que a biblioteca e a documentação tratam com a mesma disciplina da NF-e: ponteiro por CNPJ/CPF, uma hora de espera depois de `137` e `656` para quem sai da sequência. O bloqueio foi observado na NF-e; nos outros dois é premissa, não medição. É também por isso que o `sefaz.test.js` só consulta CT-e e MDF-e em homologação.
 
 ## Gunzip
 

@@ -1,16 +1,16 @@
 # GH-3: Suporte a CT-e e MDF-e na distribuição de DF-e
 
-| Campo                | Valor                                                                   |
-| -------------------- | ----------------------------------------------------------------------- |
-| **Issue**            | [GH-3](https://github.com/bitize/bit-mde/issues/3)                      |
-| **Status**           | especificadas                                                           |
-| **Plano**            | —                                                                       |
-| **Prioridade**       | P2 (médio)                                                              |
-| **Tipo**             | feature                                                                 |
-| **Camadas afetadas** | apis / validators / controllers / helpers / schemas / env / util / test |
-| **Criado em**        | 2026-08-16                                                              |
-| **Atualizado em**    | 2026-10-01                                                              |
-| **Concluído em**     | —                                                                       |
+| Campo                | Valor                                               |
+| -------------------- | --------------------------------------------------- |
+| **Issue**            | [GH-3](https://github.com/bitize/bit-mde/issues/3)  |
+| **Status**           | especificadas                                       |
+| **Plano**            | —                                                   |
+| **Prioridade**       | P2 (médio)                                          |
+| **Tipo**             | feature                                             |
+| **Camadas afetadas** | apis / controllers / helpers / schemas / env / test |
+| **Criado em**        | 2026-08-16                                          |
+| **Atualizado em**    | 2026-10-16                                          |
+| **Concluído em**     | —                                                   |
 
 ---
 
@@ -47,13 +47,13 @@ Não faz parte do escopo: manifestação/evento de CT-e ou MDF-e (`CTeRecepcaoEv
 
 | ID    | Requisito                                                                                                                                                      | Prioridade |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| RF-01 | Classe pública `DistribuicaoCTe` com `consultaUltNSU`, `consultaNSU` e `consultaChCTe`, mesma config de `DistribuicaoDFe`                                      | Must       |
-| RF-02 | Classe pública `DistribuicaoMDFe` com `consultaUltNSU`, `consultaNSU` e `consultaChMDFe`, mesma config                                                         | Must       |
+| RF-01 | Classe pública `DistribuicaoCTe` com `consultaUltNSU` e `consultaNSU`, mesma config de `DistribuicaoDFe` — **revisto:** sem `consultaChCTe` (ver Notas)        | Must       |
+| RF-02 | Classe pública `DistribuicaoMDFe` com `consultaUltNSU` e `consultaNSU`, config sem `cUFAutor` — **revisto:** sem `consultaChMDFe` (ver Notas)                  | Must       |
 | RF-03 | `DistribuicaoDFe` permanece **inalterada** em assinatura e comportamento                                                                                       | Must       |
 | RF-04 | Retorno idêntico ao da NF-e: `{ data: { tpAmb, verAplic, cStat, xMotivo, dhResp, ultNSU, maxNSU, docZip[], docZipErrors[] }, reqXml, resXml, status, error? }` | Must       |
 | RF-05 | Endpoints por `tpAmb`: CT-e no Ambiente Nacional, MDF-e na SVRS                                                                                                | Must       |
-| RF-06 | Validators próprios de chave para CT-e e MDF-e, com mensagens em português (texto exato abaixo)                                                                | Must       |
-| RF-07 | Suporte a cabeçalho SOAP (`mdfeCabecMsg`), exigido pelos serviços de MDF-e, sem alterar o envelope gerado hoje                                                 | Must       |
+| RF-06 | ~~Validators próprios de chave para CT-e e MDF-e~~ — **cancelado:** os dois serviços não têm consulta por chave (ver Notas)                                    | —          |
+| RF-07 | ~~Suporte a cabeçalho SOAP (`mdfeCabecMsg`)~~ — **cancelado:** a SVRS não exige o cabeçalho; no lugar, suporte ao corpo "bare" do MDF-e (ver Notas)            | —          |
 | RF-08 | Uma única implementação de schema/helper/controller parametrizada por documento — sem cópia por tipo                                                           | Must       |
 | RF-09 | `src/index.js` exporta as classes novas nas três formas (`module.exports`, `.default`, `.mde`)                                                                 | Must       |
 | RF-10 | `README.md` documenta os dois serviços novos, com exemplo por método                                                                                           | Must       |
@@ -92,33 +92,39 @@ const DOCUMENTOS = {
 
 > Isto é decisão estrutural com reversão custosa: ao ser aceita, gerar **ADR 0010 — distribuição parametrizada por descritor de documento**, registrando por que a duplicação por tipo foi recusada.
 
-### Decisão 2: cabeçalho SOAP opcional em `Xml.envelopar`
+### Decisão 2: cabeçalho SOAP opcional em `Xml.envelopar` — revista: não implementada
+
+> Revista na implementação: a SVRS não exige o `mdfeCabecMsg` (questão 1), então `Xml.envelopar` ficou como estava, e o que o MDF-e precisava era outro — corpo sem invólucro, coberto pelo descritor (`operacao: null`). A justificativa abaixo vale para quem precisar de cabeçalho no futuro.
 
 - **Opções consideradas:** (A) `Xml.envelopar(xml, header)` com segundo parâmetro opcional; (B) função nova `Xml.enveloparComCabecalho`; (C) montar o envelope do MDF-e à mão no helper, como no fork do Tyago.
 - **Escolha:** A.
 - **Justificativa:** C reintroduz string de XML escrita à mão fora de `util/xml.js` e some com a garantia de envelope sem espaço em branco. B duplica o template. Em A, **a saída para chamada de um argumento precisa ser byte a byte a de hoje** — é o que protege o recorte por `indexOf` da recepção ([ADR 0007](../../arquitetura/decisoes/0007-assinatura-por-infevento-e-splice-do-lote.md)). O prefixo `soap12:` também não muda: o fork do Tyago trocou para `soap:` sem necessidade, e o `montarResponse` lê a resposta por `'soap:Envelope'` — que é o que a SEFAZ **responde**, independente do prefixo enviado.
 
-### Decisão 3: `cUFAutor` e `CODIGOS_UF` reaproveitados como estão
+### Decisão 3: `cUFAutor` e `CODIGOS_UF` reaproveitados como estão — revista para o MDF-e
+
+> Revista na implementação: vale para o CT-e. O `distDFeInt` do MDF-e não tem `cUFAutor` (questão 3), então a `DistribuicaoMDFe` não usa o `UfValidator` e não guarda o campo; o descritor diz ao schema se o campo entra (`cUFAutor: true|false`).
 
 - **Escolha:** os três serviços usam o mesmo `UfValidator` e o mesmo `CnpjCpfValidator`, sem cópia.
 - **Justificativa:** `distDFeInt` tem o mesmo cabeçalho nos três leiautes (`tpAmb`, `cUFAutor`, `CNPJ`/`CPF`). Reaproveitar mantém uma só mensagem de erro por assunto.
 
-### Decisão 4: `NsuValidator` reaproveitado, chave com validator próprio
+### Decisão 4: `NsuValidator` reaproveitado, chave com validator próprio — revista: sem validator de chave
+
+> Revista na implementação: o `NsuValidator` é reaproveitado como previsto, mas não há consulta por chave no CT-e nem no MDF-e (questão 2), e com isso não há `ChaveCteValidator` nem `ChaveMdfeValidator`. As quatro mensagens da tabela abaixo não existem no código.
 
 - **Escolha:** NSU compartilha o validator (mesmo zero-pad de 15); a chave ganha `ChaveCteValidator` e `ChaveMdfeValidator`.
 - **Justificativa:** o NSU tem o mesmo formato e a mesma mensagem nos três serviços. A chave, não: `'Chave da NF-e não informada.'` num método `consultaChCTe` seria mensagem errada, e as mensagens são contrato ([validators.md](../../arquitetura/camadas/validators.md)).
 
-### Questões em aberto — confirmar contra homologação antes de implementar
+### Questões em aberto — respondidas em homologação (2026-10-16)
 
-| #   | Questão                                                                                                                                         | Como resolver                                                    |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| 1   | O `MDFeDistribuicaoDFe` exige mesmo `mdfeCabecMsg` no SOAP Header? Existe a rejeição **242 — Elemento mdfeCabecMsg inexistente no SOAP Header** | Chamada em homologação com e sem o cabeçalho                     |
-| 2   | O bloco de chave do CT-e é `<consChCTe><chCTe>` (MOC) e não `<consChCTe><chNFe>` (fork da vexta)                                                | Consulta por chave em homologação; conferir contra o XSD do CT-e |
-| 3   | `versao` do `distDFeInt` é `1.00` no CT-e e no MDF-e (`1.01` só na NF-e)?                                                                       | XSD de cada serviço + resposta de homologação                    |
-| 4   | O `?wsdl` no fim da URL, herdado do endpoint de NF-e, é inofensivo no CT-e e no MDF-e?                                                          | Testar as duas formas; padronizar a que responder                |
-| 5   | Homologação do CT-e responde em `hom1.cte.fazenda.gov.br`? Do MDF-e, em `mdfe-homologacao.svrs.rs.gov.br`?                                      | `test/sefaz.test.js` estendido                                   |
+Respondidas na revisão do PR #10, com o WSDL de cada serviço (`GET ?wsdl` com mTLS) e pedidos `distDFeInt` reais em homologação, com chave inventada. Produção não foi consultada.
 
-> As respostas entram nesta seção **antes** de a implementação começar, e a tarefa foi promovida a `especificadas/` com elas ainda abertas. Enquanto a 1 e a 2 não forem confirmadas em homologação, RF-07 e o descritor do CT-e não têm forma final — quem pegar a tarefa começa por essa confirmação, não pelo código.
+| #   | Questão                                          | Resposta                                                                                                                                                                                                                                                                                                                                                                   |
+| --- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | O `MDFeDistribuicaoDFe` exige `mdfeCabecMsg`?    | **Não.** Sem o cabeçalho a SVRS responde `137`, e devolve o `mdfeCabecMsg` preenchido na resposta. O que a SVRS exige é o corpo "bare": o WSDL não tem o invólucro `mdfeDistDFeInteresse`, e com ele a resposta é HTTP 500 (`Unable to handle request without a valid action parameter`). A resposta também vem sem invólucro: `mdfeDistDFeInteresseResult` direto no Body |
+| 2   | O bloco de chave do CT-e é `<consChCTe><chCTe>`? | **Não existe bloco de chave.** `<consChCTe><chCTe>` e `<consChCTe><chNFe>`, com chave modelo 57 de DV válido, voltam `215 Falha no esquema xml`; `distNSU` e `consNSU` com o mesmo cabeçalho voltam `137`. No MDF-e a rejeição é explícita: `expected: 'distNSU, consNSU'`                                                                                                 |
+| 3   | `versao` `1.00` no CT-e e no MDF-e?              | **Sim.** E o `distDFeInt` do MDF-e **não tem `cUFAutor`**: `215`, `invalid child element 'cUFAutor' … expected: 'CNPJ, CPF'`. O do CT-e tem                                                                                                                                                                                                                                |
+| 4   | O `?wsdl` no fim da URL é inofensivo?            | **Sim**, nos dois: o `POST` responde igual com e sem. Mantido, como na NF-e                                                                                                                                                                                                                                                                                                |
+| 5   | Os hosts de homologação respondem?               | **Sim**, os quatro, com `CA_PADRAO`. O CT-e serve GlobalSign, como a NF-e; a SVRS serve **ICP-Brasil** (AC SERPRO SSLv1 ← Raiz v10)                                                                                                                                                                                                                                        |
 
 ---
 
@@ -202,43 +208,67 @@ const DOCUMENTOS = {
 
 ## Testes
 
-- [ ] `test/distribuicaoCTe.test.js` e `test/distribuicaoMDFe.test.js`, decalcados de [test/distribuicao.test.js](../../../test/distribuicao.test.js): construtor sem cert, sem key, sem `tpAmb`, `tpAmb` inválido, sem CNPJ/CPF, sem `cUFAutor`, `cUFAutor` inválido
-- [ ] Teste para cada mensagem de erro nova das chaves — quatro no total, com `assert.throws` sobre o texto exato
-- [ ] Teste de imutabilidade das duas classes novas (instância e `config` congeladas; `assert.throws` ao sobrescrever)
-- [ ] **Regressão de XML da NF-e:** `DistribuicaoSchema` parametrizado gera, para NF-e, string idêntica à atual — congelar o XML esperado no teste
-- [ ] XML gerado para CT-e e MDF-e conferido contra o esperado, incluindo `<soap12:Header><mdfeCabecMsg>` no MDF-e
-- [ ] `Xml.envelopar(xml)` de um argumento continua byte a byte igual (protege o recorte do lote da recepção)
-- [ ] `test/distribuicaoDFe-helper.test.js` (GH-11) continua passando sem alteração depois da parametrização, e ganha ao menos um lote misto de CT-e ou MDF-e — prova que `docZipErrors` vale para os documentos novos
-- [ ] `test/sefaz.test.js` estendido com CT-e e MDF-e em homologação **e** produção, e rodado manualmente — obrigatório: a tarefa toca transporte
+- [x] `test/distribuicaoCTe.test.js` e `test/distribuicaoMDFe.test.js`, decalcados de [test/distribuicao.test.js](../../../test/distribuicao.test.js): construtor sem cert, sem key, sem `tpAmb`, `tpAmb` inválido, sem CNPJ/CPF, sem `cUFAutor`, `cUFAutor` inválido — no MDF-e, no lugar dos três de `cUFAutor`, um que prova que o campo é ignorado
+- [x] ~~Teste para cada mensagem de erro nova das chaves~~ — não há chave; no lugar, as duas classes provam que `consultaChCTe`/`consultaChMDFe` não existem
+- [x] Teste de imutabilidade das duas classes novas (instância e `config` congeladas; `assert.throws` ao sobrescrever)
+- [x] **Regressão de XML da NF-e:** envelope congelado em `test/fixtures/nfe-distribuicao-envelope.js` e comparado com `strictEqual` em `test/distribuicaoDFe-helper.test.js`
+- [x] XML gerado para CT-e e MDF-e conferido inteiro, com `strictEqual` — o MDF-e sem invólucro, sem `cUFAutor` e sem Header
+- [x] `Xml.envelopar(xml)` continua byte a byte igual — o arquivo nem mudou, e `test/xml.test.js` compara com o mesmo fixture
+- [x] `test/distribuicaoDFe-helper.test.js` (GH-11) continua passando sem alteração nos testes existentes (`montarResponse(data)` sem descritor lê NF-e), e ganha lote misto de CT-e e de MDF-e
+- [ ] `test/sefaz.test.js` estendido com CT-e e MDF-e — **parcial, de propósito:** `GET ?wsdl` com mTLS nos dois ambientes, e `consultaUltNSU`/`consultaNSU` só em homologação. Rodado com A1 real (ver Notas). Consulta por NSU em produção move o ponteiro da SEFAZ para o CNPJ
 
 ## Checklist de implementação
 
-- [ ] Código em `src/` (apis, validators, schemas, helpers/controllers, env, util)
-- [ ] Testes em `test/`
-- [ ] JSDoc atualizado (`src/apis/` e controllers)
-- [ ] [README.md](../../../README.md) atualizado: seções novas de CT-e e MDF-e no formato das existentes, e a lista de **Funcionalidades**
-- [ ] `CHANGELOG.md` atualizado em `[Não publicado]`
-- [ ] Docs de `.docs/arquitetura/` atualizados: [README](../../arquitetura/README.md), [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [schemas-xml](../../arquitetura/camadas/schemas-xml.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md) e o fluxo de [distribuição](../../arquitetura/fluxos/distribuicao-dfe.md)
-- [ ] ADR 0010 criado (Decisão 1)
+- [x] Código em `src/` (apis, schemas, helpers/controllers, env — `validators` e `util` não precisaram mudar)
+- [x] Testes em `test/`
+- [x] JSDoc atualizado (`src/apis/` e o `montarResponse` do helper; o controller não mudou de retorno)
+- [x] [README.md](../../../README.md) atualizado: seção de CT-e e MDF-e e a lista de **Funcionalidades**
+- [x] `CHANGELOG.md` atualizado em `[Não publicado]`
+- [x] Docs de `.docs/arquitetura/` atualizados (o [validators](../../arquitetura/camadas/validators.md) não precisou mudar), mais [testes-e-certificados](../../arquitetura/testes-e-certificados.md) e o `CLAUDE.md`: [README](../../arquitetura/README.md), [apis](../../arquitetura/camadas/apis.md), [validators](../../arquitetura/camadas/validators.md), [schemas-xml](../../arquitetura/camadas/schemas-xml.md), [controllers-helpers](../../arquitetura/camadas/controllers-helpers.md), [env](../../arquitetura/camadas/env.md) e o fluxo de [distribuição](../../arquitetura/fluxos/distribuicao-dfe.md)
+- [x] ADR 0010 criado (Decisão 1)
 - [ ] Versão: bump de **minor** (mudança aditiva) no release seguinte
 
 ## Validação pré-PR (obrigatório)
 
 Rodar na raiz do repositório:
 
-- [ ] `npm run format` (ou conferir com `npm run format:check`)
-- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real)
-- [ ] `npm run test:ci` — tudo menos `test/sefaz.test.js`; é o que roda com o certificado descartável
-- [ ] `test/sefaz.test.js` rodado à parte (`npx mocha test/sefaz.test.js`) — exige certificado A1 válido e acesso à rede
-- [ ] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
-- [ ] Conferir no `dist/index.d.ts` que as duas classes novas aparecem com os métodos e o tipo de retorno corretos
-- [ ] `git status` limpo, exceto o que a tarefa mudou de propósito
+- [x] `npm run format` (ou conferir com `npm run format:check`)
+- [x] `npm run certs:teste` — não rodado: `certs/` já existe, com A1 real
+- [x] `npm run test:ci` — tudo menos `test/sefaz.test.js`; é o que roda com o certificado descartável
+- [x] `test/sefaz.test.js` rodado à parte, com A1 real — só os testes novos de CT-e e MDF-e (`--grep`); ver Notas
+- [x] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
+- [x] Conferir no `dist/index.d.ts` que as duas classes novas aparecem com os métodos e o tipo de retorno corretos
+- [x] `git status` limpo, exceto o que a tarefa mudou de propósito
 
 ## Notas de implementação
 
 > Preenchido durante ou após a implementação. Registrar os **desvios** em relação a esta especificação e a justificativa de cada um. Se não houve, escrever "Sem desvios".
 
--
+A primeira versão do PR #10 seguiu a especificação ao pé da letra sem confirmar as questões em aberto, e marcou "Sem desvios". A revisão confirmou as questões em homologação (ver a seção delas) e a especificação se mostrou errada em quatro pontos. As correções foram aprovadas pelo usuário em 2026-10-16 e entram no mesmo PR:
+
+1. **Sem consulta por chave no CT-e e no MDF-e (RF-01, RF-02, RF-06, Decisão 4).** Os dois serviços só aceitam `distNSU` e `consNSU`. Saem `consultaChCTe`, `consultaChMDFe`, `ChaveCteValidator`, `ChaveMdfeValidator` e as quatro mensagens de erro deles. O descritor tem `consChave: null` nos dois, e o schema ignora chave em `opts`.
+2. **`DistribuicaoMDFe` sem `cUFAutor` (RF-02, Decisão 3).** O `distDFeInt` do MDF-e não tem o campo. A classe não valida nem guarda `cUFAutor`; se informado, é ignorado, para não quebrar quem copiar a config da NF-e.
+3. **Corpo "bare" no MDF-e, sem `mdfeCabecMsg` (RF-07, Decisão 2).** Com o invólucro `mdfeDistDFeInteresse` a SVRS responde HTTP 500; a resposta também vem sem invólucro. O descritor ganhou `operacao: null` e `resposta.response: null`. O cabeçalho não é exigido, então `Xml.envelopar` voltou ao que era e não há segundo parâmetro.
+4. **`tls-sefaz.test.js` com os hosts novos.** Não estava na especificação. A SVRS serve cadeia ICP-Brasil, o contrário do que o teste exige dos outros hosts; ganhou um grupo próprio, que precisa fechar só com `CA_ICP_BRASIL`. É o que impede tirar a ICP-Brasil de `CA_PADRAO` sem quebrar o MDF-e.
+
+Detalhes de implementação sem impacto no contrato:
+
+- O PR estava 50 commits atrás da `main` (GH-11, GH-14, NFS-e). Entrou um merge da `main`, não um rebase, para não reescrever a branch do fork. Na fusão, o helper manteve a normalização de `loteDistDFeInt` da GH-11 e o `CA_PADRAO` da GH-14.
+- `montarResponse(data, documento = DOCUMENTOS.NFE)`: o default mantém os testes da GH-11 sem alteração, como a especificação pede.
+- Os testes de `montarRequest` e de `montarResponse` dos documentos novos foram para `test/distribuicaoDFe-helper.test.js`; o `test/distribuicaoSchema.test.js` da primeira versão saiu (testava o helper, com `includes`, e congelava o envelope errado do MDF-e).
+- `test/sefaz.test.js` aceita, nas consultas de homologação, só os `cStat` que a base pode devolver para um leiaute aceito (137, 138, 493, 656), e reprova qualquer outro. A primeira versão aceitava qualquer código de três dígitos menos o `215`; a lista fechada veio da revisão do CodeRabbit, para um código inesperado não passar calado.
+
+Revisão automática (CodeRabbit, revisões de 2026-10-16):
+
+- Aplicado: lista fechada de `cStat` no `sefaz.test.js` (ver acima).
+- Aplicado: o README restringe à NF-e a afirmação sobre o ponteiro e o `656`, e troca "dessincroniza" por "pode dessincronizar".
+- Não aplicado: `Object.freeze` no export de `DistribuicaoCTe` e `DistribuicaoMDFe`. Nenhuma das quatro classes de `apis/` que já existiam congela o export; o que a camada garante é a instância e a `config` congeladas, e as duas novas fazem isso, com teste. Congelar a classe também não protegeria os métodos, que ficam no `prototype`. O ADR 0005 diz "praticamente todo módulo" sem listar `apis/` como exceção: alinhar texto e código é tarefa à parte, não deste PR.
+
+Contagens: `test:ci` foi de 212 para 249 testes passando; a suíte inteira tem 293, com 22 em `sefaz.test.js` e 22 em `tls-sefaz.test.js`.
+
+`sefaz.test.js` com A1 real: os 8 testes novos (4 `GET ?wsdl`, 4 consultas em homologação) passaram em 2026-10-16. Os 14 já existentes não foram rodados nesta revisão — o código de NF-e e NFS-e não mudou de comportamento, e os de NFS-e consultam produção.
+
+Produção conferida à mão em 2026-10-16, com uma `consultaUltNSU('0')` por serviço para o CNPJ do A1 da Bitize, que nenhum sistema varre em CT-e nem em MDF-e: o CT-e voltou `138` com 25 documentos (`procCTe_v4.00` e `procEventoCTe_v4.00`), todos abertos, sem `docZipErrors`; o MDF-e voltou `137`. Nenhum `215`. A consulta deixou o ponteiro do CT-e desse CNPJ em produção no NSU 397, igual ao `maxNSU`. Não há como zerá-lo, mas também não precisa: uma varredura que comece de 0 depois de uma hora traz os mesmos documentos e termina no mesmo 397. Se vier `656`, o `ultNSU` da própria resposta é o que vale.
 
 ## Conclusão e entrega
 
@@ -267,8 +297,9 @@ Executar **após o PR ser mergeado na `main`**:
 
 ## Histórico de revisões
 
-| Data       | Rev | Descrição                                                                        |
-| ---------- | --- | -------------------------------------------------------------------------------- |
-| 2026-08-16 | 0.1 | Rascunho inicial, com cinco questões em aberto para confirmar                    |
-| 2026-08-16 | 1.0 | Promovida a `especificadas/` com a issue GH-3; questões em aberto seguem abertas |
-| 2026-10-01 | 1.1 | RF-04 e helpers ajustados ao `docZipErrors` entregue pela GH-11                  |
+| Data       | Rev | Descrição                                                                                                                 |
+| ---------- | --- | ------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-16 | 0.1 | Rascunho inicial, com cinco questões em aberto para confirmar                                                             |
+| 2026-08-16 | 1.0 | Promovida a `especificadas/` com a issue GH-3; questões em aberto seguem abertas                                          |
+| 2026-10-01 | 1.1 | RF-04 e helpers ajustados ao `docZipErrors` entregue pela GH-11                                                           |
+| 2026-10-16 | 1.2 | Implementação e notas: questões respondidas em homologação, RF-01/02/06/07 e Decisões 2 a 4 revistas na revisão do PR #10 |

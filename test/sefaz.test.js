@@ -3,11 +3,18 @@
 const assert = require('assert')
 const crypto = require('crypto')
 const fs = require('fs')
-const { DistribuicaoNFSe, ManifestacaoNFSe } = require('../src')
+const {
+  DistribuicaoCTe,
+  DistribuicaoMDFe,
+  DistribuicaoNFSe,
+  ManifestacaoNFSe,
+} = require('../src')
 const SefazService = require('../src/services/sefaz-service')
 const {
   CA_PADRAO,
   DISTRIBUICAO,
+  DISTRIBUICAO_CTE,
+  DISTRIBUICAO_MDFE,
   EVENTOS_NFSE,
   RECEPCAO,
 } = require('../src/env')
@@ -103,6 +110,98 @@ describe('SefazService', function () {
       assert.equal(retorno.status, 200)
     })
 
+    it('CTeDistribuicaoDFe tpAmb = "1"', async function () {
+      const tpAmb = '1'
+      const baseURL = DISTRIBUICAO_CTE[tpAmb]
+      const requestOptions = {}
+      const httpsOptions = {}
+
+      const client = new SefazService({
+        baseURL: baseURL,
+        ca: CA_PADRAO,
+        cert: certificado.cert,
+        key: certificado.key,
+        tpAmb: tpAmb,
+        requestOptions: requestOptions,
+        httpsOptions: httpsOptions,
+      })
+
+      const config = { method: 'GET' }
+
+      const retorno = await client.request(config)
+
+      assert.equal(retorno.status, 200)
+    })
+
+    it('CTeDistribuicaoDFe tpAmb = "2"', async function () {
+      const tpAmb = '2'
+      const baseURL = DISTRIBUICAO_CTE[tpAmb]
+      const requestOptions = {}
+      const httpsOptions = {}
+
+      const client = new SefazService({
+        baseURL: baseURL,
+        ca: CA_PADRAO,
+        cert: certificado.cert,
+        key: certificado.key,
+        tpAmb: tpAmb,
+        requestOptions: requestOptions,
+        httpsOptions: httpsOptions,
+      })
+
+      const config = { method: 'GET' }
+
+      const retorno = await client.request(config)
+
+      assert.equal(retorno.status, 200)
+    })
+
+    it('MDFeDistribuicaoDFe tpAmb = "1"', async function () {
+      const tpAmb = '1'
+      const baseURL = DISTRIBUICAO_MDFE[tpAmb]
+      const requestOptions = {}
+      const httpsOptions = {}
+
+      const client = new SefazService({
+        baseURL: baseURL,
+        ca: CA_PADRAO,
+        cert: certificado.cert,
+        key: certificado.key,
+        tpAmb: tpAmb,
+        requestOptions: requestOptions,
+        httpsOptions: httpsOptions,
+      })
+
+      const config = { method: 'GET' }
+
+      const retorno = await client.request(config)
+
+      assert.equal(retorno.status, 200)
+    })
+
+    it('MDFeDistribuicaoDFe tpAmb = "2"', async function () {
+      const tpAmb = '2'
+      const baseURL = DISTRIBUICAO_MDFE[tpAmb]
+      const requestOptions = {}
+      const httpsOptions = {}
+
+      const client = new SefazService({
+        baseURL: baseURL,
+        ca: CA_PADRAO,
+        cert: certificado.cert,
+        key: certificado.key,
+        tpAmb: tpAmb,
+        requestOptions: requestOptions,
+        httpsOptions: httpsOptions,
+      })
+
+      const config = { method: 'GET' }
+
+      const retorno = await client.request(config)
+
+      assert.equal(retorno.status, 200)
+    })
+
     it('NFeRecepcaoEvento4 sem informar cert.pem e key.pem', async function () {
       const tpAmb = '2'
       const baseURL = RECEPCAO[tpAmb]
@@ -168,6 +267,72 @@ describe('SefazService', function () {
 
       assert.equal(retorno.status, 200)
     })
+  })
+})
+
+// Só homologação. Em produção, consulta por NSU move o ponteiro que a SEFAZ
+// guarda por CNPJ e pode dessincronizar quem já faz a distribuição desse CNPJ
+// (cStat 656). Em homologação o cStat varia com o que há na base (137, 138,
+// 493 se o NSU passar do maior, 656 se o teste repetir em menos de uma hora),
+// e esses quatro provam que o leiaute foi aceito. Qualquer outro reprova:
+// 215 é schema, e um código novo pede investigação antes de entrar na lista.
+const CSTAT_LEIAUTE_ACEITO = ['137', '138', '493', '656']
+
+function assertLeiauteAceito(retorno) {
+  assert.strictEqual(retorno.status, 200)
+  assert.strictEqual(retorno.error, undefined)
+  assert.ok(
+    CSTAT_LEIAUTE_ACEITO.includes(retorno.data.cStat),
+    `cStat ${retorno.data.cStat}: ${retorno.data.xMotivo}`
+  )
+}
+
+describe('DistribuicaoCTe', function () {
+  this.timeout(30000)
+
+  const distribuicao = () =>
+    new DistribuicaoCTe({
+      cert: certificado.cert,
+      key: certificado.key,
+      cnpj: cnpjDoCertificado(),
+      cUFAutor: '35',
+      tpAmb: '2',
+    })
+
+  it('consultaUltNSU("0") em homologação: leiaute aceito', async function () {
+    const retorno = await distribuicao().consultaUltNSU('0')
+
+    assertLeiauteAceito(retorno)
+  })
+
+  it('consultaNSU("1") em homologação: leiaute aceito', async function () {
+    const retorno = await distribuicao().consultaNSU('1')
+
+    assertLeiauteAceito(retorno)
+  })
+})
+
+describe('DistribuicaoMDFe', function () {
+  this.timeout(30000)
+
+  const distribuicao = () =>
+    new DistribuicaoMDFe({
+      cert: certificado.cert,
+      key: certificado.key,
+      cnpj: cnpjDoCertificado(),
+      tpAmb: '2',
+    })
+
+  it('consultaUltNSU("0") em homologação: leiaute aceito', async function () {
+    const retorno = await distribuicao().consultaUltNSU('0')
+
+    assertLeiauteAceito(retorno)
+  })
+
+  it('consultaNSU("1") em homologação: leiaute aceito', async function () {
+    const retorno = await distribuicao().consultaNSU('1')
+
+    assertLeiauteAceito(retorno)
   })
 })
 

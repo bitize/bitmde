@@ -13,6 +13,8 @@ static async enviar(opts) {
 }
 ```
 
+O `DistribuicaoController` é o mesmo para NF-e, CT-e e MDF-e: passa `opts.documento` como segundo argumento de `montarResponse`, e o helper tira dele o endpoint (`documento.endpoints[tpAmb]`) e os nomes da resposta. Ver [ADR 0010](../decisoes/0010-distribuicao-parametrizada-por-documento.md).
+
 O controller não decide nada: ele fixa a ordem e o formato do retorno. Toda variação entre os dois serviços está no helper. Se um passo novo aparecer (retry, cache, log), é aqui que ele entraria — e isso mudaria o contrato dos dois serviços de uma vez.
 
 Diferença única entre os dois: `DistribuicaoHelper.montarResponse` é **assíncrono** (precisa de gunzip nos `docZip`), `RecepcaoHelper.montarResponse` é síncrono. Por isso o `await` acima é obrigatório na distribuição — sem ele, `json` seria a Promise, não a resposta — e o [recepcaoEvento-controller.js](../../../src/controllers/recepcaoEvento-controller.js) o dispensa. Escrevê-lo nos dois é inofensivo: `await` sobre valor não-Promise resolve para ele mesmo.
@@ -31,7 +33,7 @@ Cada helper de serviço tem os mesmos três métodos:
 
 ### `montarResponse` — o padrão de leitura defensiva
 
-Os dois helpers desestruturam a resposta com default em **cada** nível:
+Os dois helpers leem a resposta com default em **cada** nível. Na recepção, por desestruturação:
 
 ```js
 const {
@@ -45,7 +47,18 @@ const {
 } = json
 ```
 
-Motivo: quando a SEFAZ devolve HTML de erro, um envelope de falha SOAP, ou quando não houve resposta e `data` chega como `''`, o caminho esperado não existe. Sem os defaults, seria `TypeError` em vez de retorno com `error`. **Não simplificar essa desestruturação.**
+Na distribuição, os nomes vêm do descritor, então a leitura é por chave calculada, com o mesmo default por nível. Sem `resposta.response` — o MDF-e, cujo WSDL põe o `mdfeDistDFeInteresseResult` direto no Body —, o nível do `Response` é pulado:
+
+```js
+const { response, result } = documento.resposta
+const body = json['soap:Envelope']?.['soap:Body'] ?? {}
+const envelopeResposta = response ? (body[response] ?? {}) : body
+const { retDistDFeInt = {} } = envelopeResposta[result] ?? {}
+```
+
+O `documento` tem default `DOCUMENTOS.NFE`, para `montarResponse(data)` continuar lendo NF-e.
+
+Motivo: quando a SEFAZ devolve HTML de erro, um envelope de falha SOAP, ou quando não houve resposta e `data` chega como `''`, o caminho esperado não existe. Sem os defaults, seria `TypeError` em vez de retorno com `error`. **Não simplificar essa leitura.**
 
 Em seguida, o campo repetível é normalizado para array — `docZip` na distribuição, `retEvento` na recepção — porque o `fast-xml-parser` devolve objeto quando há **um** elemento e array quando há vários:
 

@@ -52,14 +52,13 @@ Escolhemos X porque Y.
 | [0007](0007-assinatura-por-infevento-e-splice-do-lote.md)              | Assinatura individual por `infEvento` e montagem do lote por recorte de string                                 |
 | [0008](0008-build-com-uglifyjs-beautify.md)                            | `lib/` gerado por UglifyJS em modo `beautify`                                                                  |
 | [0009](0009-certificados-fora-do-git-e-gerador-descartavel.md)         | Certificados fora do git, com gerador de certificado de teste descartável                                      |
+| [0010](0010-distribuicao-parametrizada-por-documento.md)               | Distribuição de NF-e, CT-e e MDF-e por três classes sobre um descritor de documento, sem cópia por tipo        |
 | [0011](0011-files-e-exports-como-contrato-de-empacotamento.md)         | `files` e `exports` como contrato de empacotamento, sem `.npmignore`                                           |
 | [0012](0012-renomeacao-para-bitize-bitmde.md)                          | Pacote e repositório renomeados de `bit-mde` para `bitmde`                                                     |
 | [0013](0013-falha-de-doczip-vira-item-de-doczip-errors.md)             | Falha de `docZip` vira item de `docZipErrors`, sem derrubar o lote da distribuição                             |
 | [0014](0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md) | TLS validado por padrão com raízes do Node + ICP-Brasil; erro de transporte com `status: 0` e `transportError` |
 | [0015](0015-nfse-nacional-no-proprio-bitmde.md)                        | NFS-e Nacional como classes novas do bitmde, sem pacote separado                                               |
 | [0016](0016-retorno-proprio-da-nfse.md)                                | Retorno próprio da NFS-e (`resBody`, fila vazia 404 sem `error`), com o mesmo contrato de erro da NF-e         |
-
-> O **0010** está reservado pela tarefa [GH-3](../../tarefas/especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md), que já o referencia em texto commitado — daí o salto na tabela. Número de ADR não se reutiliza nem se renumera.
 
 ## Próximos candidatos
 

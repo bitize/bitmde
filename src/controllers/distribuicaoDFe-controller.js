@@ -13,7 +13,10 @@ class DistribuicaoController {
 
     const retornoSefaz = await DistribuicaoHelper.enviarConsulta(data, opts)
 
-    const json = await DistribuicaoHelper.montarResponse(retornoSefaz.data)
+    const json = await DistribuicaoHelper.montarResponse(
+      retornoSefaz.data,
+      opts.documento
+    )
 
     const retorno = RetornoHelper.montarRetorno({
       json: json,

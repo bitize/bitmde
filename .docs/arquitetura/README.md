@@ -1,8 +1,9 @@
 # Arquitetura — bitmde
 
-Biblioteca Node.js (CommonJS, JavaScript puro com tipagem via JSDoc) que consome dois Web Services SOAP da SEFAZ e duas APIs REST da NFS-e Nacional:
+Biblioteca Node.js (CommonJS, JavaScript puro com tipagem via JSDoc) que consome quatro Web Services SOAP da SEFAZ e duas APIs REST da NFS-e Nacional:
 
 - **NFeDistribuicaoDFe** — consulta de documentos destinados a um CNPJ/CPF, por `ultNSU`, `NSU` ou `chNFe`.
+- **CTeDistribuicaoDFe** (AN) e **MDFeDistribuicaoDFe** (SVRS) — o mesmo para CT-e e MDF-e, por `ultNSU` e `NSU`; nenhum dos dois tem consulta por chave.
 - **NFeRecepcaoEvento4** — envio de lote de eventos de manifestação do destinatário.
 - **ADN — distribuição para contribuintes** — NFS-e e eventos em que um CNPJ figura, por `ultNSU`, `NSU` ou chave de acesso.
 - **SEFIN Nacional — pedido de registro de evento** — Confirmação e Rejeição do tomador de uma NFS-e.
@@ -22,13 +23,15 @@ controllers/         static enviar(opts): montarRequest → envia → montarResp
         └ services/  sefaz-service.js: instância axios + https.Agent com mTLS, TLS validado por padrão
         └ helpers/retorno-helper.js: formato final da NF-e { data, reqXml, resXml, status, error?, transportError? }
         └ helpers/retornoNfse-helper.js: formato final da NFS-e { data, reqXml?, resBody, status, error?, transportError? }
-env/                 constantes: endpoints por tpAmb (NF-e, ADN e SEFIN), EVENTOS_NFSE, cadeias CA (ICP-Brasil e CA_PADRAO), EVENTOS, CODIGOS_UF, ZONES, VERSION
+env/                 constantes: endpoints por tpAmb (NF-e, CT-e, MDF-e, ADN e SEFIN), DOCUMENTOS, EVENTOS_NFSE, cadeias CA (ICP-Brasil e CA_PADRAO), EVENTOS, CODIGOS_UF, ZONES, VERSION
 util/                XML, gzip, PFX→PEM, assinatura, data, zero-pad
 ```
 
+As três distribuições SOAP (NF-e, CT-e e MDF-e) passam pelo mesmo schema, helper e controller; o que muda entre elas está no descritor de `DOCUMENTOS` que a classe pública injeta em `opts.documento`. Ver [fluxos/distribuicao-dfe.md](fluxos/distribuicao-dfe.md).
+
 Na NFS-e não há envelope. A distribuição não tem `schemas/`: o helper monta a config de um `GET` do axios e lê JSON. A manifestação tem schema e assinatura, e manda o XML assinado em gzip+base64 num `POST` JSON.
 
-[src/index.js](../../src/index.js) exporta `DistribuicaoDFe`, `DistribuicaoNFSe`, `ManifestacaoNFSe`, `RecepcaoEvento` e as cadeias `CA_PADRAO` e `CA_ICP_BRASIL` em três formas — `module.exports`, `.default` e `.mde` — para interoperar com `require` e `import`.
+[src/index.js](../../src/index.js) exporta `DistribuicaoCTe`, `DistribuicaoDFe`, `DistribuicaoMDFe`, `DistribuicaoNFSe`, `ManifestacaoNFSe`, `RecepcaoEvento` e as cadeias `CA_PADRAO` e `CA_ICP_BRASIL` em três formas — `module.exports`, `.default` e `.mde` — para interoperar com `require` e `import`.
 
 ## Documentos
 

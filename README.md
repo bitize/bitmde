@@ -37,6 +37,8 @@ npm i @bitize/bitmde
   - Retorna o Documento Fiscal referente ao NSU informado, podendo ser um `Resumo`, uma `NF-e` ou um `Evento`
 - Envio de evento
   - Registra o evento de manifestação na nota informada (`Confirmação da Operação`, `Ciência da Operação`, `Desconhecimento da Operação` ou `Operação não Realizada`)
+- Distribuição de CT-e e MDF-e
+  - Consulta por último NSU e por NSU dos CT-e (Ambiente Nacional) e MDF-e (SVRS) em que o CNPJ/CPF é interessado. Nenhum dos dois serviços tem consulta por chave
 - Distribuição de NFS-e Nacional
   - Consulta por último NSU, por NSU e por chave de acesso no ADN, com o papel do CNPJ (`tomador`, `prestador` ou `intermediario`) em cada NFS-e
 - Manifestação do tomador da NFS-e Nacional
@@ -240,6 +242,65 @@ console.log(consulta)
 //   status: 200,
 // }
 ```
+
+## Distribuição de CT-e e MDF-e
+
+`DistribuicaoCTe` consulta o `CTeDistribuicaoDFe` do Ambiente Nacional e `DistribuicaoMDFe` consulta o `MDFeDistribuicaoDFe` da SVRS. Os dois têm só `consultaUltNSU(ultNSU)` e `consultaNSU(nsu)`, com os mesmos argumentos da [Distribuição de DF-e](#distribuição-de-df-e): o leiaute desses serviços não tem consulta por chave de acesso.
+
+O retorno é o mesmo da NF-e, `{ data, reqXml, resXml, status, error?, transportError? }`, com `docZip` e `docZipErrors`. Muda o `schema` de cada documento (`procCTe`, `procEventoCTe`, `procMDFe`, …), que a biblioteca repassa sem interpretar.
+
+### Construtor
+
+```js
+new DistribuicaoCTe(config)
+new DistribuicaoMDFe(config)
+```
+
+A `config` é a da [`DistribuicaoDFe`](#construtor), com uma diferença: a `DistribuicaoMDFe` **não** recebe `cUFAutor`, porque o pedido de distribuição do MDF-e não tem esse campo. Se informado, é ignorado. Na `DistribuicaoCTe` ele continua obrigatório.
+
+#### Exemplo
+
+```js
+const { DistribuicaoCTe, DistribuicaoMDFe } = require('@bitize/bitmde')
+const fs = require('fs')
+
+const certificado = {
+  pfx: fs.readFileSync('./certificado.pfx'),
+  passphrase: 'senha',
+}
+
+const cte = new DistribuicaoCTe({
+  ...certificado,
+  cnpj: '12345678901234',
+  cUFAutor: '41',
+  tpAmb: '2',
+})
+
+const mdfe = new DistribuicaoMDFe({
+  ...certificado,
+  cnpj: '12345678901234',
+  tpAmb: '2',
+})
+
+const consultaCTe = await cte.consultaUltNSU('000000000000000')
+const consultaMDFe = await mdfe.consultaNSU('000000000000049')
+
+if (consultaCTe.error) {
+  throw new Error(consultaCTe.error)
+}
+```
+
+Cada serviço guarda o seu próprio `ultNSU` por CNPJ/CPF: o NSU do CT-e não tem relação com o da NF-e nem com o do MDF-e.
+
+### Cadência
+
+Trate o CT-e e o MDF-e com a mesma disciplina da NF-e. A biblioteca não controla intervalo nem repetição: isso é de quem consome.
+
+- Guarde o `ultNSU` devolvido e use-o no próximo pedido. Repita enquanto `ultNSU` for menor que `maxNSU`.
+- Com `cStat` `137` (nenhum documento localizado), espere uma hora antes de consultar de novo.
+- Na NF-e, a SEFAZ guarda o ponteiro por CNPJ/CPF e rejeita com `656` quem sai da sequência. Uma consulta avulsa por NSU em produção, para um CNPJ que outro sistema já varre, move esse ponteiro e pode dessincronizar o outro sistema.
+
+Essas regras foram observadas na NF-e. No CT-e e no MDF-e a biblioteca assume que valem igual.
 
 ## Manifestação do Destinatário
 
@@ -651,6 +712,8 @@ Quando não há resposta HTTP (falha na cadeia TLS, DNS, conexão recusada, time
 Uma resposta HTTP de erro da SEFAZ, como um `502` ou um `503`, chega com o status real, o corpo em `resXml` e **sem** `transportError`. Então `status: 0` significa sempre "a SEFAZ não respondeu".
 
 Nas APIs da NFS-e o erro de transporte tem a mesma forma, com `resBody: ''` no lugar de `resXml`. A `DistribuicaoNFSe` não tem `reqXml`; a `ManifestacaoNFSe` mantém o `reqXml` com o pedido assinado, para saber o que foi enviado. As mesmas regras de `CA_PADRAO` e `httpsOptions` valem para os hosts do ADN, que hoje servem certificado Let's Encrypt, e para os da SEFIN Nacional, que servem a mesma cadeia GlobalSign do Ambiente Nacional da NF-e.
+
+O Ambiente Nacional do CT-e serve a mesma cadeia GlobalSign da NF-e. A SVRS, onde fica a distribuição do MDF-e, serve uma cadeia **ICP-Brasil** (AC SERPRO SSLv1). Por isso um `ca` montado só com as raízes do Node quebra o MDF-e: parta sempre de `CA_PADRAO`, que tem as duas.
 
 ## Sobre o BitERP
 

@@ -43,7 +43,7 @@ Quem não tem um A1 em mãos roda:
 npm run certs:teste
 ```
 
-[scripts/gerar-certificado-teste.sh](../../scripts/gerar-certificado-teste.sh) gera um autoassinado válido por 10 anos e libera tudo menos `sefaz.test.js` — 225 dos 239 testes, dos quais os 13 de `tls-sefaz.test.js` exigem rede.
+[scripts/gerar-certificado-teste.sh](../../scripts/gerar-certificado-teste.sh) gera um autoassinado válido por 10 anos e libera tudo menos `sefaz.test.js` — 271 dos 293 testes, dos quais os 22 de `tls-sefaz.test.js` exigem rede.
 
 O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Regerar exige apagar o diretório à mão.
 
@@ -64,24 +64,28 @@ Há ainda `MSYS_NO_PATHCONV=1`, que impede o Git Bash de converter o argumento d
 | `gzip.test.js`                    | `Gzip.zip` e `Gzip.unzip`                                                                                                               | Não                  |
 | `zeroPad.test.js`                 | `ZeroPad.padNsu`                                                                                                                        | Não                  |
 | `data.test.js`                    | `Data.toFormat` e os timezones                                                                                                          | Não                  |
-| `distribuicaoDFe-helper.test.js`  | `DistribuicaoHelper.montarResponse` sobre envelope montado no teste: lote misto, `docZipErrors`                                         | Não                  |
+| `distribuicaoDFe-helper.test.js`  | `DistribuicaoHelper`: envelope de NF-e, CT-e e MDF-e congelado; `montarResponse` dos três, com lote misto e `docZipErrors`              | Não                  |
 | `distribuicaoNFSe-helper.test.js` | `DistribuicaoNFSeHelper` (requisição, `papel`, `documentosErros`) e `RetornoNfseHelper`, com fixtures inventadas                        | Não                  |
 | `nfse-validators.test.js`         | `CnpjValidator`, `NsuNfseValidator`, `ChaveNfseValidator`, `MotivoRejeicaoValidator`: mensagens e normalização                          | Não                  |
 | `ca.test.js`                      | `CA_PADRAO` e `CA_ICP_BRASIL`: exportação, congelamento, composição com as raízes do Node                                               | Não                  |
 | `transporte.test.js`              | Validação TLS e `transportError` contra servidor HTTPS local em `127.0.0.1`, para NF-e e NFS-e; `POST` da manifestação; `RetornoHelper` | Não                  |
 | `certificado.test.js`             | `Certificado.p12ToPem` contra os `.pem` do disco                                                                                        | **Sim**              |
 | `distribuicao.test.js`            | `DistribuicaoDFe`: validação, montagem, imutabilidade                                                                                   | **Sim**              |
+| `distribuicaoCTe.test.js`         | `DistribuicaoCTe`: validação, ausência de consulta por chave, imutabilidade                                                             | **Sim**              |
+| `distribuicaoMDFe.test.js`        | `DistribuicaoMDFe`: validação, `cUFAutor` ignorado, ausência de consulta por chave, imutabilidade                                       | **Sim**              |
 | `recepcao.test.js`                | `RecepcaoEvento`: validação, lote, assinatura, imutabilidade                                                                            | **Sim**              |
 | `distribuicaoNFSe.test.js`        | `DistribuicaoNFSe`: validação, exportação, imutabilidade                                                                                | **Sim**              |
 | `manifestacaoNFSe.test.js`        | `ManifestacaoNFSe`: validação, exportação, imutabilidade                                                                                | **Sim**              |
 | `manifestacaoNFSe-helper.test.js` | Schema do `pedRegEvento`, assinatura do `infPedReg`, `montarResponse` e `RetornoNfseHelper` com a SEFIN                                 | **Sim**              |
 | `assinatura.test.js`              | Lote da recepção da NF-e congelado byte a byte (fora a parte que depende da chave) e assinatura do `infPedReg`                          | **Sim**              |
-| `sefaz.test.js`                   | Integração real contra a SEFAZ, o ADN e a SEFIN                                                                                         | **Sim**, e A1 válido |
-| `tls-sefaz.test.js`               | Handshake TLS real com `www1`, `hom1` e os dois hosts do ADN e da SEFIN, sem A1                                                         | Não, mas exige rede  |
+| `sefaz.test.js`                   | Integração real contra a SEFAZ (NF-e, CT-e, MDF-e), o ADN e a SEFIN                                                                     | **Sim**, e A1 válido |
+| `tls-sefaz.test.js`               | Handshake TLS real com os hosts da NF-e, do CT-e, do MDF-e, do ADN e da SEFIN, sem A1                                                   | Não, mas exige rede  |
 
 ### `sefaz.test.js`
 
-Teste de integração de verdade: bate nos endpoints de **produção e homologação** da SEFAZ com mTLS, com a validação do servidor ligada e `ca: CA_PADRAO`. Falha sem rede, com certificado vencido ou com o certificado autoassinado do gerador — com ele, os dois casos "sem informar cert.pem e key.pem" passam (`403`) e os quatro que exigem A1 recebem `403` no lugar de `200`. Fica fora da CI, via `npm run test:ci`.
+Teste de integração de verdade: bate nos endpoints de **produção e homologação** da SEFAZ com mTLS, com a validação do servidor ligada e `ca: CA_PADRAO`. Falha sem rede, com certificado vencido ou com o certificado autoassinado do gerador — com ele, os dois casos "sem informar cert.pem e key.pem" passam (`403`) e os oito que exigem A1 recebem `403` no lugar de `200`. Fica fora da CI, via `npm run test:ci`.
+
+Os blocos da `DistribuicaoCTe` e da `DistribuicaoMDFe` fazem `consultaUltNSU('0')` e `consultaNSU('1')` **só em homologação**: em produção, consulta por NSU move o ponteiro que a SEFAZ guarda por CNPJ e pode dessincronizar quem já faz a distribuição dele (`cStat` 656). Aceitam só os `cStat` que a base de homologação pode devolver para um leiaute aceito (137, 138, 493, 656) e reprovam qualquer outro — o `215`, falha de schema, e também um código inesperado, que pede investigação antes de entrar na lista. É o que prova que o envelope e o `distDFeInt` de cada serviço estão certos. A produção dos dois serviços é coberta só pelo `GET` do WSDL, com mTLS.
 
 O bloco da `DistribuicaoNFSe` lê o ADN: `consultaUltNSU('0')` em produção restrita (sem `error`, com fila vazia ou não) e em produção (`DOCUMENTOS_LOCALIZADOS`), `consultaNSU('1')` em produção e um `cnpj` de outra raiz em produção restrita (`E2243`). É só leitura, e o ADN não tem bloqueio de sequência, então não dessincroniza ninguém. O CNPJ consultado sai do CN do `certs/cert.pem` durante o teste, para não ficar escrito no repositório; com o certificado descartável, esses testes falham.
 
@@ -91,12 +95,12 @@ Rodar antes de um release é recomendável quando a mudança tocou transporte, c
 
 ### `tls-sefaz.test.js`
 
-Faz só o handshake TLS com `www1`, `hom1`, `adn.nfse.gov.br`, `adn.producaorestrita.nfse.gov.br`, `sefin.nfse.gov.br` e `sefin.producaorestrita.nfse.gov.br`, sem certificado A1 e sem `certs/`, com `rejectUnauthorized: true`. Afirma duas coisas por host:
+Faz só o handshake TLS com `www1` e `hom1` da NF-e e do CT-e, `adn.nfse.gov.br`, `adn.producaorestrita.nfse.gov.br`, `sefin.nfse.gov.br`, `sefin.producaorestrita.nfse.gov.br` e os dois hosts do MDF-e na SVRS, sem certificado A1 e sem `certs/`, com `rejectUnauthorized: true`. Afirma duas coisas por host:
 
 - com `CA_PADRAO`, o handshake fecha;
-- só com `CA_ICP_BRASIL`, falha com `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`.
+- só com `CA_ICP_BRASIL`, falha com `UNABLE_TO_GET_ISSUER_CERT_LOCALLY` — exceto nos hosts da SVRS, que servem cadeia ICP-Brasil e precisam **fechar** só com ela.
 
-O segundo caso falha de propósito se um desses hosts voltar a uma cadeia ICP-Brasil, para alguém rever a decisão do [ADR 0014](decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md). Exige rede, então fica fora do `test:ci` e roda no workflow agendado abaixo.
+O segundo caso falha de propósito se um host trocar de lado — um do AN, do ADN ou da SEFIN voltar à ICP-Brasil, ou a SVRS sair dela —, para alguém rever a decisão do [ADR 0014](decisoes/0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md). A SVRS é o que impede tirar a ICP-Brasil de `CA_PADRAO`. Exige rede, então fica fora do `test:ci` e roda no workflow agendado abaixo.
 
 ### `transporte.test.js`
 

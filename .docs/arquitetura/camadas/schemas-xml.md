@@ -33,13 +33,17 @@ E também por que os atributos (`'@_xmlns'`, `'@_versao'`, `'@_Id'`) são inseri
 
 ### Os três schemas
 
-[DistribuicaoSchema](../../../src/schemas/distribuicaoDFe-schema.js) monta `distDFeInt` com `versao="1.01"`, e escolhe **um** dos três blocos de consulta, nesta precedência:
+[DistribuicaoSchema](../../../src/schemas/distribuicaoDFe-schema.js) monta `distDFeInt` para NF-e, CT-e e MDF-e, lendo de `opts.documento` (ver [env.md](env.md#documentos)) o namespace, a `versao` (`1.01` na NF-e, `1.00` nos outros dois), se há `cUFAutor` e se há bloco de chave. A ordem das chaves é a mesma nos três: `tpAmb` → `cUFAutor` (quando o documento tem) → `CNPJ`/`CPF` → bloco de consulta. Escolhe **um** dos três blocos, nesta precedência:
 
-| Precedência | Campo em `opts` | Bloco gerado         |
-| ----------- | --------------- | -------------------- |
-| 1º          | `ultNSU`        | `<distNSU><ultNSU>`  |
-| 2º          | `chNFe`         | `<consChNFe><chNFe>` |
-| 3º (else)   | `nsu`           | `<consNSU><NSU>`     |
+| Precedência | Campo em `opts` | Bloco gerado                      |
+| ----------- | --------------- | --------------------------------- |
+| 1º          | `ultNSU`        | `<distNSU><ultNSU>`               |
+| 2º          | `chNFe`         | `<consChNFe><chNFe>` — só na NF-e |
+| 3º (else)   | `nsu`           | `<consNSU><NSU>`                  |
+
+No CT-e e no MDF-e o descritor tem `consChave: null`: o leiaute não tem consulta por chave, e uma chave em `opts` é ignorada.
+
+O elemento em volta do `dadosMsg` também sai do descritor. NF-e e CT-e usam o invólucro da operação (`nfeDistDFeInteresse`, `cteDistDFeInteresse`), com o `xmlns` do WSDL nele. O MDF-e não tem invólucro: o WSDL é "bare", o `mdfeDadosMsg` vai direto no Body e leva ele mesmo o `xmlns` do WSDL. O XML da NF-e é conferido byte a byte em `test/distribuicaoDFe-helper.test.js`.
 
 O `else` final não testa `opts.nsu`: se nenhum dos três vier, sai `<consNSU><NSU>undefined</NSU>`. Na prática isso não acontece porque a camada `apis/` só chama o controller depois de validar, mas é a razão de não chamar controller diretamente.
 

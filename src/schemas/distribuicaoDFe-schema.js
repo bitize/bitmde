@@ -2,9 +2,13 @@
 
 class DistribuicaoSchema {
   static montarSchema(options) {
+    const documento = options.documento
     const distDFeInt = {
       tpAmb: options.tpAmb,
-      cUFAutor: options.cUFAutor,
+    }
+
+    if (documento.cUFAutor) {
+      distDFeInt['cUFAutor'] = options.cUFAutor
     }
 
     if (options.cnpj) {
@@ -13,13 +17,15 @@ class DistribuicaoSchema {
       distDFeInt['CPF'] = options.cpf
     }
 
+    const consChave = documento.consChave
+
     if (options.ultNSU) {
       distDFeInt['distNSU'] = {
         ['ultNSU']: options.ultNSU,
       }
-    } else if (options.chNFe) {
-      distDFeInt['consChNFe'] = {
-        ['chNFe']: options.chNFe,
+    } else if (consChave && options[consChave.campo]) {
+      distDFeInt[consChave.bloco] = {
+        [consChave.campo]: options[consChave.campo],
       }
     } else {
       distDFeInt['consNSU'] = {
@@ -27,15 +33,26 @@ class DistribuicaoSchema {
       }
     }
 
-    distDFeInt['@_xmlns'] = 'http://www.portalfiscal.inf.br/nfe'
-    distDFeInt['@_versao'] = '1.01'
+    distDFeInt['@_xmlns'] = documento.xmlns
+    distDFeInt['@_versao'] = documento.versao
+
+    // Sem `operacao`, o WSDL é "bare": o dadosMsg vai direto no Body e leva
+    // ele mesmo o namespace do WSDL.
+    if (!documento.operacao) {
+      return {
+        [documento.dadosMsg]: {
+          distDFeInt: distDFeInt,
+          '@_xmlns': documento.xmlnsWsdl,
+        },
+      }
+    }
 
     return {
-      nfeDistDFeInteresse: {
-        nfeDadosMsg: {
+      [documento.operacao]: {
+        [documento.dadosMsg]: {
           distDFeInt: distDFeInt,
         },
-        '@_xmlns': 'http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe',
+        '@_xmlns': documento.xmlnsWsdl,
       },
     }
   }

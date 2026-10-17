@@ -1,6 +1,6 @@
 'use strict'
 
-const { CA_PADRAO, DISTRIBUICAO } = require('../env')
+const { CA_PADRAO, DOCUMENTOS } = require('../env')
 const { DistribuicaoSchema } = require('../schemas')
 const SefazService = require('../services/sefaz-service')
 const { Gzip, Xml } = require('../util')
@@ -13,7 +13,7 @@ class DistribuicaoHelper {
    * @returns
    */
   static async enviarConsulta(data, opts) {
-    const baseURL = DISTRIBUICAO[opts.tpAmb]
+    const baseURL = opts.documento.endpoints[opts.tpAmb]
     const options = {
       method: 'POST',
       data: data,
@@ -50,9 +50,10 @@ class DistribuicaoHelper {
   /**
    *
    * @param {string} data
+   * @param {Object} [documento] descritor de `DOCUMENTOS`; NF-e quando omitido
    * @returns {Promise<{tpAmb: string,verAplic: string,cStat: string,xMotivo: string,dhResp: string,ultNSU: string,maxNSU: string, docZip:[{xml: string,json: Object,nsu: string,schema: string}], docZipErrors:[{nsu: string,schema: string,error: string}], error: string}>}
    */
-  static async montarResponse(data) {
+  static async montarResponse(data, documento = DOCUMENTOS.NFE) {
     const retorno = {}
 
     const json = Xml.xmlToJson(data)
@@ -61,15 +62,11 @@ class DistribuicaoHelper {
       retorno['error'] = json.error
     }
 
-    const {
-      'soap:Envelope': {
-        'soap:Body': {
-          nfeDistDFeInteresseResponse: {
-            nfeDistDFeInteresseResult: { retDistDFeInt = {} } = {},
-          } = {},
-        } = {},
-      } = {},
-    } = json
+    // No MDF-e o result vem direto no Body, sem o elemento `Response`.
+    const { response, result } = documento.resposta
+    const body = json['soap:Envelope']?.['soap:Body'] ?? {}
+    const envelopeResposta = response ? (body[response] ?? {}) : body
+    const { retDistDFeInt = {} } = envelopeResposta[result] ?? {}
 
     let { loteDistDFeInt = {} } = retDistDFeInt
 
