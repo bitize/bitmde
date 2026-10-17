@@ -2,6 +2,10 @@
 
 ## [Não publicado]
 
+## [0.21.0] / 2026-10-17
+
+> Acrescenta a distribuição de CT-e e de MDF-e, só por NSU. Nada muda nas APIs de NF-e e de NFS-e.
+
 ### Adicionado
 
 - **`DistribuicaoCTe` e `DistribuicaoMDFe`: distribuição de CT-e (Ambiente Nacional) e de MDF-e (SVRS)**, exportadas nas três formas (`module.exports`, `.default`, `.mde`), com `consultaUltNSU(ultNSU)` e `consultaNSU(nsu)` e o mesmo retorno da `DistribuicaoDFe`, `docZipErrors` incluído. Não há consulta por chave: o leiaute dos dois serviços só aceita `distNSU` e `consNSU`
