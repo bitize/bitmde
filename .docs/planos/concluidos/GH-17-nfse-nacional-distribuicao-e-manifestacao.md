@@ -47,7 +47,7 @@ Sem o plano, quem consome — o bitERP, em primeiro lugar — só tem as NFS-e r
 - Captura automática, agendamento e guarda do último NSU — é de quem consome; a biblioteca não guarda estado ([arquitetura/README.md](../../arquitetura/README.md)).
 - Interpretação dos campos da NFS-e além do papel do CNPJ — a biblioteca devolve XML e JSON, como faz com o `docZip`.
 - NFS-e de município fora do ADN (webservices municipais ABRASF) — descartado.
-- CT-e e MDF-e — já estão na [GH-3](../../tarefas/especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md).
+- CT-e e MDF-e — já estão na [GH-3](../../tarefas/concluidas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md).
 
 ## Tarefas filhas
 

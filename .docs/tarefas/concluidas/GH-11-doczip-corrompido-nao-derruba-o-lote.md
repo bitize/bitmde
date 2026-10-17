@@ -146,7 +146,7 @@ Se **todos** os `docZip` falharem, o retorno continua sendo sucesso de transport
   ```
 
 - **Mudança quebra a API pública?** Não. Campo aditivo; `docZip` mantém forma e semântica. Muda o comportamento de um caso que hoje encerra o processo — nenhum consumidor depende disso. Versão: **minor** (0.18.0), por acrescentar campo ao retorno.
-- **Interação com a GH-3:** a [GH-3](../especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) parametriza este mesmo `montarResponse` por documento e diz "campos novos no retorno: nenhum". Quem entrar depois rebaseia: se esta tarefa entrar primeiro, a GH-3 herda `docZipErrors` para CT-e e MDF-e sem trabalho extra (o tratamento por item independe do tipo de documento) e precisa ajustar o RF-04 dela.
+- **Interação com a GH-3:** a [GH-3](GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) parametriza este mesmo `montarResponse` por documento e diz "campos novos no retorno: nenhum". Quem entrar depois rebaseia: se esta tarefa entrar primeiro, a GH-3 herda `docZipErrors` para CT-e e MDF-e sem trabalho extra (o tratamento por item independe do tipo de documento) e precisa ajustar o RF-04 dela.
 
 ---
 
@@ -221,7 +221,7 @@ Executar **após o PR ser mergeado na `main`**:
 - [Testes e certificados](../../arquitetura/testes-e-certificados.md)
 - [ADR 0004 — Erro de configuração lança; erro de rede/SEFAZ vira retorno](../../arquitetura/decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md)
 - [ADR 0006 — JS com JSDoc em vez de TypeScript](../../arquitetura/decisoes/0006-js-com-jsdoc-em-vez-de-typescript.md)
-- [GH-3 — Suporte a CT-e e MDF-e na distribuição](../especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) — mexe no mesmo `montarResponse`
+- [GH-3 — Suporte a CT-e e MDF-e na distribuição](GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) — mexe no mesmo `montarResponse`
 - Origem: DEV-987 (rastreador interno da Bitize)
 - Issue: https://github.com/bitize/bitmde/issues/11
 

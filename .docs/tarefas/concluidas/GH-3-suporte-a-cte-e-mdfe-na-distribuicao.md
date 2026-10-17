@@ -2,15 +2,15 @@
 
 | Campo                | Valor                                               |
 | -------------------- | --------------------------------------------------- |
-| **Issue**            | [GH-3](https://github.com/bitize/bit-mde/issues/3)  |
-| **Status**           | especificadas                                       |
+| **Issue**            | [GH-3](https://github.com/bitize/bitmde/issues/3)   |
+| **Status**           | concluidas                                          |
 | **Plano**            | —                                                   |
 | **Prioridade**       | P2 (médio)                                          |
 | **Tipo**             | feature                                             |
 | **Camadas afetadas** | apis / controllers / helpers / schemas / env / test |
 | **Criado em**        | 2026-08-16                                          |
-| **Atualizado em**    | 2026-10-16                                          |
-| **Concluído em**     | —                                                   |
+| **Atualizado em**    | 2026-10-17                                          |
+| **Concluído em**     | 2026-10-17                                          |
 
 ---
 
@@ -274,12 +274,12 @@ Produção conferida à mão em 2026-10-16, com uma `consultaUltNSU('0')` por se
 
 Executar **após o PR ser mergeado na `main`**:
 
-- [ ] Desvios registrados em "Notas de implementação"
-- [ ] Checklists marcados
-- [ ] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
-- [ ] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md .docs/tarefas/concluidas/`
-- [ ] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
-- [ ] Issue fechada no GitHub
+- [x] Desvios registrados em "Notas de implementação"
+- [x] Checklists marcados — fica desmarcado só o `sefaz.test.js` em produção, parcial de propósito (ver Notas)
+- [x] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [x] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md .docs/tarefas/concluidas/`
+- [x] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `.docs/tasks/specified/`)
+- [x] Issue fechada no GitHub — à mão: o PR #10 não tinha `Closes #3`
 
 ## Referências
 
@@ -293,7 +293,7 @@ Executar **após o PR ser mergeado na `main`**:
 - MDF-e, NT 2015/002 — Web Service de Distribuição de DF-e de Interesse dos Atores: <http://sped.rfb.gov.br/estatico/98/22760A84B768D36BA81C2CF7648186AE2CCEE0/MDFe_NotaTecnica_2015_002_WS_Distribuicao_DFE_v1.01.pdf>
 - Portal SVRS — relação de serviços do MDF-e: <https://dfe-portal.svrs.rs.gov.br/MDFE/Servicos>
 - Implementações de referência (ler como fonte de armadilha, não como modelo): [vexta-systems/node-mde](https://github.com/vexta-systems/node-mde) (CT-e) e [TyagoVeras/node-mde](https://github.com/TyagoVeras/node-mde) (CT-e e MDF-e)
-- Issue: <https://github.com/bitize/bit-mde/issues/3>
+- Issue: <https://github.com/bitize/bitmde/issues/3>
 
 ## Histórico de revisões
 
@@ -303,3 +303,4 @@ Executar **após o PR ser mergeado na `main`**:
 | 2026-08-16 | 1.0 | Promovida a `especificadas/` com a issue GH-3; questões em aberto seguem abertas                                          |
 | 2026-10-01 | 1.1 | RF-04 e helpers ajustados ao `docZipErrors` entregue pela GH-11                                                           |
 | 2026-10-16 | 1.2 | Implementação e notas: questões respondidas em homologação, RF-01/02/06/07 e Decisões 2 a 4 revistas na revisão do PR #10 |
+| 2026-10-17 | 1.3 | Entregue no PR #10 (merge `656c6bd`); tarefa movida para `concluidas/`                                                    |

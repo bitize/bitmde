@@ -3,7 +3,7 @@
 **Status**: Aceito
 **Data**: 2026-08-16
 
-> Numeração: o 0010 está reservado pela tarefa [GH-3](../../tarefas/especificadas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md), que já o referencia em texto commitado. Números de ADR não se reutilizam nem se renumeram.
+> Numeração: o 0010 está reservado pela tarefa [GH-3](../../tarefas/concluidas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md), que já o referencia em texto commitado. Números de ADR não se reutilizam nem se renumeram.
 
 ## Contexto
 
