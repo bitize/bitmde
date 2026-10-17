@@ -105,7 +105,7 @@ A ordem das condições importa — `types` **antes** de `require` e `default`, 
 
 > Esta é decisão estrutural com reversão custosa — muda o que é o contrato de empacotamento e o que é a superfície pública. Gerar **ADR 0011 — `files` e `exports` como contrato de empacotamento**.
 >
-> Numeração: o 0010 está reservado pela [GH-3](GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md), que já o referencia em texto commitado. Números de ADR não se reutilizam nem se renumeram.
+> Numeração: o 0010 está reservado pela [GH-3](../concluidas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md), que já o referencia em texto commitado. Números de ADR não se reutilizam nem se renumeram.
 
 ---
 
@@ -182,7 +182,7 @@ Verificado também, no tarball instalado: `import` de ESM (default e nomeados) e
 
 - **Dois arquivos fora do checklist precisaram entrar.** `.docs/README.md` tinha link vivo para `../.npmignore`, que a remoção matou. Corrigido para apontar o `files` do `package.json`. A especificação só previa `CLAUDE.md`, `build-e-versao.md` e `release.md`.
 - **Link morto no [ADR 0003](../../arquitetura/decisoes/0003-lockfile-versionado.md), resolvido em review.** A remoção do `.npmignore` matou o hyperlink da frase que explica como o lockfile fica fora do pacote. Levantei como ponto em aberto, porque editar ADR aceito é contra a regra de [decisoes/README.md](../../arquitetura/decisoes/README.md); o review decidiu desfazer só o hyperlink. `.npmignore` virou código inline no mesmo lugar — palavras idênticas, texto e decisão intactos. O ADR 0011 registra que aquela referência agora é histórica.
-- **ADR numerado 0011, não 0010**, porque a [GH-3](GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) já reserva o 0010 em texto commitado. A tabela de [decisoes/README.md](../../arquitetura/decisoes/README.md) ganhou nota explicando o salto.
+- **ADR numerado 0011, não 0010**, porque a [GH-3](../concluidas/GH-3-suporte-a-cte-e-mdfe-na-distribuicao.md) já reserva o 0010 em texto commitado. A tabela de [decisoes/README.md](../../arquitetura/decisoes/README.md) ganhou nota explicando o salto.
 - **Guard da CI: o caminho do JSON vai por variável de ambiente, não por argumento.** A primeira versão lia `process.argv[1]`, que num script vindo do stdin (`node - arquivo`) vale `'-'` e não o argumento — o arquivo fica em `process.argv[2]`. Trocado por `process.env.PACOTE_JSON`, que não depende dessa sutileza.
 - **`CHANGELOG.md` faltava na lista de essenciais do guard**, apontado em review do PR.
 
