@@ -3,14 +3,14 @@
 | Campo                | Valor                                               |
 | -------------------- | --------------------------------------------------- |
 | **Issue**            | [GH-29](https://github.com/bitize/bitmde/issues/29) |
-| **Status**           | especificadas                                       |
+| **Status**           | concluidas                                          |
 | **Plano**            | —                                                   |
 | **Prioridade**       | P3 (baixo)                                          |
 | **Tipo**             | correção                                            |
 | **Camadas afetadas** | controllers / helpers / test                        |
 | **Criado em**        | 2026-10-18                                          |
 | **Atualizado em**    | 2026-10-18                                          |
-| **Concluído em**     | —                                                   |
+| **Concluído em**     | 2026-10-18                                          |
 
 ---
 
@@ -229,12 +229,12 @@ Sem desvios de escopo, requisito ou decisão. Detalhes que a especificação nã
 
 Executar **após o PR ser mergeado na `main`**:
 
-- [ ] Desvios registrados em "Notas de implementação"
-- [ ] Checklists marcados
-- [ ] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
-- [ ] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-29-tipos-de-retorno-da-dfe-e-da-recepcao.md .docs/tarefas/concluidas/GH-29-tipos-de-retorno-da-dfe-e-da-recepcao.md`
-- [ ] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
-- [ ] Issue fechada no GitHub e no Linear
+- [x] Desvios registrados em "Notas de implementação"
+- [x] Checklists marcados. Ficam desmarcados, com o motivo ao lado, o `certs:teste` (o `certs/` local tem A1 real) e o `sefaz.test.js` (dispensado pela tarefa)
+- [x] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [x] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-29-tipos-de-retorno-da-dfe-e-da-recepcao.md .docs/tarefas/concluidas/GH-29-tipos-de-retorno-da-dfe-e-da-recepcao.md`
+- [x] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
+- [x] Issue fechada no GitHub e no Linear
 
 ## Referências
 
@@ -253,7 +253,8 @@ Executar **após o PR ser mergeado na `main`**:
 
 ## Histórico de revisões
 
-| Data       | Rev | Descrição                |
-| ---------- | --- | ------------------------ |
-| 2026-10-18 | 1.0 | Criação da especificação |
-| 2026-10-18 | 1.1 | Implementação e notas    |
+| Data       | Rev | Descrição                                                              |
+| ---------- | --- | ---------------------------------------------------------------------- |
+| 2026-10-18 | 1.0 | Criação da especificação                                               |
+| 2026-10-18 | 1.1 | Implementação e notas                                                  |
+| 2026-10-18 | 1.2 | Entregue no PR #30 (merge `c93c177`); tarefa movida para `concluidas/` |
