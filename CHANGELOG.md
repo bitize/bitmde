@@ -2,6 +2,13 @@
 
 ## [Não publicado]
 
+### Corrigido
+
+- **Tipos de retorno de `DistribuicaoDFe`, `DistribuicaoCTe`, `DistribuicaoMDFe` e `RecepcaoEvento`** no `.d.ts`. `docZip`, `docZipErrors` e `infEvento` eram declarados como tupla de um elemento e passam a `Array<…>`; `error` era obrigatório e passa a `error?: string`. Agora o tipo bate com o que essas APIs sempre devolveram em runtime e com o que o README documenta, e fica igual ao das APIs de NFS-e. Checar lote vazio (`docZip.length === 0`), ler `docZip[1]`, atribuir `[]` num mock e montar um retorno de sucesso sem `error` deixam de exigir cast. Nada muda em runtime: o `lib/` gerado sai byte a byte igual
+- Teste novo, `test/tipos.test.js`, que gera o `.d.ts` e compila contra ele um consumidor TypeScript em `strict`
+
+**Compatibilidade:** a correção pode reprovar a compilação de consumidor TypeScript em dois casos, e nos dois o tipo antigo estava errado. Atribuir `retorno.error` direto a `string` sob `strictNullChecks` passa a exigir checar `error` antes. Com `noUncheckedIndexedAccess`, `docZip[0]` passa a ser `T | undefined`, como de fato é num lote vazio.
+
 ## [0.21.0] / 2026-10-17
 
 > Acrescenta a distribuição de CT-e e de MDF-e, só por NSU. Nada muda nas APIs de NF-e e de NFS-e.

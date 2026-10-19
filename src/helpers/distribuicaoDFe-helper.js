@@ -51,7 +51,7 @@ class DistribuicaoHelper {
    *
    * @param {string} data
    * @param {Object} [documento] descritor de `DOCUMENTOS`; NF-e quando omitido
-   * @returns {Promise<{tpAmb: string,verAplic: string,cStat: string,xMotivo: string,dhResp: string,ultNSU: string,maxNSU: string, docZip:[{xml: string,json: Object,nsu: string,schema: string}], docZipErrors:[{nsu: string,schema: string,error: string}], error: string}>}
+   * @returns {Promise<{tpAmb: string,verAplic: string,cStat: string,xMotivo: string,dhResp: string,ultNSU: string,maxNSU: string, docZip: Array<{xml: string,json: Object,nsu: string,schema: string}>, docZipErrors: Array<{nsu: string,schema: string,error: string}>, error?: string}>}
    */
   static async montarResponse(data, documento = DOCUMENTOS.NFE) {
     const retorno = {}
