@@ -2,6 +2,10 @@
 
 ## [Não publicado]
 
+## [0.22.0] / 2026-10-18
+
+> Corrige os tipos de retorno da distribuição DF-e e da recepção de evento no `.d.ts`. Nada muda em runtime.
+
 ### Corrigido
 
 - **Tipos de retorno de `DistribuicaoDFe`, `DistribuicaoCTe`, `DistribuicaoMDFe` e `RecepcaoEvento`** no `.d.ts`. `docZip`, `docZipErrors` e `infEvento` eram declarados como tupla de um elemento e passam a `Array<…>`; `error` era obrigatório e passa a `error?: string`. Agora o tipo bate com o que essas APIs sempre devolveram em runtime e com o que o README documenta, e fica igual ao das APIs de NFS-e. Checar lote vazio (`docZip.length === 0`), ler `docZip[1]`, atribuir `[]` num mock e montar um retorno de sucesso sem `error` deixam de exigir cast. Nada muda em runtime: o `lib/` gerado sai byte a byte igual
