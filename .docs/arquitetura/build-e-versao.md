@@ -48,6 +48,8 @@ Ver [ADR 0008](decisoes/0008-build-com-uglifyjs-beautify.md) para o porquê de m
 
 Consequência: JSDoc desatualizado vira tipo errado publicado, e o erro só aparece no editor de quem consome. O job `qualidade` da CI roda `npm run build`, então JSDoc que não compila reprova o PR — mas JSDoc que compila e está **errado**, não.
 
+O formato de retorno da distribuição DF-e e da recepção de evento é a exceção: o [tipos.test.js](testes-e-certificados.md#tipostestjs) gera o `.d.ts` e compila contra ele um consumidor TS, que reprova se um array voltar a ser tupla ou se `error` deixar de ser opcional. O resto do JSDoc continua dependendo de disciplina.
+
 ## O que vai no pacote
 
 Quem decide é o campo `files` do [package.json](../../package.json), uma **allowlist**:

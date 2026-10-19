@@ -176,42 +176,50 @@ Nenhuma decisão aqui pede ADR. A Decisão 3 fecha, só para o formato de retorn
 
 ## Testes
 
-- [ ] `test/tipos.test.js` **vermelho** contra o JSDoc atual, antes da correção, reproduzindo os erros de [Impacto verificado](#impacto-verificado)
-- [ ] `test/tipos.test.js` verde depois da correção
-- [ ] Cada `// @ts-expect-error` da fixture confirmado: trocar o tipo por `any` provisoriamente faz o teste reprovar com TS2578 (diretiva não usada)
-- [ ] `npx mocha test/tipos.test.js` roda sem `certs/`
-- [ ] Runtime intacto (RF-06): `npm run script` na `main` e na branch, e `lib/` comparado arquivo a arquivo. O UglifyJS remove comentários, então a saída tem de ser idêntica
-- [ ] Suíte atual inteira verde, sem nenhum teste alterado
+- [x] `test/tipos.test.js` **vermelho** contra o JSDoc atual, antes da correção, reproduzindo os erros de [Impacto verificado](#impacto-verificado)
+- [x] `test/tipos.test.js` verde depois da correção
+- [x] Cada `// @ts-expect-error` da fixture confirmado: trocar o tipo por `any` provisoriamente faz o teste reprovar com TS2578 (diretiva não usada)
+- [x] `npx mocha test/tipos.test.js` roda sem `certs/`
+- [x] Runtime intacto (RF-06): `npm run script` na `main` e na branch, e `lib/` comparado arquivo a arquivo. O UglifyJS remove comentários, então a saída tem de ser idêntica
+- [x] Suíte atual inteira verde, sem nenhum teste alterado
 
 ## Checklist de implementação
 
-- [ ] JSDoc dos dois controllers e dos dois helpers corrigido
-- [ ] `test/tipos.test.js` e `test/fixtures/consumidor-tipos.ts`
-- [ ] [README.md](../../../README.md) conferido: já documenta `error?` e lote de tamanho variável, nada a mudar
-- [ ] `CHANGELOG.md` em `[Não publicado]`, `### Corrigido`, com a nota de compatibilidade da Decisão 5
-- [ ] [testes-e-certificados.md](../../arquitetura/testes-e-certificados.md): linha de `tipos.test.js` na tabela de arquivos, o arquivo na lista "Sem `certs/`" e as contagens de testes atualizadas ("271 dos 293")
-- [ ] [build-e-versao.md](../../arquitetura/build-e-versao.md), seção `npm run types`: o formato de retorno passa a ser conferido por `tipos.test.js`, e o resto do JSDoc continua dependendo de disciplina
-- [ ] [controllers-helpers.md](../../arquitetura/camadas/controllers-helpers.md), "Ao mexer aqui": campo repetível no retorno se declara como `Array<…>`, nunca como `[{…}]`, e a fixture de tipos acompanha o campo novo
-- [ ] `CLAUDE.md`: `test/tipos.test.js` na lista dos que rodam sem `certs/` e as contagens "271 dos 293" atualizadas
-- [ ] ADR: não se aplica (ver a Decisão 5)
+- [x] JSDoc dos dois controllers e dos dois helpers corrigido
+- [x] `test/tipos.test.js` e `test/fixtures/consumidor-tipos.ts`
+- [x] [README.md](../../../README.md) conferido: já documenta `error?` e lote de tamanho variável, nada a mudar
+- [x] `CHANGELOG.md` em `[Não publicado]`, `### Corrigido`, com a nota de compatibilidade da Decisão 5
+- [x] [testes-e-certificados.md](../../arquitetura/testes-e-certificados.md): linha de `tipos.test.js` na tabela de arquivos, o arquivo na lista "Sem `certs/`" e as contagens de testes atualizadas ("271 dos 293")
+- [x] [build-e-versao.md](../../arquitetura/build-e-versao.md), seção `npm run types`: o formato de retorno passa a ser conferido por `tipos.test.js`, e o resto do JSDoc continua dependendo de disciplina
+- [x] [controllers-helpers.md](../../arquitetura/camadas/controllers-helpers.md), "Ao mexer aqui": campo repetível no retorno se declara como `Array<…>`, nunca como `[{…}]`, e a fixture de tipos acompanha o campo novo
+- [x] `CLAUDE.md`: `test/tipos.test.js` na lista dos que rodam sem `certs/` e as contagens "271 dos 293" atualizadas
+- [x] ADR: não se aplica (ver a Decisão 5)
 
 ## Validação pré-PR (obrigatório)
 
 Rodar na raiz do repositório:
 
-- [ ] `npm run format` (ou conferir com `npm run format:check`)
-- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real)
-- [ ] `npm run test:ci` — tudo menos `test/sefaz.test.js`; é o que roda com o certificado descartável
+- [x] `npm run format` (ou conferir com `npm run format:check`)
+- [ ] `npm run certs:teste` — não rodado: `certs/` já existe na máquina, com A1 real
+- [x] `npm run test:ci` — 250 passando, rodado como `npx mocha --timeout 15000 --ignore test/sefaz.test.js --ignore test/tls-sefaz.test.js` (ver Notas)
 - [ ] `test/sefaz.test.js` — dispensado: a tarefa não toca transporte, certificado nem assinatura
-- [ ] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
-- [ ] `dist/apis/distribuicaoDFe-api.d.ts`, `distribuicaoCTe-api.d.ts`, `distribuicaoMDFe-api.d.ts` e `recepcaoEvento-api.d.ts` conferidos: `Array<…>` e `error?: string`
-- [ ] `git status` limpo, exceto o que a tarefa mudou de propósito (`src/env/version.js` não muda: a versão não é bumpada aqui)
+- [x] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
+- [x] `dist/apis/distribuicaoDFe-api.d.ts`, `distribuicaoCTe-api.d.ts`, `distribuicaoMDFe-api.d.ts` e `recepcaoEvento-api.d.ts` conferidos: `Array<…>` e `error?: string`
+- [x] `git status` limpo, exceto o que a tarefa mudou de propósito (`src/env/version.js` não muda: a versão não é bumpada aqui)
 
 ## Notas de implementação
 
-> Preenchido durante ou após a implementação. Registrar os **desvios** em relação a esta especificação e a justificativa de cada um. Se não houve, escrever "Sem desvios".
+Sem desvios de escopo, requisito ou decisão. Detalhes que a especificação não fixava:
 
--
+- **Commit da especificação.** O arquivo da tarefa foi criado direto em `especificadas/`, sem passar por `rascunhos/`, e foi commitado como primeiro commit da branch de implementação (`docs: especifica a tarefa GH-29`), e não num PR de docs separado.
+- **Fixture.** Os retornos da distribuição são conferidos de duas formas: pela união dos sete métodos (`RetornoDistribuicao`) nos casos de uso, e um por um no retorno de sucesso sem `error`, porque cada classe é emitida no próprio `dist/apis/*.d.ts`. Há sete `@ts-expect-error`: quatro na distribuição (`error` como `number`, `error` como `string`, `docZip` como `number`, propriedade inexistente no item) e três na recepção (os mesmos, sem o da propriedade).
+- **Vermelho antes da correção.** Contra o JSDoc da `main` (`1ef6a9a`), o teste reprovou com TS2367 (`length` `1` vs `0`), TS2339/TS2493 (índice 1), TS2322 (`[]` e arrays de 2 e 3 itens nos três campos), TS2578 nas duas diretivas de `error` como `string` e TS2322 em cada retorno de sucesso.
+- **`@ts-expect-error` contra `any`.** Com `docZip`, `infEvento` e `error` trocados por `any` nos dois controllers, o teste reprovou com TS2578 nas sete diretivas. Os controllers foram restaurados em seguida.
+- **Sem `certs/`.** O teste foi rodado a partir de um diretório sem `certs/`, com o caminho absoluto do arquivo. Ele resolve tudo por `__dirname`, então não depende do CWD.
+- **Runtime.** O `lib/` gerado na `main` e na branch foi comparado com `diff -r`: idêntico nos 55 arquivos.
+- **`npm run test:ci` na máquina local.** O `certs/` local tem A1 real, e com o timeout padrão do mocha os testes de construtor com PFX estouram os 2000 ms (6 falhas numa execução e 11 na seguinte, todas `Timeout of 2000ms exceeded` em `distribuicao*.test.js` e `recepcao.test.js`). É o comportamento que o `CLAUDE.md` documenta. Com `--timeout 15000`, os 250 passam. A CI roda com o certificado descartável, que não tem esse custo.
+- **Contagens.** A suíte foi de 293 para 294 testes, e o `test:ci` de 249 para 250. Com o certificado descartável, ficam liberados 272 dos 294.
+- **Âncora.** Os links para a seção nova de `testes-e-certificados.md` usam `#tipostestjs`, o slug do GitHub para `` ### `tipos.test.js` ``.
 
 ## Conclusão e entrega
 
@@ -244,3 +252,4 @@ Executar **após o PR ser mergeado na `main`**:
 | Data       | Rev | Descrição                |
 | ---------- | --- | ------------------------ |
 | 2026-10-18 | 1.0 | Criação da especificação |
+| 2026-10-18 | 1.1 | Implementação e notas    |

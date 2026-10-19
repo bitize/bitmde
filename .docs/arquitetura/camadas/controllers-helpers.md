@@ -171,6 +171,7 @@ A regra 4 olha os três sinais porque o ADN rejeita `cnpjConsulta` de outra raiz
 ## Ao mexer aqui
 
 - Campo novo no retorno da SEFAZ: acrescentar em `montarResponse` **com `|| ''`** e atualizar o JSDoc do controller (é ele que vira tipo público) e o `README.md`.
+- Campo repetível no JSDoc de retorno se declara `Array<{…}>`, nunca `[{…}]`: para o TypeScript, `[{…}]` é tupla de exatamente um elemento, e o lote tem de zero a N. `error` é `error?: string`, porque só existe na falha. O [tipos.test.js](../testes-e-certificados.md#tipostestjs) confere os dois na distribuição DF-e e na recepção. Campo novo no retorno delas entra também na fixture dele.
 - Nunca lançar de dentro de helper por causa de resposta da SEFAZ — o contrato é devolver `error` ([ADR 0004](../decisoes/0004-erro-de-configuracao-lanca-erro-de-rede-retorna.md)). A brecha que existia no `docZip` corrompido foi fechada pela [ADR 0013](../decisoes/0013-falha-de-doczip-vira-item-de-doczip-errors.md); não reintroduzir `Promise.all` sobre operação que pode rejeitar.
 - Brecha ainda aberta: `Xml.xmlToJson` sobre o **envelope** lança quando o corpo da resposta não é XML (o `fast-xml-parser` rejeita entradas como `'nao e xml <<'`). Vale para os dois helpers de NF-e; o da NFS-e já protege o `JSON.parse`.
 - `RetornoNfseHelper` não é o `RetornoHelper` com outro nome: não esvaziar `data` na rejeição nem tratar o 404 da fila vazia como erro.
