@@ -221,6 +221,10 @@ Sem desvios de escopo, requisito ou decisão. Detalhes que a especificação nã
 - **Contagens.** A suíte foi de 293 para 294 testes, e o `test:ci` de 249 para 250. Com o certificado descartável, ficam liberados 272 dos 294.
 - **Âncora.** Os links para a seção nova de `testes-e-certificados.md` usam `#tipostestjs`, o slug do GitHub para `` ### `tipos.test.js` ``.
 
+### Revisão automática (CodeRabbit, PR #30)
+
+- **Aplicado:** o teste só checava os diagnósticos do emit. Opção inválida no `tsconfig.json` cai em `projeto.errors`, o emit sai mesmo assim, e o teste passaria com opções diferentes das do `npm run types`, que reprova. O teste passou a checar também o `error` do `readConfigFile`, o `projeto.errors` e o `ts.getPreEmitDiagnostics` do programa de emit. Para conferir, uma opção inexistente no `tsconfig.json` agora reprova o teste com TS5023, e o `tsconfig.json` foi restaurado em seguida. O tempo do teste subiu de ~5 s para ~7 s, ainda dentro do `this.timeout(30000)`. Ajuste dentro da Decisão 3, sem mudar o escopo.
+
 ## Conclusão e entrega
 
 Executar **após o PR ser mergeado na `main`**:

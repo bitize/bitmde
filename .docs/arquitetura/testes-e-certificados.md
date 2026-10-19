@@ -109,11 +109,11 @@ Sobe um servidor HTTPS em `127.0.0.1` com certificado gerado na hora (chave pelo
 
 ### `tipos.test.js`
 
-Confere o `.d.ts` do ponto de vista de quem consome. Lê o [tsconfig.json](../../tsconfig.json) do projeto, emite o `.d.ts` num diretório temporário (o `test:ci` roda sem build, e o build limpa `dist/`) e compila [test/fixtures/consumidor-tipos.ts](../../test/fixtures/consumidor-tipos.ts) em `strict`, importando `@bitize/bitmde` por `paths`. Reprova se houver qualquer diagnóstico, que sai na mensagem do `assert` no formato do `tsc`.
+Confere o `.d.ts` do ponto de vista de quem consome. Lê o [tsconfig.json](../../tsconfig.json) do projeto, emite o `.d.ts` num diretório temporário (o `test:ci` roda sem build, e o build limpa `dist/`) e compila [test/fixtures/consumidor-tipos.ts](../../test/fixtures/consumidor-tipos.ts) em `strict`, importando `@bitize/bitmde` por `paths`. Reprova se houver qualquer diagnóstico, que sai na mensagem do `assert` no formato do `tsc`. Isso vale para as quatro etapas: leitura do `tsconfig.json`, parse das opções (uma opção inválida não impede o emit), pré-emissão e emissão do `.d.ts`, e compilação da fixture.
 
 A fixture cobre o que um tipo errado de retorno impede: lote vazio (`length === 0`), o segundo documento (`[1]`), `[]` atribuído a `docZip`, `docZipErrors` e `infEvento`, e um retorno de sucesso sem `error`. As linhas com `// @ts-expect-error` existem para o teste reprovar se o tipo degradar para `any`, que deixaria tudo compilar: com `any`, a diretiva fica sem uso e vira TS2578.
 
-Leva uns 5 s, quase todo no emit, e por isso o `describe` define `this.timeout(30000)`. Não lê `certs/` e não acessa rede. Campo novo no retorno de uma API coberta entra também na fixture.
+Leva de 5 a 7 s, quase todo no emit, e por isso o `describe` define `this.timeout(30000)`. Não lê `certs/` e não acessa rede. Campo novo no retorno de uma API coberta entra também na fixture.
 
 ## O que os testes garantem além do comportamento
 
