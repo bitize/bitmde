@@ -137,36 +137,38 @@ Nenhuma mudança de código esperada. Os testes que vigiam cada dependência:
 
 ## Testes
 
-- [ ] `npm run test:ci` verde, **sem alterar teste existente** — esta tarefa não pode mudar saída
-- [ ] `test/assinatura.test.js` passa com o lote congelado intacto
-- [ ] `test/certificado.test.js` passa (com o certificado descartável e, se houver, com o A1 real)
-- [ ] `npm audit` lista só `glob`, `minimatch` e `mocha`
-- [ ] `test/sefaz.test.js` rodado manualmente contra homologação, com A1 real (`--timeout 15000`)
+- [x] `npm run test:ci` verde, **sem alterar teste existente** — esta tarefa não pode mudar saída
+- [x] `test/assinatura.test.js` passa com o lote congelado intacto
+- [x] `test/certificado.test.js` passa (com o certificado descartável e, se houver, com o A1 real)
+- [x] `npm audit` lista só `glob`, `minimatch` e `mocha`
+- [x] `test/sefaz.test.js` rodado manualmente contra homologação, com A1 real (`--timeout 15000`) — 21 de 22; a falha não é desta tarefa (ver Notas)
 
 ## Checklist de implementação
 
-- [ ] `package.json` e `package-lock.json` no mesmo commit
-- [ ] ADR 0017 em `.docs/arquitetura/decisoes/` e linha na tabela do README de decisões
-- [ ] `CHANGELOG.md` atualizado em `[Não publicado]`, subseção `### Segurança`
-- [ ] Tarefa do `mocha` 12 criada (rascunho basta)
+- [x] `package.json` e `package-lock.json` no mesmo commit
+- [x] ADR 0017 em `.docs/arquitetura/decisoes/` e linha na tabela do README de decisões
+- [x] `CHANGELOG.md` atualizado em `[Não publicado]`, subseção `### Segurança`
+- [x] Tarefa do `mocha` 12 criada (rascunho basta)
 
 ## Validação pré-PR (obrigatório)
 
 Rodar na raiz do repositório:
 
-- [ ] `npm run format` (ou conferir com `npm run format:check`)
-- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real)
-- [ ] `npm run test:ci` — tudo menos `test/sefaz.test.js`; é o que roda com o certificado descartável
-- [ ] `test/sefaz.test.js` rodado à parte (`npx mocha test/sefaz.test.js`) — exige certificado A1 válido e acesso à rede
-- [ ] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
-- [ ] `npm pack --dry-run` — o tarball não muda de conteúdo
-- [ ] `git status` limpo, exceto o que a tarefa mudou de propósito
+- [x] `npm run format` (ou conferir com `npm run format:check`)
+- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real) — não se aplicou: `certs/` já existia, com o certificado descartável
+- [x] `npm run test:ci` — tudo menos `test/sefaz.test.js`; é o que roda com o certificado descartável
+- [x] `test/sefaz.test.js` rodado à parte (`npx mocha test/sefaz.test.js`) — exige certificado A1 válido e acesso à rede — 21 de 22, ver Notas
+- [x] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
+- [x] `npm pack --dry-run` — o tarball não muda de conteúdo
+- [x] `git status` limpo, exceto o que a tarefa mudou de propósito
 
 ## Notas de implementação
 
-> Preenchido durante ou após a implementação. Registrar os **desvios** em relação a esta especificação e a justificativa de cada um. Se não houve, escrever "Sem desvios".
-
--
+- **Sem desvios.** O `xml-crypto` ficou em `~6.4.0`: com a 6.4.0, o `test/assinatura.test.js` passou com o lote congelado intacto e sem aviso de depreciação no console, com o certificado descartável e com o A1 real. O recuo para `~6.1.2` da Decisão 2 não foi necessário.
+- **Lockfile.** Regenerado com `npm install` e `npm audit fix`, sem `--force` e sem `npm update` geral. Mudaram só as quatro diretas, as transitivas previstas (`@xmldom/xmldom` 0.8.15, `follow-redirects` 1.16.2, `brace-expansion` 2.1.7, `js-yaml` 4.3.2, `serialize-javascript` 7.1.4) e `@nodable/entities` 3.0.0 → 3.1.0, dependência do `fast-xml-parser` 5.11.2. Nenhum pacote entrou ou saiu da árvore. `npm audit` depois: 3 moderadas, `glob`, `minimatch` e `mocha`.
+- **Testes.** `npm run test:ci`: 250 passando antes e depois, sem alterar teste. `npm pack --dry-run`: 114 arquivos, nenhum proibido, todos os essenciais.
+- **`test/sefaz.test.js` com A1 real: 21 de 22.** Rodado de um diretório temporário com `certs/` apontando para o A1, sem tocar o `certs/` descartável do repositório. A falha é `DistribuicaoNFSe — cnpj de outra raiz em produção restrita: error com E2243`: o ADN passou a responder `E2245` ("Não há procuração da inscrição … para a inscrição …") para um CNPJ fora da raiz do certificado. **A falha se reproduz com as dependências da `main`** (`axios` 1.19.0, `node-forge` 1.4.0), então é mudança do servidor, não desta tarefa. Fica fora do PR; o teste, a [ADR 0016](../../arquitetura/decisoes/0016-retorno-proprio-da-nfse.md) e o `CLAUDE.md`, que citam o `E2243`, ficam para tarefa própria.
+- **Pendente:** o release 0.23.0, que não faz parte da tarefa ([release.md](../../arquitetura/release.md)).
 
 ## Conclusão e entrega
 
@@ -194,3 +196,4 @@ Executar **após o PR ser mergeado na `main`**:
 | Data       | Rev | Descrição                |
 | ---------- | --- | ------------------------ |
 | 2026-11-01 | 1.0 | Criação da especificação |
+| 2026-11-01 | 1.1 | Implementação e notas    |

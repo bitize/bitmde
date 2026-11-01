@@ -2,6 +2,22 @@
 
 ## [Não publicado]
 
+> Atualiza as dependências de runtime e passa a declará-las em faixa, e não mais em versão exata. A API não muda, e o XML assinado sai byte a byte igual.
+
+### Segurança
+
+- Atualizadas as dependências, corrigindo 7 das 10 vulnerabilidades reportadas pelo `npm audit` na 0.22.0 (as 6 altas e a baixa):
+  - `node-forge` 1.4.0 → 1.4.2, com a correção da falsificação do MAC do PKCS#12 com contagem de iterações zero ([GHSA-jc66-7q78-782g](https://github.com/advisories/GHSA-jc66-7q78-782g)) e do ReDoS em `pem.decode` ([GHSA-7wch-p9px-956x](https://github.com/advisories/GHSA-7wch-p9px-956x)), entre outros 10 avisos
+  - `axios` 1.19.0 → 1.21.0, com a correção de 12 avisos de prototype pollution, ReDoS e injeção de header
+  - `fast-xml-parser` 5.11.0 → 5.11.2, com a correção do comportamento quadrático do `XMLValidator` da 5.11.1
+  - `xml-crypto` 6.1.2 → 6.4.0, que traz `@xmldom/xmldom` 0.8.15
+  - No lockfile: `follow-redirects` 1.16.2 e, só em desenvolvimento, `brace-expansion` 2.1.7, `js-yaml` 4.3.2 e `serialize-javascript` 7.1.4
+- Seguem abertas 3 vulnerabilidades moderadas, só de desenvolvimento e fora do pacote publicado: `mocha` e, via ele, `glob` e `minimatch`. Só se corrigem no `mocha` 12
+
+### Modificado
+
+- **Dependências de runtime declaradas em faixa**: `axios ^1.21.0`, `fast-xml-parser ^5.11.2`, `node-forge ^1.4.2` e `xml-crypto ~6.4.0` (só patch, por ser a dependência que assina). Quem instala o bitmde passa a deduplicar essas dependências com as próprias e a receber correções de minor e patch sem esperar um release nosso. Ver [ADR 0017](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0017-dependencias-de-runtime-em-faixa.md)
+
 ## [0.22.0] / 2026-10-18
 
 > Corrige os tipos de retorno da distribuição DF-e e da recepção de evento no `.d.ts`. Nada muda em runtime.

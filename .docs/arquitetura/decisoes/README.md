@@ -59,6 +59,7 @@ Escolhemos X porque Y.
 | [0014](0014-tls-validado-por-padrao-e-erro-de-transporte-explicito.md) | TLS validado por padrão com raízes do Node + ICP-Brasil; erro de transporte com `status: 0` e `transportError` |
 | [0015](0015-nfse-nacional-no-proprio-bitmde.md)                        | NFS-e Nacional como classes novas do bitmde, sem pacote separado                                               |
 | [0016](0016-retorno-proprio-da-nfse.md)                                | Retorno próprio da NFS-e (`resBody`, fila vazia 404 sem `error`), com o mesmo contrato de erro da NF-e         |
+| [0017](0017-dependencias-de-runtime-em-faixa.md)                       | Dependências de runtime em faixa (`^`, e `~` no `xml-crypto`), não em versão exata                             |
 
 ## Próximos candidatos
 
