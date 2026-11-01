@@ -3,7 +3,8 @@
 const assert = require('assert')
 const fs = require('fs')
 const { SignedXml } = require('xml-crypto')
-const { RecepcaoHelper } = require('../src/helpers')
+const { EVENTOS_NFSE } = require('../src/env')
+const { ManifestacaoNFSeHelper, RecepcaoHelper } = require('../src/helpers')
 const { Assinatura } = require('../src/util')
 
 const certificado = {
@@ -43,6 +44,12 @@ const EVENTOS = [
 // DigestValue não depende da chave e continua conferido byte a byte.
 const LOTE_NFE =
   '<?xml version="1.0" encoding="utf-8"?><soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope"><soap12:Body><nfeDadosMsg xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4"><envEvento xmlns="http://www.portalfiscal.inf.br/nfe" versao="1.00"><idLote>1</idLote><evento versao="1.00"><infEvento Id="ID2102004444444444444444444444444444444444444444444401"><cOrgao>91</cOrgao><tpAmb>2</tpAmb><CNPJ>12345678000190</CNPJ><chNFe>44444444444444444444444444444444444444444444</chNFe><dhEvento>2026-10-15T10:00:00-03:00</dhEvento><tpEvento>210200</tpEvento><nSeqEvento>1</nSeqEvento><verEvento>1.00</verEvento><detEvento versao="1.00"><descEvento>Confirmacao da Operacao</descEvento></detEvento></infEvento><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><Reference URI="#ID2102004444444444444444444444444444444444444444444401"><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/><Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><DigestValue>HCg4CrB/htjggBG2dVCpSwEUAo4=</DigestValue></Reference></SignedInfo><SignatureValue>…</SignatureValue><KeyInfo><X509Data><X509Certificate>…</X509Certificate></X509Data></KeyInfo></Signature></evento><evento versao="1.00"><infEvento Id="ID2102405555555555555555555555555555555555555555555501"><cOrgao>91</cOrgao><tpAmb>2</tpAmb><CNPJ>12345678000190</CNPJ><chNFe>55555555555555555555555555555555555555555555</chNFe><dhEvento>2026-10-15T10:00:00-03:00</dhEvento><tpEvento>210240</tpEvento><nSeqEvento>1</nSeqEvento><verEvento>1.00</verEvento><detEvento versao="1.00"><descEvento>Operacao nao Realizada</descEvento><xJust>Justificativa de teste</xJust></detEvento></infEvento><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><Reference URI="#ID2102405555555555555555555555555555555555555555555501"><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/><Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><DigestValue>533bLEgIbhsmZg7K8Y76Pm5sy0c=</DigestValue></Reference></SignedInfo><SignatureValue>…</SignatureValue><KeyInfo><X509Data><X509Certificate>…</X509Certificate></X509Data></KeyInfo></Signature></evento></envEvento></nfeDadosMsg></soap12:Body></soap12:Envelope>'
+
+// pedRegEvento da Rejeição do Tomador como sai do ManifestacaoNFSeHelper,
+// gerado com o xml-crypto 6.1.2 e mascarado como o LOTE_NFE. Vigia a
+// assinatura da NFS-e num minor novo do xml-crypto (ADR 0017). Tudo inventado.
+const PED_REG_EVENTO_NFSE =
+  '<?xml version="1.0" encoding="UTF-8"?><pedRegEvento xmlns="http://www.sped.fazenda.gov.br/nfse" versao="1.01"><infPedReg Id="PRE11111111111111111111111111111111111111111111111111203206"><tpAmb>2</tpAmb><verAplic>bitmde/0.0.0</verAplic><dhEvento>2026-10-15T10:00:00-03:00</dhEvento><CNPJAutor>11111111000191</CNPJAutor><chNFSe>11111111111111111111111111111111111111111111111111</chNFSe><e203206><xDesc>Manifestação de NFS-e - Rejeição do Tomador</xDesc><cMotivo>9</cMotivo><xMotivo>Serviço não foi prestado &amp; cobrado.</xMotivo></e203206></infPedReg><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><Reference URI="#PRE11111111111111111111111111111111111111111111111111203206"><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/><Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><DigestValue>mSumWzkGw2Xgaqg7+vvjeC+02SU=</DigestValue></Reference></SignedInfo><SignatureValue>…</SignatureValue><KeyInfo><X509Data><X509Certificate>…</X509Certificate></X509Data></KeyInfo></Signature></pedRegEvento>'
 
 const PED_REG_EVENTO =
   '<pedRegEvento xmlns="http://www.sped.fazenda.gov.br/nfse" versao="1.01">' +
@@ -106,6 +113,24 @@ describe('Assinatura', function () {
 
         assert.strictEqual(verificarAssinaturas(isolado), 1)
       }
+    })
+
+    it('pedRegEvento da NFS-e byte a byte igual ao do xml-crypto 6.1.2', async function () {
+      const { reqXml } = await ManifestacaoNFSeHelper.montarRequest({
+        cert: certificado.cert,
+        key: certificado.key,
+        tpAmb: '2',
+        verAplic: 'bitmde/0.0.0',
+        dhEvento: '2026-10-15T10:00:00-03:00',
+        cnpj: '11111111000191',
+        chNFSe: '1'.repeat(50),
+        evento: EVENTOS_NFSE[203206],
+        cMotivo: '9',
+        xMotivo: 'Serviço não foi prestado & cobrado.',
+      })
+
+      assert.strictEqual(mascarar(reqXml), PED_REG_EVENTO_NFSE)
+      assert.strictEqual(verificarAssinaturas(reqXml), 1)
     })
 
     it('infPedReg: assinatura válida, irmã seguinte do infPedReg', function () {

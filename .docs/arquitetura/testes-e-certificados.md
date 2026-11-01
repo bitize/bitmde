@@ -43,7 +43,7 @@ Quem não tem um A1 em mãos roda:
 npm run certs:teste
 ```
 
-[scripts/gerar-certificado-teste.sh](../../scripts/gerar-certificado-teste.sh) gera um autoassinado válido por 10 anos e libera tudo menos `sefaz.test.js` — 272 dos 294 testes, dos quais os 22 de `tls-sefaz.test.js` exigem rede.
+[scripts/gerar-certificado-teste.sh](../../scripts/gerar-certificado-teste.sh) gera um autoassinado válido por 10 anos e libera tudo menos `sefaz.test.js` — 273 dos 295 testes, dos quais os 22 de `tls-sefaz.test.js` exigem rede.
 
 O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Regerar exige apagar o diretório à mão.
 
