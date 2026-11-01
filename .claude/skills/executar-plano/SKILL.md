@@ -93,7 +93,7 @@ O plano fecha quando a situação reconciliada do Passo 1 — não a tabela lida
 - **Release**, se o critério inclui um: segue [release.md](../../../.docs/arquitetura/release.md) e é disparado pelo usuário — publicar no npm não se reescreve. Sem release publicado, o item fica desmarcado e o plano não fecha, salvo decisão explícita do usuário registrada nas Notas de conclusão.
 - **Todas as filhas canceladas** → o plano é cancelado, não concluído: seguir "Ao cancelar o plano" do README, com `DESTINO=cancelados` nos comandos abaixo.
 
-Depois, seguir "Ao concluir o plano" do [README](../../../.docs/planos/README.md) e a checklist "Conclusão e entrega" do próprio plano, em branch `docs/conclui-gh-$PLANO` (ou no mesmo PR de conclusão da última filha). O que costuma ser esquecido:
+Depois, seguir "Ao concluir o plano" do [README](../../../.docs/planos/README.md) e a checklist "Conclusão e entrega" do próprio plano, em branch `docs/conclui-gh-$PLANO` (ou no mesmo PR de conclusão da última filha), com `@coderabbitai ignore` no corpo do PR, como o de conclusão de tarefa (ver Passo 7 da [executar-tarefa](../executar-tarefa/SKILL.md)). O que costuma ser esquecido:
 
 - **Campo Plano das filhas**: ele é link para `../../planos/especificados/GH-$PLANO-….md` e quebra com o `git mv` do plano. Corrigir em cada filha, no mesmo commit:
 

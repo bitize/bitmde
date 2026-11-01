@@ -174,6 +174,7 @@ Seguir "Ao concluir a tarefa" do [README](../../../.docs/tarefas/README.md) e a 
 - **Issue**: já fechada pelo `Closes #NN`; conferir com `gh issue view`. Se não fechou, `gh issue close "$NN"`.
 - **Filha de plano**: atualizar link e status desta tarefa na tabela de filhas do plano, **no mesmo commit** do `git mv`. Se era a última filha aberta, o fechamento do plano segue a [executar-plano](../executar-plano/SKILL.md).
 - `npm run format` antes de commitar. PR `docs: conclui a tarefa GH-NN`, também com confirmação do usuário antes do push.
+- **`@coderabbitai ignore` no corpo do PR de conclusão**, numa linha própria. O PR só move a tarefa e marca checklist — não há o que revisar, e cada revisão gasta a cota do CodeRabbit, que é curta. Ela vai já no `gh pr create`: o CodeRabbit enfileira a revisão assim que o PR abre. Não usar no PR de implementação, nem em PR de conclusão que também mexa em código.
 
 Release **não** faz parte da tarefa: segue [release.md](../../../.docs/arquitetura/release.md), quando o usuário decidir.
 
