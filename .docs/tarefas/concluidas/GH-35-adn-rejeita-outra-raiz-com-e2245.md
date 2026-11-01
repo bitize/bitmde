@@ -3,14 +3,14 @@
 | Campo                | Valor                                               |
 | -------------------- | --------------------------------------------------- |
 | **Issue**            | [GH-35](https://github.com/bitize/bitmde/issues/35) |
-| **Status**           | especificadas                                       |
+| **Status**           | concluidas                                          |
 | **Plano**            | —                                                   |
 | **Prioridade**       | P2 (médio)                                          |
 | **Tipo**             | correção                                            |
 | **Camadas afetadas** | test                                                |
 | **Criado em**        | 2026-11-01                                          |
 | **Atualizado em**    | 2026-11-01                                          |
-| **Concluído em**     | —                                                   |
+| **Concluído em**     | 2026-11-01                                          |
 
 ---
 
@@ -123,12 +123,12 @@ Rodar na raiz do repositório:
 
 Executar **após o PR ser mergeado na `main`**:
 
-- [ ] Desvios registrados em "Notas de implementação"
-- [ ] Checklists marcados
-- [ ] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
-- [ ] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-35-adn-rejeita-outra-raiz-com-e2245.md .docs/tarefas/concluidas/GH-35-adn-rejeita-outra-raiz-com-e2245.md`
-- [ ] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
-- [ ] Issue fechada no GitHub
+- [x] Desvios registrados em "Notas de implementação"
+- [x] Checklists marcados
+- [x] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [x] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-35-adn-rejeita-outra-raiz-com-e2245.md .docs/tarefas/concluidas/GH-35-adn-rejeita-outra-raiz-com-e2245.md`
+- [x] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
+- [x] Issue fechada no GitHub
 
 ## Referências
 
@@ -140,7 +140,8 @@ Executar **após o PR ser mergeado na `main`**:
 
 ## Histórico de revisões
 
-| Data       | Rev | Descrição                |
-| ---------- | --- | ------------------------ |
-| 2026-11-01 | 1.0 | Criação da especificação |
-| 2026-11-01 | 1.1 | Implementação e notas    |
+| Data       | Rev | Descrição                                                              |
+| ---------- | --- | ---------------------------------------------------------------------- |
+| 2026-11-01 | 1.0 | Criação da especificação                                               |
+| 2026-11-01 | 1.1 | Implementação e notas                                                  |
+| 2026-11-01 | 1.2 | Entregue no PR #36 (merge `639d207`); tarefa movida para `concluidas/` |
