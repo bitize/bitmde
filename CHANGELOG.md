@@ -2,7 +2,9 @@
 
 ## [Não publicado]
 
-> Atualiza as dependências de runtime e passa a declará-las em faixa, e não mais em versão exata. A API não muda, e o XML assinado sai byte a byte igual.
+## [0.23.0] / 2026-11-01
+
+> Atualiza as dependências de runtime, corrigindo as vulnerabilidades altas do `npm audit`, e passa a declará-las em faixa, e não mais em versão exata. Acompanha no README a troca do `E2243` pelo `E2245` no ADN. A API não muda, e o XML assinado sai byte a byte igual.
 
 ### Segurança
 
