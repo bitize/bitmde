@@ -3,14 +3,14 @@
 | Campo                | Valor                                               |
 | -------------------- | --------------------------------------------------- |
 | **Issue**            | [GH-32](https://github.com/bitize/bitmde/issues/32) |
-| **Status**           | especificadas                                       |
+| **Status**           | concluidas                                          |
 | **Plano**            | —                                                   |
 | **Prioridade**       | P1 (alto)                                           |
 | **Tipo**             | dependências                                        |
 | **Camadas afetadas** | services / util / test                              |
 | **Criado em**        | 2026-11-01                                          |
 | **Atualizado em**    | 2026-11-01                                          |
-| **Concluído em**     | —                                                   |
+| **Concluído em**     | 2026-11-01                                          |
 
 ---
 
@@ -179,13 +179,13 @@ Rodar na raiz do repositório:
 
 Executar **após o PR ser mergeado na `main`**:
 
-- [ ] Desvios registrados em "Notas de implementação"
-- [ ] Checklists marcados
-- [ ] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
-- [ ] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-32-dependencias-em-faixa-e-npm-audit.md .docs/tarefas/concluidas/GH-32-dependencias-em-faixa-e-npm-audit.md`
-- [ ] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
-- [ ] Issue fechada no GitHub
-- [ ] Release 0.23.0 seguindo [release.md](../../arquitetura/release.md); depois dele, o consumidor sobe o `@bitize/bitmde` e confere que o lock dele ficou com uma única cópia de `fast-xml-parser`
+- [x] Desvios registrados em "Notas de implementação"
+- [x] Checklists marcados
+- [x] Cabeçalho: **Status** = `concluidas` e **Concluído em** preenchido
+- [x] Arquivo movido: `git mv .docs/tarefas/especificadas/GH-32-dependencias-em-faixa-e-npm-audit.md .docs/tarefas/concluidas/GH-32-dependencias-em-faixa-e-npm-audit.md`
+- [x] Blockquote de especificação na issue apontando para `.docs/tarefas/concluidas/` (era `especificadas/`)
+- [x] Issue fechada no GitHub
+- [ ] Release 0.23.0 seguindo [release.md](../../arquitetura/release.md); depois dele, o consumidor sobe o `@bitize/bitmde` e confere que o lock dele ficou com uma única cópia de `fast-xml-parser` — pendente: o release é decisão à parte
 
 ## Referências
 
@@ -198,7 +198,8 @@ Executar **após o PR ser mergeado na `main`**:
 
 ## Histórico de revisões
 
-| Data       | Rev | Descrição                |
-| ---------- | --- | ------------------------ |
-| 2026-11-01 | 1.0 | Criação da especificação |
-| 2026-11-01 | 1.1 | Implementação e notas    |
+| Data       | Rev | Descrição                                                              |
+| ---------- | --- | ---------------------------------------------------------------------- |
+| 2026-11-01 | 1.0 | Criação da especificação                                               |
+| 2026-11-01 | 1.1 | Implementação e notas                                                  |
+| 2026-11-01 | 1.2 | Entregue no PR #33 (merge `982e83c`); tarefa movida para `concluidas/` |
