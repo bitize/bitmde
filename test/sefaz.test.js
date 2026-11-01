@@ -42,6 +42,29 @@ function cnpjDoCertificado() {
   return encontrado[1]
 }
 
+/**
+ * Outro estabelecimento da mesma raiz do e-CNPJ: a `0002`, ou a `0003` se o
+ * certificado já for da `0002`, com o DV calculado.
+ *
+ * @returns {string}
+ */
+function filialDoCertificado() {
+  const proprio = cnpjDoCertificado()
+  const ordem = proprio.slice(8, 12) === '0002' ? '0003' : '0002'
+  const digito = (base, pesos) => {
+    const resto =
+      base.split('').reduce((soma, d, i) => soma + Number(d) * pesos[i], 0) % 11
+
+    return resto < 2 ? 0 : 11 - resto
+  }
+
+  const base = proprio.slice(0, 8) + ordem
+  const dv1 = digito(base, [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2])
+  const dv2 = digito(base + dv1, [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2])
+
+  return `${base}${dv1}${dv2}`
+}
+
 describe('SefazService', function () {
   describe('#request()', function () {
     it('NFeDistribuicaoDFe sem informar cert.pem e key.pem', async function () {
@@ -371,7 +394,7 @@ describe('DistribuicaoNFSe', function () {
     }
   })
 
-  it('cnpj de outra raiz em produção restrita: error com E2243', async function () {
+  it('cnpj de outra raiz em produção restrita: error com E2245', async function () {
     const distribuicao = new DistribuicaoNFSe({
       cert: certificado.cert,
       key: certificado.key,
@@ -381,10 +404,27 @@ describe('DistribuicaoNFSe', function () {
 
     const retorno = await distribuicao.consultaUltNSU('0')
 
-    // O ADN responde 400 com StatusProcessamento DOCUMENTOS_LOCALIZADOS.
+    // Desde 2026-11 o ADN responde 400 com E2245 ("Não há procuração…") e
+    // StatusProcessamento REJEICAO; até 2026-10 eram E2243 e
+    // DOCUMENTOS_LOCALIZADOS. O status não é conferido: o error não depende
+    // dele (ADR 0016).
     assert.strictEqual(retorno.status, 400)
-    assert.ok(retorno.error.startsWith('E2243: '), retorno.error)
-    assert.strictEqual(retorno.data.erros[0].codigo, 'E2243')
+    assert.ok(retorno.error.startsWith('E2245: '), retorno.error)
+    assert.strictEqual(retorno.data.erros[0].codigo, 'E2245')
+  })
+
+  it('filial da mesma raiz em produção restrita: sucesso sem error', async function () {
+    const distribuicao = new DistribuicaoNFSe({
+      cert: certificado.cert,
+      key: certificado.key,
+      cnpj: filialDoCertificado(),
+      tpAmb: '2',
+    })
+
+    const retorno = await distribuicao.consultaUltNSU('0')
+
+    assert.strictEqual(retorno.error, undefined)
+    assert.ok([200, 404].includes(retorno.status), String(retorno.status))
   })
 
   it('consultaUltNSU("0") em produção: DOCUMENTOS_LOCALIZADOS', async function () {
