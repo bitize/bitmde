@@ -16,7 +16,7 @@
 
 ## Contexto e motivação
 
-Depois da [GH-32](../especificadas/GH-32-dependencias-em-faixa-e-npm-audit.md), o `npm audit` fica com 3 vulnerabilidades moderadas, todas de desenvolvimento: `mocha` 11.8.0 e, via ele, `glob` 10.5.0 ([GHSA-3g3m-2fjr-6pw4](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4)) e `minimatch` 9.0.9 ([GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249)). Nenhuma vai no pacote publicado. A correção é o `mocha` 12, que é major: declara `glob ^13`, `minimatch ^10.2.2`, `js-yaml ^5`, `diff ^9` e `chokidar ^5`, e exige Node `^20.19.0 || >=22.12.0` — a matriz da CI (22 e 24) atende.
+Depois da [GH-32](https://github.com/bitize/bitmde/issues/32), o `npm audit` fica com 3 vulnerabilidades moderadas, todas de desenvolvimento: `mocha` 11.8.0 e, via ele, `glob` 10.5.0 ([GHSA-3g3m-2fjr-6pw4](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4)) e `minimatch` 9.0.9 ([GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249)). Nenhuma vai no pacote publicado. A correção é o `mocha` 12, que é major: declara `glob ^13`, `minimatch ^10.2.2`, `js-yaml ^5`, `diff ^9` e `chokidar ^5`, e exige Node `^20.19.0 || >=22.12.0` — a matriz da CI (22 e 24) atende.
 
 O `npm audit` sugere `mocha` 11.0.0 como correção. Está errado: é um downgrade que não corrige nada.
 

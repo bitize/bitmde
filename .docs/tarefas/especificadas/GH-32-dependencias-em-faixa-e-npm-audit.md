@@ -138,7 +138,7 @@ Nenhuma mudança de código esperada. Os testes que vigiam cada dependência:
 ## Testes
 
 - [x] `npm run test:ci` verde, **sem alterar teste existente** — esta tarefa não pode mudar saída
-- [x] `test/assinatura.test.js` passa com o lote congelado intacto
+- [x] `test/assinatura.test.js` passa com o lote congelado intacto — e, depois da revisão, com o `pedRegEvento` da NFS-e congelado também
 - [x] `test/certificado.test.js` passa (com o certificado descartável e, se houver, com o A1 real)
 - [x] `npm audit` lista só `glob`, `minimatch` e `mocha`
 - [x] `test/sefaz.test.js` rodado manualmente contra homologação, com A1 real (`--timeout 15000`) — 21 de 22; a falha não é desta tarefa (ver Notas)
@@ -164,9 +164,14 @@ Rodar na raiz do repositório:
 
 ## Notas de implementação
 
-- **Sem desvios.** O `xml-crypto` ficou em `~6.4.0`: com a 6.4.0, o `test/assinatura.test.js` passou com o lote congelado intacto e sem aviso de depreciação no console, com o certificado descartável e com o A1 real. O recuo para `~6.1.2` da Decisão 2 não foi necessário.
+- **Sem desvios.** O `xml-crypto` ficou em `~6.4.0`: com a 6.4.0, o `test/assinatura.test.js` passou com o lote congelado intacto e sem aviso de depreciação no console, com o certificado descartável e com o A1 real. O recuo para `~6.1.2` da Decisão 2 não foi necessário. A NFS-e foi conferida byte a byte depois, na revisão (abaixo).
 - **Lockfile.** Regenerado com `npm install` e `npm audit fix`, sem `--force` e sem `npm update` geral. Mudaram só as quatro diretas, as transitivas previstas (`@xmldom/xmldom` 0.8.15, `follow-redirects` 1.16.2, `brace-expansion` 2.1.7, `js-yaml` 4.3.2, `serialize-javascript` 7.1.4) e `@nodable/entities` 3.0.0 → 3.1.0, dependência do `fast-xml-parser` 5.11.2. Nenhum pacote entrou ou saiu da árvore. `npm audit` depois: 3 moderadas, `glob`, `minimatch` e `mocha`.
-- **Testes.** `npm run test:ci`: 250 passando antes e depois, sem alterar teste. `npm pack --dry-run`: 114 arquivos, nenhum proibido, todos os essenciais.
+- **Testes.** `npm run test:ci`: 250 passando antes; 251 depois, com o teste novo da revisão (abaixo) e sem alterar nenhum existente. `npm pack --dry-run`: 114 arquivos, nenhum proibido, todos os essenciais.
+- **Revisão automática (CodeRabbit), três comentários, todos aplicados:**
+  - _Bytes da NFS-e não conferidos_ (Major). Procedia: o `assinatura.test.js` congelava só o lote da NF-e, e para o `infPedReg` só validava a assinatura, então a primeira nota acima afirmava mais do que o teste provava. Conferido à parte: os XMLs assinados completos, sem máscara — lote da NF-e com os quatro eventos e `pedRegEvento` de Confirmação e de Rejeição (motivos `1` e `9`, com `&`, `<`, aspas, acento e quebra de linha) —, gerados com o mesmo certificado no `xml-crypto` 6.1.2 e no 6.4.0, saíram byte a byte iguais, com o descartável e com o A1 real. O `xml-crypto` fica em `~6.4.0`. Para o ADR 0017 não depender de conferência manual no próximo minor, entrou o teste `pedRegEvento da NFS-e byte a byte igual ao do xml-crypto 6.1.2`, que congela a Rejeição do Tomador mascarada como o lote da NF-e. Ele passa com a 6.4.0 e com a 6.1.2 carregada por hook de `require`. É teste a mais, sem mudar requisito.
+  - _CHANGELOG promete correção automática_. Procedia: a faixa permite a versão nova, mas não troca a que já está no lockfile do consumidor. Texto ajustado no CHANGELOG e na mesma frase do ADR 0017.
+  - _Link relativo no `mocha-12.md`_. Procedia: quebraria com o `git mv` da GH-32 para `concluidas/`. Trocado pela URL da issue.
+  - Reflexo do teste novo: a contagem "272 dos 294 testes" do `CLAUDE.md` e de [testes-e-certificados.md](../../arquitetura/testes-e-certificados.md) passou a "273 dos 295".
 - **`test/sefaz.test.js` com A1 real: 21 de 22.** Rodado de um diretório temporário com `certs/` apontando para o A1, sem tocar o `certs/` descartável do repositório. A falha é `DistribuicaoNFSe — cnpj de outra raiz em produção restrita: error com E2243`: o ADN passou a responder `E2245` ("Não há procuração da inscrição … para a inscrição …") para um CNPJ fora da raiz do certificado. **A falha se reproduz com as dependências da `main`** (`axios` 1.19.0, `node-forge` 1.4.0), então é mudança do servidor, não desta tarefa. Fica fora do PR; o teste, a [ADR 0016](../../arquitetura/decisoes/0016-retorno-proprio-da-nfse.md) e o `CLAUDE.md`, que citam o `E2243`, ficam para tarefa própria.
 - **Pendente:** o release 0.23.0, que não faz parte da tarefa ([release.md](../../arquitetura/release.md)).
 

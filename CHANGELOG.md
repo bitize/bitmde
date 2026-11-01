@@ -16,7 +16,7 @@
 
 ### Modificado
 
-- **Dependências de runtime declaradas em faixa**: `axios ^1.21.0`, `fast-xml-parser ^5.11.2`, `node-forge ^1.4.2` e `xml-crypto ~6.4.0` (só patch, por ser a dependência que assina). Quem instala o bitmde passa a deduplicar essas dependências com as próprias e a receber correções de minor e patch sem esperar um release nosso. Ver [ADR 0017](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0017-dependencias-de-runtime-em-faixa.md)
+- **Dependências de runtime declaradas em faixa**: `axios ^1.21.0`, `fast-xml-parser ^5.11.2`, `node-forge ^1.4.2` e `xml-crypto ~6.4.0` (só patch, por ser a dependência que assina). Quem instala o bitmde passa a deduplicar essas dependências com as próprias e pode receber correções de minor e patch sem esperar um release nosso. Versões já gravadas no lockfile do consumidor não mudam sozinhas: para receber uma correção, atualize o lockfile (por exemplo, `npm update axios`) e rode `npm audit`. Ver [ADR 0017](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0017-dependencias-de-runtime-em-faixa.md)
 
 ## [0.22.0] / 2026-10-18
 

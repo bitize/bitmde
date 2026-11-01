@@ -35,7 +35,7 @@ O piso da faixa é a versão sem aviso conhecido no momento do bump, e não a ma
 **Fica mais fácil:**
 
 - O consumidor deduplica as dependências que compartilha com o bitmde;
-- Correção de segurança em minor ou patch chega ao consumidor sem release nosso;
+- Correção de segurança em minor ou patch chega ao consumidor sem release nosso, assim que ele atualiza o próprio lockfile — a faixa permite a versão nova, mas não troca sozinha a que já está gravada lá;
 - Bump de rotina vira só regenerar o lockfile, sem tocar o `package.json`.
 
 **Fica mais difícil:**
@@ -46,5 +46,5 @@ O piso da faixa é a versão sem aviso conhecido no momento do bump, e não a ma
 **Compromisso de longo prazo:**
 
 - **Dependência nova de runtime entra em faixa.** Pino exato só com motivo registrado aqui, num ADR que supersede este;
-- **`xml-crypto` fica em `~`.** Subir o minor exige que o `test/assinatura.test.js` passe sem mudar o lote congelado; se mudar, é decisão de tarefa própria, com `test/sefaz.test.js` contra homologação;
+- **`xml-crypto` fica em `~`.** Subir o minor exige que o `test/assinatura.test.js` passe sem mudar os XMLs congelados — o lote da NF-e e o `pedRegEvento` da NFS-e; se mudar, é decisão de tarefa própria, com `test/sefaz.test.js` contra homologação;
 - Dependências de dev não entram nesta regra. O Prettier continua em versão exata, pelo motivo do [ADR 0003](0003-lockfile-versionado.md).
