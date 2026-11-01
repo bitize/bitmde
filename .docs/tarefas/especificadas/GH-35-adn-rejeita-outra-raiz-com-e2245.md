@@ -90,33 +90,34 @@ Nenhuma mensagem de erro da biblioteca muda. Nenhum arquivo de `src/` muda.
 
 ## Testes
 
-- [ ] `npm run test:ci` verde, com a mesma contagem: nenhum teste novo fora do `sefaz.test.js`
-- [ ] `test/sefaz.test.js` rodado com A1 real: 23 de 23 (22 de antes, com o de outra raiz corrigido, mais o da filial)
+- [x] `npm run test:ci` verde, com a mesma contagem: nenhum teste novo fora do `sefaz.test.js`
+- [x] `test/sefaz.test.js` rodado com A1 real: 23 de 23 (22 de antes, com o de outra raiz corrigido, mais o da filial)
 
 ## Checklist de implementação
 
-- [ ] Testes em `test/`
-- [ ] [README.md](../../../README.md) atualizado
-- [ ] `CHANGELOG.md` atualizado em `[Não publicado]`
-- [ ] Docs de `.docs/arquitetura/`, `.docs/conhecimento/` e `CLAUDE.md` atualizados
-- [ ] Skills `executar-tarefa` e `executar-plano` com o `@coderabbitai ignore`, em commit próprio
+- [x] Testes em `test/`
+- [x] [README.md](../../../README.md) atualizado
+- [x] `CHANGELOG.md` atualizado em `[Não publicado]`
+- [x] Docs de `.docs/arquitetura/`, `.docs/conhecimento/` e `CLAUDE.md` atualizados
+- [x] Skills `executar-tarefa` e `executar-plano` com o `@coderabbitai ignore`, em commit próprio
 
 ## Validação pré-PR (obrigatório)
 
 Rodar na raiz do repositório:
 
-- [ ] `npm run format` (ou conferir com `npm run format:check`)
-- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real)
-- [ ] `npm run test:ci` — tudo menos `test/sefaz.test.js`; é o que roda com o certificado descartável
-- [ ] `test/sefaz.test.js` rodado à parte (`npx mocha test/sefaz.test.js`) — exige certificado A1 válido e acesso à rede
-- [ ] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
-- [ ] `git status` limpo, exceto o que a tarefa mudou de propósito
+- [x] `npm run format` (ou conferir com `npm run format:check`)
+- [ ] `npm run certs:teste` — se `certs/` ainda não existir (o script aborta se existir, para não sobrescrever certificado real) — não se aplicou: `certs/` já existia, com o certificado descartável
+- [x] `npm run test:ci` — tudo menos `test/sefaz.test.js`; é o que roda com o certificado descartável
+- [x] `test/sefaz.test.js` rodado à parte (`npx mocha test/sefaz.test.js`) — exige certificado A1 válido e acesso à rede
+- [x] `npm run build` — confere o JSDoc e regenera `lib/`, `dist/` e `src/env/version.js`
+- [x] `git status` limpo, exceto o que a tarefa mudou de propósito
 
 ## Notas de implementação
 
-> Preenchido durante ou após a implementação. Registrar os **desvios** em relação a esta especificação e a justificativa de cada um. Se não houve, escrever "Sem desvios".
-
--
+- **Sem desvios.** Nada em `src/` mudou.
+- **Testes.** `npm run test:ci`: 251 passando antes e depois. `test/sefaz.test.js` com A1 real: 23 de 23, rodado de um diretório temporário com `certs/` apontando para o A1. A filial do teste novo é derivada do CNPJ do certificado durante a execução; nenhum CNPJ real entrou no repositório.
+- **Contagem da suíte inteira**: 296 testes, 23 deles no `sefaz.test.js`. A frase do `CLAUDE.md` e de [testes-e-certificados.md](../../arquitetura/testes-e-certificados.md) foi de "273 dos 295" para "273 dos 296". Com o certificado descartável, `npx mocha` deu 275 passando e 21 falhando, todas no `sefaz.test.js`. Uma rodada anterior teve uma falha a mais, que não se repetiu: oscilação de rede.
+- **`E2243` ainda citado de propósito** no comentário do `retornoNfse-helper.js` e no teste do helper, que vigiam a regra da ADR 0016; na ADR 0016, que é registro datado; e em `CLAUDE.md`, `fluxos/distribuicao-nfse.md` e no material de conhecimento, como histórico. O comentário de `src/` não foi tocado, para o PR não mexer em código.
 
 ## Conclusão e entrega
 
@@ -142,3 +143,4 @@ Executar **após o PR ser mergeado na `main`**:
 | Data       | Rev | Descrição                |
 | ---------- | --- | ------------------------ |
 | 2026-11-01 | 1.0 | Criação da especificação |
+| 2026-11-01 | 1.1 | Implementação e notas    |

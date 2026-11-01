@@ -14,6 +14,10 @@
   - No lockfile: `follow-redirects` 1.16.2 e, só em desenvolvimento, `brace-expansion` 2.1.7, `js-yaml` 4.3.2 e `serialize-javascript` 7.1.4
 - Seguem abertas 3 vulnerabilidades moderadas, só de desenvolvimento e fora do pacote publicado: `mocha` e, via ele, `glob` e `minimatch`. Só se corrigem no `mocha` 12
 
+### Corrigido
+
+- README: o exemplo de rejeição do ADN na `DistribuicaoNFSe` passa a ser o `E2245`. Desde 2026-11, um `cnpj` de outra raiz volta com HTTP 400 e `E2245` ("Não há procuração da inscrição … para a inscrição …"), e não mais com `E2243`. A biblioteca já devolvia `status` 400 e o `error` certo, sem mudança de código; quem compara o código `E2243` precisa passar a esperar o `E2245`
+
 ### Modificado
 
 - **Dependências de runtime declaradas em faixa**: `axios ^1.21.0`, `fast-xml-parser ^5.11.2`, `node-forge ^1.4.2` e `xml-crypto ~6.4.0` (só patch, por ser a dependência que assina). Quem instala o bitmde passa a deduplicar essas dependências com as próprias e pode receber correções de minor e patch sem esperar um release nosso. Versões já gravadas no lockfile do consumidor não mudam sozinhas: para receber uma correção, atualize o lockfile (por exemplo, `npm update axios`) e rode `npm audit`. Ver [ADR 0017](https://github.com/bitize/bitmde/blob/main/.docs/arquitetura/decisoes/0017-dependencias-de-runtime-em-faixa.md)

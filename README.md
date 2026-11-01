@@ -537,12 +537,12 @@ console.log(consulta)
 
 #### Quando há `error`
 
-| Situação                                          | `status` | `data`                       | `error`                                            |
-| :------------------------------------------------ | :------: | :--------------------------- | :------------------------------------------------- |
-| Fila vazia, chave ou NSU sem documento            |   404    | preenchido, `documentos: []` | —                                                  |
-| Rejeição do ADN (ex.: `cnpj` de outra raiz)       |   400    | preenchido, com `erros`      | `E2243: O CNPJ informado na consulta deve ter ...` |
-| Resposta que não é do ADN (ex.: HTML de um proxy) |   real   | `{}`                         | `Resposta inesperada do ADN (HTTP 502).`           |
-| Sem resposta HTTP                                 |    0     | `{}`                         | `Falha de transporte (<code>): <message>`          |
+| Situação                                          | `status` | `data`                       | `error`                                     |
+| :------------------------------------------------ | :------: | :--------------------------- | :------------------------------------------ |
+| Fila vazia, chave ou NSU sem documento            |   404    | preenchido, `documentos: []` | —                                           |
+| Rejeição do ADN (ex.: `cnpj` de outra raiz)       |   400    | preenchido, com `erros`      | `E2245: Não há procuração da inscrição ...` |
+| Resposta que não é do ADN (ex.: HTML de um proxy) |   real   | `{}`                         | `Resposta inesperada do ADN (HTTP 502).`    |
+| Sem resposta HTTP                                 |    0     | `{}`                         | `Falha de transporte (<code>): <message>`   |
 
 Na rejeição, `data` **não** é esvaziado: `data.erros` traz o diagnóstico em `{ codigo, descricao, complemento }`. `error` e `transportError` têm o mesmo significado da distribuição de DF-e — ver [Erro de transporte](#erro-de-transporte).
 
