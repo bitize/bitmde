@@ -400,7 +400,9 @@ describe('RetornoNfseHelper', function () {
     })
 
     it('HTTP 400 com Erros vira error mesmo com DOCUMENTOS_LOCALIZADOS', function () {
-      // É como o ADN responde ao cnpjConsulta de outra raiz (E2243).
+      // É como o ADN respondia ao cnpjConsulta de outra raiz até 2026-10
+      // (E2243). Hoje ele usa E2245 com REJEICAO, mas o caso continua sendo o
+      // que prova a regra da ADR 0016: o status não decide sozinho.
       const json = dados('DOCUMENTOS_LOCALIZADOS', [
         { codigo: 'E2243', descricao: 'CNPJ de outra raiz.', complemento: '' },
       ])

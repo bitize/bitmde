@@ -114,7 +114,7 @@ Chamadas de 2026-10-15, só leitura, feitas na implementação da [GH-18](../tar
 O que muda em relação ao Swagger:
 
 - **`lote=false` também devolve o documento seguinte ao NSU do caminho**, não o próprio NSU. O Swagger diz "o Documento Fiscal de Serviço correspondente ao NSU informado". Para obter o NSU `n`, pedir `/DFe/{n-1}?lote=false`.
-- **Rejeição não vem necessariamente como `REJEICAO`.** `cnpjConsulta` de outra raiz volta com HTTP 400, `E2243` ("O CNPJ informado na consulta deve ter o mesmo CNPJ Base do Contribuinte solicitante.") e `StatusProcessamento: DOCUMENTOS_LOCALIZADOS`, com `LoteDFe` vazio. Quem decide se falhou é o HTTP e o `Erros`, não só o status.
+- **Rejeição não vem necessariamente como `REJEICAO`.** `cnpjConsulta` de outra raiz volta com HTTP 400, `E2243` ("O CNPJ informado na consulta deve ter o mesmo CNPJ Base do Contribuinte solicitante.") e `StatusProcessamento: DOCUMENTOS_LOCALIZADOS`, com `LoteDFe` vazio. Quem decide se falhou é o HTTP e o `Erros`, não só o status. _Mudou em 2026-11: ver [Sondagem de 2026-11-01](#sondagem-de-2026-11-01-procuração)._
 - `Erros[].Mensagem` vem como `{}` e `Parametros` não vem; `Codigo` e `Descricao` são o que importa.
 - NSU fora do formato `int64` nem chega à aplicação: o roteador responde `application/problem+json` (`type`, `title`, `status`, `errors`, `traceId`), sem `StatusProcessamento`.
 - `cnpjConsulta` igual ao CNPJ do certificado é aceito, com o mesmo resultado de omitir o parâmetro.
@@ -122,8 +122,24 @@ O que muda em relação ao Swagger:
 
 A cadeia TLS dos dois hosts é `Let's Encrypt YR1 ← ISRG Root YR ← ISRG Root X1` (cross-sign), por isso fecha pelas raízes do Node e não pela ICP-Brasil.
 
+### Sondagem de 2026-11-01: procuração
+
+Chamadas só de leitura, `/DFe/0?lote=true&cnpjConsulta=…`, feitas na [GH-35](https://github.com/bitize/bitmde/issues/35) depois que o `sefaz.test.js` deixou de receber o `E2243`:
+
+| `cnpjConsulta`            | Ambiente          | HTTP | `StatusProcessamento`         | `Erros` | `TipoConsulta`         |
+| ------------------------- | ----------------- | ---- | ----------------------------- | ------- | ---------------------- |
+| CNPJ do certificado       | Produção restrita | 404  | `NENHUM_DOCUMENTO_LOCALIZADO` | `E2220` | `CnpjBase`             |
+| CNPJ do certificado       | Produção          | 200  | `DOCUMENTOS_LOCALIZADOS`      | —       | `CnpjBase`             |
+| Filial da mesma raiz      | Ambos             | 404  | `NENHUM_DOCUMENTO_LOCALIZADO` | `E2220` | `CnpjBase`             |
+| De outra raiz (dois CNPJ) | Ambos             | 400  | **`REJEICAO`**                | `E2245` | `InscricaoCertificado` |
+
+- **Outra raiz agora é `E2245`**: "Não há procuração da inscrição `<CNPJ do certificado>` para a inscrição `<CNPJ consultado>`.", com `StatusProcessamento: REJEICAO` e `LoteDFe` vazio. O `E2243` não apareceu mais.
+- **`TipoConsulta`** é campo novo, ou passou despercebido em 2026-10-15: `CnpjBase` quando o `cnpjConsulta` é da raiz do certificado, `InscricaoCertificado` quando não é. A biblioteca não o expõe em `data`.
+- A regra de que o HTTP e o `Erros` decidem a falha continua necessária ([ADR 0016](../arquitetura/decisoes/0016-retorno-proprio-da-nfse.md)): o caso do `E2243` mostrou que o ADN pode rejeitar com status de sucesso.
+
 ## Ainda não confirmado
 
+- **Consulta por procuração.** A mensagem do `E2245` e o `TipoConsulta: InscricaoCertificado` indicam que o ADN aceita `cnpjConsulta` de outra raiz quando há procuração eletrônica do CNPJ consultado para o do certificado. Não testado: não há procuração cadastrada para o certificado usado nos testes.
 - Se a distribuição tem retenção máxima — o histórico observado não mostrou corte.
 - Limite de cadência sob carga maior que a observada.
 

@@ -43,7 +43,7 @@ Quem não tem um A1 em mãos roda:
 npm run certs:teste
 ```
 
-[scripts/gerar-certificado-teste.sh](../../scripts/gerar-certificado-teste.sh) gera um autoassinado válido por 10 anos e libera tudo menos `sefaz.test.js` — 273 dos 295 testes, dos quais os 22 de `tls-sefaz.test.js` exigem rede.
+[scripts/gerar-certificado-teste.sh](../../scripts/gerar-certificado-teste.sh) gera um autoassinado válido por 10 anos e libera tudo menos `sefaz.test.js` — 273 dos 296 testes, dos quais os 22 de `tls-sefaz.test.js` exigem rede.
 
 O script **aborta se `certs/` já existir**, para não sobrescrever um certificado real. Regerar exige apagar o diretório à mão.
 
@@ -88,7 +88,7 @@ Teste de integração de verdade: bate nos endpoints de **produção e homologa�
 
 Os blocos da `DistribuicaoCTe` e da `DistribuicaoMDFe` fazem `consultaUltNSU('0')` e `consultaNSU('1')` **só em homologação**: em produção, consulta por NSU move o ponteiro que a SEFAZ guarda por CNPJ e pode dessincronizar quem já faz a distribuição dele (`cStat` 656). Aceitam só os `cStat` que a base de homologação pode devolver para um leiaute aceito (137, 138, 493, 656) e reprovam qualquer outro — o `215`, falha de schema, e também um código inesperado, que pede investigação antes de entrar na lista. É o que prova que o envelope e o `distDFeInt` de cada serviço estão certos. A produção dos dois serviços é coberta só pelo `GET` do WSDL, com mTLS.
 
-O bloco da `DistribuicaoNFSe` lê o ADN: `consultaUltNSU('0')` em produção restrita (sem `error`, com fila vazia ou não) e em produção (`DOCUMENTOS_LOCALIZADOS`), `consultaNSU('1')` em produção e um `cnpj` de outra raiz em produção restrita (`E2243`). É só leitura, e o ADN não tem bloqueio de sequência, então não dessincroniza ninguém. O CNPJ consultado sai do CN do `certs/cert.pem` durante o teste, para não ficar escrito no repositório; com o certificado descartável, esses testes falham.
+O bloco da `DistribuicaoNFSe` lê o ADN: `consultaUltNSU('0')` em produção restrita (sem `error`, com fila vazia ou não) e em produção (`DOCUMENTOS_LOCALIZADOS`), `consultaNSU('1')` em produção, um `cnpj` de outra raiz em produção restrita (`E2245`, falta de procuração) e a filial `0002` da mesma raiz do certificado, também em produção restrita (aceita, sem `error`). É só leitura, e o ADN não tem bloqueio de sequência, então não dessincroniza ninguém. O CNPJ consultado sai do CN do `certs/cert.pem` durante o teste, para não ficar escrito no repositório; com o certificado descartável, esses testes falham.
 
 O bloco da `ManifestacaoNFSe` só manda à SEFIN pedido que ela **rejeita**: `confirmar` e `rejeitar` sobre uma chave inventada (`E1831`, a nota não existe no ADN), em produção e em produção restrita, e um pedido com o `dhEvento` alterado depois de assinar (`E0714`). O último prova que a SEFIN confere a assinatura antes da existência da nota — e, com isso, que chegar ao `E1831` significa assinatura aceita. Confirmação ou Rejeição aceita registra evento fiscal irreversível, e a segunda execução seria duplicidade: **não entra na suíte**.
 

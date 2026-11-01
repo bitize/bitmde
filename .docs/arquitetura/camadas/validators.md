@@ -56,7 +56,7 @@ Detalhes que não são óbvios pelo nome:
 - **`EventoValidator` só exige justificativa no evento 210240** (Operação não Realizada), com 15 a 255 caracteres. Nos outros três tipos, uma justificativa informada é repassada assim mesmo.
 - **`AmbienteValidator` compara com string.** `tpAmb: 1` (número) falha com `'Ambiente com valor inválido.'`; ver invariante 3 em [../README.md](../README.md).
 - **`CertificadoValidator.getValues()` faz `.toString()`** em `cert` e `key`, então Buffer entra e string sai.
-- **`CnpjValidator` aceita o CNPJ alfanumérico** da IN RFB nº 2.229/2024, mas não confere o DV. Quem rejeita CNPJ de outra raiz é o ADN (`E2243`).
+- **`CnpjValidator` aceita o CNPJ alfanumérico** da IN RFB nº 2.229/2024, mas não confere o DV. Quem rejeita CNPJ de outra raiz é o ADN (`E2245`, falta de procuração).
 - **`NsuNfseValidator` aceita `0` número.** Ao contrário do `NsuValidator`, que testa `!this.nsu`, ele só recusa `undefined`, `null` e `''`, porque `consultaUltNSU(0)` é o começo da fila. A opção `positivo` existe para a `consultaNSU`, que pede o NSU anterior ao informado.
 - **`ChaveNfseValidator` exige só dígitos**, e não só o comprimento: a chave vai no caminho da URL.
 - **`MotivoRejeicaoValidator` recebe o objeto `motivo` do `rejeitar`**, não a config. `cMotivo` `'01'` é recusado: o XSD só aceita um dígito. O `xMotivo` é aparado antes de medir, porque o `TSString` do XSD não aceita espaço nas pontas.

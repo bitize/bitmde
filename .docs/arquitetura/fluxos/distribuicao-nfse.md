@@ -34,7 +34,7 @@ DistribuicaoNFSeController.enviar({ ...config, ultNSU })
 | `consultaNSU`    | `NsuNfseValidator` (`positivo`) | `GET /DFe/{nsu - 1}?lote=false&cnpjConsulta=…` | O documento daquele NSU                       |
 | `consultaChNFSe` | `ChaveNfseValidator`            | `GET /NFSe/{chNFSe}/Eventos`                   | A NFS-e da chave e os eventos dela            |
 
-`cnpjConsulta` sai sempre, com o `config.cnpj`: o ADN aceita o CNPJ do próprio certificado e o de outro estabelecimento da mesma raiz, e rejeita os demais com `E2243`.
+`cnpjConsulta` sai sempre, com o `config.cnpj`: o ADN aceita o CNPJ do próprio certificado e o de outro estabelecimento da mesma raiz (`TipoConsulta: CnpjBase`), e rejeita os demais com HTTP 400 e `E2245` — "Não há procuração da inscrição … para a inscrição …" (`TipoConsulta: InscricaoCertificado`). A mensagem indica que um CNPJ de outra raiz passa com procuração cadastrada, o que não foi confirmado. Até 2026-10 a rejeição era `E2243`, com `StatusProcessamento: DOCUMENTOS_LOCALIZADOS`; ver [conhecimento/nfse-nacional-adn-distribuicao.md](../../conhecimento/nfse-nacional-adn-distribuicao.md).
 
 ### Por que `consultaNSU` pede `nsu - 1`
 
